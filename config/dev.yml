@@ -1,0 +1,51 @@
+chain:
+  - name: SOLANA
+    wsRpc: wss://solana-mainnet.core.chainstack.com/c0260deb07f06fce4403c9a4033adafa
+    queryRpc:
+      - https://dawn-spring-theorem.solana-mainnet.quiknode.pro/04e4ec0d9800a4f9246ad8c12d2dec501ef5435c
+    slotParallel: 1
+    txDetal: 200
+    rangeRound: 200
+  - name: ETH
+    wsRpc: wss://mainnet.infura.io/ws/v3/your-infura-project-id
+    queryRpc:
+      - https://rpc.ankr.com/eth
+    slotParallel: 1
+    txDetal: 200
+    rangeRound: 200
+  - name: BSC
+    wsRpc: wss://mainnet.infura.io/ws/v3/your-infura-project-id
+    queryRpc:
+      - https://rpc.ankr.com/bsc
+    slotParallel: 1
+    txDetal: 200
+    rangeRound: 200
+
+database:
+  type: mysql
+  host: localhost
+  port: 3306
+  user: root
+  password: 123456
+  dbname: mbc_api_main
+  sslmode: disable
+  TimeZone: Asia/Shanghai
+
+redis:
+  host: localhost
+  port: 6379
+  password: 123456
+  db: 1
+
+log:
+  path:
+
+cmd:
+  port: 9501
+  host: localhost
+
+http:
+  port: 18080
+
+allStart: 1
+proxyEnable : true
