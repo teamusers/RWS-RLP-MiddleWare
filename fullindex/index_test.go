@@ -16,7 +16,7 @@ func TestSearch(t *testing.T) {
 		log.Fatalf("Failed to add document: %v", err)
 	}
 
-	// 搜索
+	// Search
 	results, err := SearchIndex("Bleve", 10, true)
 	if err != nil {
 		log.Fatalf("Search failed: %v", err)

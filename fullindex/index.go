@@ -10,7 +10,7 @@ import (
 )
 
 // const indexPath = "/app/fullindex"
-const indexPath = "/Users/jclee/Desktop/solprobe/index"
+const indexPath = "/Users/eric_/oneDrive/Desktop/solprobe/index"
 
 var (
 	index bleve.Index

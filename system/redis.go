@@ -7,8 +7,9 @@ import (
 	"log"
 	"time"
 
+	"rlp-middleware/config"
+
 	redis "github.com/redis/go-redis/v9"
-	"github.com/stonksdex/externalapi/config"
 )
 
 var rdb *redis.Client
@@ -81,18 +82,18 @@ func GetCacheListByIndex(key string, index int64) (string, error) {
 	return rdb.LIndex(context.Background(), key, int64(index)).Result()
 }
 
-// 将数据左插入到列表，并设置过期时间
+// Left-push the data into the list and set an expiration time
 func SetCacheObjectListByLeft(key string, dataList interface{}, size int, expireByDays int) (int64, error) {
-	// 先修剪列表
+	// Trim the list first
 	SetTrim(key, size)
 
-	// 左侧添加数据
+	// Add data to the left side
 	count, err := rdb.LPush(ctx, key, dataList).Result()
 	if err != nil {
 		return 0, err
 	}
 
-	// 设置过期时间，如果 expireByDays 大于 0
+	// Set expiration time if expireByDays is greater than 0
 	if expireByDays > 0 {
 		_, err = rdb.Expire(ctx, key, time.Duration(expireByDays)*24*time.Hour).Result()
 		if err != nil {
@@ -103,7 +104,7 @@ func SetCacheObjectListByLeft(key string, dataList interface{}, size int, expire
 	return count, nil
 }
 
-// 修剪列表到指定大小
+// Trim the list to the specified size
 func SetTrim(key string, size int) error {
 	listSize, err := rdb.LLen(ctx, key).Result()
 	if err != nil {
@@ -126,19 +127,19 @@ func SetCacheObjectListByIndex(key string, index int64, value interface{}) {
 	}
 }
 
-// 从 Redis 获取哈希表字段并反序列化为结构体
+// Get hash fields from Redis and deserialize into a struct
 func HGet(hashKey string, field string, result interface{}) error {
-	// 获取哈希表字段值
+	// Get the value of a hash field
 	data, err := rdb.HGet(ctx, hashKey, field).Result()
 	if err != nil {
 		if err == redis.Nil {
-			// 如果字段不存在，返回 nil 而不是错误
+			// If the field does not exist, return nil instead of an error
 			return nil
 		}
 		return fmt.Errorf("error getting hash field: %v", err)
 	}
 
-	// 将 JSON 数据反序列化为结构体实例
+	// Deserialize JSON data into a struct instance
 	err = json.Unmarshal([]byte(data), result)
 	if err != nil {
 		return fmt.Errorf("error unmarshaling JSON to struct: %v", err)
@@ -147,15 +148,15 @@ func HGet(hashKey string, field string, result interface{}) error {
 	return nil
 }
 
-// 将结构体序列化为 JSON 并写入 Redis 哈希表字段
+// Serialize the struct into JSON and write it to a Redis hash field
 func HSet(hashKey string, field string, data interface{}) error {
-	// 将结构体序列化为 JSON 字符串
+	// Serialize the struct into a JSON string
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("error marshaling struct to JSON: %v", err)
 	}
 
-	// 将 JSON 数据写入 Redis 哈希表字段
+	// Write JSON data to a Redis hash field
 	err = rdb.HSet(ctx, hashKey, field, jsonData).Err()
 	if err != nil {
 		return fmt.Errorf("error setting hash field: %v", err)

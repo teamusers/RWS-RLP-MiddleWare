@@ -5,58 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/stonksdex/externalapi/codes"
+	"rlp-middleware/codes"
 )
-
-type WalletGenerated struct {
-	ID             uint64    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	UserID         uint64    `gorm:"column:user_id" json:"user_id"`
-	Wallet         string    `gorm:"column:wallet" json:"wallet"`
-	ChainCode      string    `gorm:"column:chain_code" json:"chain_code"`
-	EncryptPK      string    `gorm:"column:encrypt_pk" json:"encrypt_pk"`
-	EncryptVersion string    `gorm:"column:encrypt_version" json:"encrypt_version"`
-	CreateTime     time.Time `gorm:"column:create_time" json:"create_time"`
-	Channel        string    `gorm:"column:channel" json:"channel"`
-	CanPort        bool      `gorm:"column:canport" json:"canport"`
-	Status         string    `gorm:"column:status" json:"status"`
-	GroupID        uint64    `gorm:"column:group_id" json:"group_id"`
-	Nonce          int       `gorm:"column:nonce" json:"nonce"`
-}
-
-// TableName sets the insert table name for this struct type
-func (WalletGenerated) TableName() string {
-	return "wallet_generated"
-}
-
-type WalletGroup struct {
-	ID             uint64    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	UserID         uint64    `gorm:"column:user_id" json:"user_id"`
-	CreateTime     time.Time `gorm:"column:create_time" json:"create_time"`
-	EncryptMem     string    `gorm:"column:encrypt_mem" json:"encrypt_mem"`
-	EncryptVersion string    `gorm:"column:encrypt_version" json:"encrypt_version"`
-	Nonce          int       `gorm:"column:nonce" json:"nonce"`
-}
-
-func (WalletGroup) TableName() string {
-	return "wallet_group"
-}
-
-type WalletLog struct {
-	ID        uint64    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	WalletID  int64     `gorm:"column:wallet_id" json:"wallet_id"`
-	Wallet    string    `gorm:"column:wallet" json:"wallet"`
-	Data      string    `gorm:"column:data" json:"data"`
-	Sig       string    `gorm:"column:sig" json:"sig"`
-	ChainCode string    `gorm:"column:chain_code" json:"chain_code"`
-	TxHash    string    `gorm:"column:tx_hash" json:"tx_hash"`
-	OpTime    time.Time `gorm:"column:op_time" json:"op_time"`
-	Operation string    `gorm:"column:operation" json:"operation"`
-	Err       string    `gorm:"column:error" json:"error"`
-}
-
-func (WalletLog) TableName() string {
-	return "wallet_log"
-}
 
 type SysChannel struct {
 	ID         uint64    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`

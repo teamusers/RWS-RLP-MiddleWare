@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# 配置环境变量
+# Configure environment variables
 export DALINK_GO_CONFIG_PATH=/app/stonks-api/prod.yml
 
-# 进程名称
-PROCESS_NAME="./stonks-api"
+# Process name
+PROCESS_NAME="./rlp-middleware-api"
 LOG_FILE="output.log"
 
-# 检查进程是否存在
+# Check if the process exists
 PID=$(pgrep -f $PROCESS_NAME)
 
 if [ -n "$PID" ]; then
@@ -18,11 +18,11 @@ else
   echo "No existing process found for $PROCESS_NAME"
 fi
 
-# 启动新的进程
+# Start a new process
 echo "Starting new process $PROCESS_NAME"
 nohup ./$PROCESS_NAME > $LOG_FILE 2>&1 &
 
-# 获取新的进程ID
+# Get the new process ID
 NEW_PID=$(pgrep -f $PROCESS_NAME)
 if [ -n "$NEW_PID" ]; then
   echo "New process $PROCESS_NAME started with PID $NEW_PID"

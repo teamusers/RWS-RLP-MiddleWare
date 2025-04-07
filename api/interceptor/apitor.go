@@ -7,13 +7,14 @@ import (
 	"sync"
 	"time"
 
+	"rlp-middleware/api/common"
+	"rlp-middleware/codes"
+	"rlp-middleware/log"
+	"rlp-middleware/model"
+	"rlp-middleware/security"
+	"rlp-middleware/system"
+
 	"github.com/gin-gonic/gin"
-	"github.com/stonksdex/externalapi/api/common"
-	"github.com/stonksdex/externalapi/codes"
-	"github.com/stonksdex/externalapi/log"
-	"github.com/stonksdex/externalapi/model"
-	"github.com/stonksdex/externalapi/security"
-	"github.com/stonksdex/externalapi/system"
 )
 
 var exception = []string{""}
@@ -31,7 +32,22 @@ const (
 )
 
 func HttpInterceptor() gin.HandlerFunc {
+	debugMode := true
 	return func(c *gin.Context) {
+
+		if debugMode {
+			// In debug mode, bypass all checks.
+			c.Set("APPID", "debug-app-id")
+			c.Set("REQUESTID", "debug-request-id")
+			c.Set("TS", time.Now().Unix())
+			c.Set("HEADERS", map[string]string{"AppId": "debug-app-id"})
+			// Optionally, set default user values.
+			c.Set("user_wallet", "0x0")
+			c.Set("user_id", "1")
+			c.Next()
+			return
+		}
+
 		queryKeys(HTTP)
 		hp := parse(&c.Request.Header)
 
@@ -45,7 +61,7 @@ func HttpInterceptor() gin.HandlerFunc {
 			c.Abort()
 			c.JSON(http.StatusOK, common.Response{
 				Code:      codes.CODE_ERR_APPID_INVALID,
-				Msg:       "appid invalid",
+				Msg:       "appid invalid:" + hp.AppId,
 				Timestamp: time.Now().Unix(),
 			})
 			return

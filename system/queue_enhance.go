@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/stonksdex/externalapi/log"
+	"rlp-middleware/log"
 )
 
 type processHandler[T comparable] func(slot T, lock *sync.WaitGroup)
 
-var signInLocks sync.Map // 线程安全的全局锁
+var signInLocks sync.Map // Thread-safe global lock
 
 type RichQueue[T comparable] struct {
 	sync.Mutex
@@ -71,16 +71,16 @@ func (q *RichQueue[T]) Dequeue() (T, error) {
 	return item, nil
 }
 
-// ✅ BatchDequeue 方法，防止 nil 切片返回，避免 panic
+// ✅ BatchDequeue method to prevent returning a nil slice and avoid panic
 func (q *RichQueue[T]) BatchDequeue(size int) ([]T, error) {
 	q.Lock()
 	defer q.Unlock()
 
 	if size <= 0 {
-		return []T{}, fmt.Errorf("wrong size") // 返回空切片
+		return []T{}, fmt.Errorf("wrong size") // Return an empty slice
 	}
 	if len(q.slots) == 0 {
-		return []T{}, fmt.Errorf("empty length") // 返回空切片
+		return []T{}, fmt.Errorf("empty length") // Return an empty slice
 	}
 
 	var ret []T
@@ -121,7 +121,7 @@ func (q *RichQueue[T]) Last() T {
 	return q.slots[len(q.slots)-1]
 }
 
-// ✅ Consumer 方法，避免死锁 & CPU 100% 问题
+// ✅ Consumer method to avoid deadlock & 100% CPU usage issue
 func (q *RichQueue[T]) Consumer(size int, handler processHandler[T]) {
 	for {
 		<-q.notify
@@ -129,7 +129,7 @@ func (q *RichQueue[T]) Consumer(size int, handler processHandler[T]) {
 			items, err := q.BatchDequeue(size)
 			if err != nil {
 				log.Errorf("Get Consume Batch: %d, %v\n", size, err)
-				break // 防止 CPU 100% 占用
+				break // Prevent 100% CPU usage
 			}
 			var wg sync.WaitGroup
 			for _, item := range items {

@@ -5,23 +5,24 @@ import (
 	"fmt"
 	"sync"
 
+	"rlp-middleware/log"
+
 	"github.com/gorilla/websocket"
-	"github.com/stonksdex/externalapi/log"
 )
 
 type WebSocketManager struct {
 	clients map[*websocket.Conn]string
-	manset  map[string]map[*websocket.Conn]struct{} // 使用 map 代替切片，提高查找和删除效率
-	mu      sync.RWMutex                            // 读写锁
+	manset  map[string]map[*websocket.Conn]struct{} // Use a map instead of a slice to improve lookup and deletion efficiency
+	mu      sync.RWMutex                            // Read-write lock
 }
 
-// 全局 WebSocketManager
+// Global WebSocketManager
 var wsManager = &WebSocketManager{
 	clients: make(map[*websocket.Conn]string),
 	manset:  make(map[string]map[*websocket.Conn]struct{}),
 }
 
-// 获取 WebSocketManager 单例
+// Get the WebSocketManager singleton
 func RetrieveWsManager() *WebSocketManager {
 	return wsManager
 }
@@ -38,71 +39,71 @@ func (wm *WebSocketManager) Stat() (allConn, auditAllConn int) {
 	return allConn, auditAllConn
 }
 
-// 添加 WebSocket 连接
+// Add WebSocket connection
 func (wm *WebSocketManager) AddClient(chain, ca string, ws *websocket.Conn) {
 	wm.mu.Lock()
 	defer wm.mu.Unlock()
 	key := buildKey(chain, ca)
 
-	// 如果 key 不存在，初始化 map
+	// If the key does not exist, initialize the map
 	if _, exists := wm.manset[key]; !exists {
 		wm.manset[key] = make(map[*websocket.Conn]struct{})
 	}
-	wm.manset[key][ws] = struct{}{} // 使用 map 进行去重
+	wm.manset[key][ws] = struct{}{} // Use a map for deduplication
 	wm.clients[ws] = key
 }
 
-// 删除 WebSocket 连接
+// Delete WebSocket connection
 func (wm *WebSocketManager) RemoveClient(ws *websocket.Conn) {
 	wm.mu.Lock()
 	defer wm.mu.Unlock()
 
-	// 获取 key
+	// Get key
 	key, exists := wm.clients[ws]
 	if !exists {
 		return
 	}
 
-	// 从 manset[key] 删除 WebSocket 连接
+	// Delete the WebSocket connection from manset[key]
 	if connections, ok := wm.manset[key]; ok {
 		delete(connections, ws)
 		if len(connections) == 0 {
-			delete(wm.manset, key) // 清理空 key
+			delete(wm.manset, key) // Clean up empty keys
 		}
 	}
 
-	// 删除 clients 映射
+	// Delete the clients mapping
 	delete(wm.clients, ws)
 }
 
-// 广播消息到指定链和 CA
+// Broadcast message to the specified chain and CA
 func (wm *WebSocketManager) Broadcast(chain, ca string, msg string) {
-	wm.mu.RLock() // 只需要读锁
+	wm.mu.RLock() // Only a read lock is needed
 	defer wm.mu.RUnlock()
 	key := buildKey(chain, ca)
 
-	// 获取该 key 下所有的 WebSocket 连接
+	// Get all WebSocket connections under this key
 	connections, exists := wm.manset[key]
 	if !exists {
 		return
 	}
 
-	// 发送消息
+	// Send message
 	for ws := range connections {
 		if err := ws.WriteMessage(websocket.TextMessage, []byte(msg)); err != nil {
 			log.Error("Failed to send message:", err)
 			ws.Close()
-			wm.RemoveClient(ws) // 关闭连接后移除
+			wm.RemoveClient(ws) // Remove after closing the connection
 		}
 	}
 }
 
-// 发送单独消息给指定 WebSocket 连接
+// Send an individual message to the specified WebSocket connection
 func (wm *WebSocketManager) SendToClient(ws *websocket.Conn, msg string) error {
 	wm.mu.RLock()
 	defer wm.mu.RUnlock()
 
-	// 检查连接是否存在
+	// Check if the connection exists
 	if _, exists := wm.clients[ws]; !exists {
 		return errors.New("WebSocket client not found")
 	}
@@ -113,7 +114,7 @@ func (wm *WebSocketManager) BroadcastToAll(msg []byte) error {
 	wm.mu.RLock()
 	connections := make([]*websocket.Conn, 0, len(wm.clients))
 	for ws := range wm.clients {
-		connections = append(connections, ws) // 复制连接
+		connections = append(connections, ws) // Copy connection
 	}
 	wm.mu.RUnlock()
 
@@ -122,14 +123,14 @@ func (wm *WebSocketManager) BroadcastToAll(msg []byte) error {
 	for _, ws := range connections {
 		err := ws.WriteMessage(websocket.TextMessage, msg)
 		if err != nil {
-			failedConnections = append(failedConnections, ws) // 记录失败连接
+			failedConnections = append(failedConnections, ws) // Log failed connections
 		}
 	}
 
 	if len(failedConnections) > 0 {
 		wm.mu.Lock()
 		for _, ws := range failedConnections {
-			delete(wm.clients, ws) // 从 clients 中删除失效的 WebSocket 连接
+			delete(wm.clients, ws) // Remove invalid WebSocket connections from clients
 			ws.Close()
 		}
 		wm.mu.Unlock()
@@ -142,7 +143,7 @@ func (wm *WebSocketManager) BroadcastToAll(msg []byte) error {
 	return nil
 }
 
-// 生成 key
+// Generate  key
 func buildKey(chain, ca string) string {
 	return fmt.Sprintf("%s-%s", chain, ca)
 }

@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"rlp-middleware/config"
+	log "rlp-middleware/log"
+	"rlp-middleware/model"
+
 	"github.com/sirupsen/logrus"
-	"github.com/stonksdex/externalapi/config"
-	log "github.com/stonksdex/externalapi/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -30,47 +32,56 @@ func NewWriter() *Ewriter {
 var DB *gorm.DB
 
 func init() {
-	// 获取配置
+	// Get configuration
 	cfg := config.GetConfig()
 
 	if cfg.AllStart == 0 {
 		return
 	}
 
-	// 自定义 GORM 日志记录器
+	// Customize GORM logger
 	newLogger := logger.New(
-		NewWriter(), // 使用自定义的 logrus 日志记录器
+		NewWriter(), // Use a custom logrus logger
 		logger.Config{
-			SlowThreshold:             time.Second, // 慢 SQL 阈值
-			LogLevel:                  logger.Warn, // 日志级别
-			IgnoreRecordNotFoundError: true,        // 忽略ErrRecordNotFound（记录未找到）错误
-			Colorful:                  false,       // 禁用彩色打印
+			SlowThreshold:             time.Second, // Slow SQL threshold
+			LogLevel:                  logger.Warn, // Log level
+			IgnoreRecordNotFoundError: true,        // Ignore ErrRecordNotFound (record not found) error
+			Colorful:                  false,       // Disable colorful output or Disable color printing
 		},
 	)
 
-	// 构造 MySQL DSN（数据源名称）
+	// Construct MySQL DSN (Data Source Name)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		cfg.Database.User, cfg.Database.Password, cfg.Database.Host, cfg.Database.Port, cfg.Database.DBName)
 
-	// 打开 MySQL 连接
+	// Open MySQL connection
 	database, err := gorm.Open(mysql.New(mysql.Config{
-		DSN:                       dsn,   // DSN 数据源名称
-		DefaultStringSize:         256,   // 默认字符串长度
-		DisableDatetimePrecision:  true,  // 禁用 datetime 精度，MySQL 5.6 之前的版本不支持
-		DontSupportRenameIndex:    true,  // 重命名索引时采用删除并新建的方式
-		DontSupportRenameColumn:   true,  // 用 `change` 重命名列，MySQL 8 之前的版本不支持
-		SkipInitializeWithVersion: false, // 根据版本自动配置
+		DSN:                       dsn,   // DSN (Data Source Name)
+		DefaultStringSize:         256,   // Default string length
+		DisableDatetimePrecision:  true,  // Disable datetime precision, not supported in MySQL versions before 5.6
+		DontSupportRenameIndex:    true,  // Use drop and create method when renaming indexes
+		DontSupportRenameColumn:   true,  // Use `change` to rename columns, not supported in MySQL versions before 8
+		SkipInitializeWithVersion: false, // Auto-configure based on version
 	}), &gorm.Config{
-		Logger: newLogger, // 使用自定义的 GORM 日志记录器
+		Logger: newLogger, // Use a custom GORM logger
 	})
 
-	// 错误处理
+	// Error handling
 	if err != nil {
-		log.Fatal(err) // 使用 sys.Logger 记录致命错误
+		log.Fatal(err) // Use sys.Logger to log fatal errors
 	}
 
-	// 将数据库实例赋值给全局变量 DB
+	// Enable debug mode if needed:
+	database = database.Debug()
+
+	// Assign the database instance to the global variable DB
 	DB = database
+
+	if DB.Migrator().HasTable(&model.SysChannel{}) {
+		fmt.Println("Table sys_channel exists.")
+	} else {
+		fmt.Println("Table sys_channel does not exist!")
+	}
 }
 
 func GetDb() *gorm.DB {

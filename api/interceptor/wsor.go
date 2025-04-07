@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
+	"rlp-middleware/api/common"
+	"rlp-middleware/codes"
+	"rlp-middleware/log"
+	"rlp-middleware/model"
+	"rlp-middleware/security"
+
 	"github.com/gin-gonic/gin"
-	"github.com/stonksdex/externalapi/api/common"
-	"github.com/stonksdex/externalapi/codes"
-	"github.com/stonksdex/externalapi/log"
-	"github.com/stonksdex/externalapi/model"
-	"github.com/stonksdex/externalapi/security"
 )
 
 func WSInterceptor() gin.HandlerFunc {

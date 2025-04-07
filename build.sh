@@ -1,22 +1,22 @@
 #!/bin/sh
 set -e
 
-# 配置参数
-PROJECT_DIR="/home/mystks_api"         # 代码所在目录
-OUTPUT_DIR="/app/stonks-api"           # 编译输出目录
-BINARY_NAME="stonks-api"               # 生成的二进制文件名称
+# Configure parameters
+PROJECT_DIR="/home/rlp-middleware-api"         # Directory where the code is located
+OUTPUT_DIR="/app/rlp-middleware-api"           # Build output directory
+BINARY_NAME="rlp-middleware-api"               # Name of the generated binary file
 
-echo "切换到项目目录：$PROJECT_DIR"
+echo "Switch to the project directory: $PROJECT_DIR"
 cd "$PROJECT_DIR"
 
-echo "拉取最新代码..."
+echo "Pull the latest code..."
 git pull
 
-echo "开始编译 Go 程序..."
+echo "Start compiling the Go program..."
 export CGO_ENABLED=1
 export GOOS=linux
 export GOARCH=amd64
 
-# 编译项目并将二进制文件输出到指定目录
+# Compile the project and output the binary file to the specified directory
 go build -o "$OUTPUT_DIR/$BINARY_NAME" main.go
-echo "编译成功，二进制文件位于 $OUTPUT_DIR/$BINARY_NAME"
+echo "Compilation successful, the binary file is located at $OUTPUT_DIR/$BINARY_NAME"

@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	"rlp-middleware/api/common"
+	"rlp-middleware/codes"
+	"rlp-middleware/log"
+	"rlp-middleware/wsm"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/stonksdex/externalapi/api/common"
-	"github.com/stonksdex/externalapi/codes"
-	"github.com/stonksdex/externalapi/log"
-	"github.com/stonksdex/externalapi/wsm"
 )
 
 var upgrade = websocket.Upgrader{

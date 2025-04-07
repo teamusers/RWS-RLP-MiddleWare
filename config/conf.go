@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	system "github.com/stonksdex/externalapi/log"
+	system "rlp-middleware/log"
 
 	"github.com/spf13/viper"
 )

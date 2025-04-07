@@ -3,10 +3,9 @@ package mycache
 import (
 	"time"
 
+	"rlp-middleware/system"
+
 	"github.com/dgraph-io/ristretto/v2"
-	"github.com/stonksdex/externalapi/log"
-	"github.com/stonksdex/externalapi/model"
-	"github.com/stonksdex/externalapi/system"
 )
 
 var rankingUpdateCache *ristretto.Cache[string, time.Time]
@@ -24,19 +23,7 @@ func init() {
 	time.Now().Unix()
 	rankingUpdateCache = cache12
 }
-func RankingCacheGet(key string) (*[]model.RankingItem, error) {
 
-	get, err := system.ObjectGet(key, &[]model.RankingItem{})
-	return get, err
-}
-func RankingCacheSet(key string, value []model.RankingItem, expire time.Duration) {
-
-	err := system.ObjectSet(key, value, expire)
-	if err != nil {
-		log.Errorf("RankingCacheSet cache error:%s", err.Error())
-	}
-
-}
 func RankingCacheShouldUpdate(key string, t time.Duration) bool {
 	rankingUpdateCache.Wait()
 	s, b := rankingUpdateCache.Get(key)

@@ -1,4 +1,4 @@
-module github.com/stonksdex/externalapi
+module rlp-middleware
 
 go 1.22.3
 
