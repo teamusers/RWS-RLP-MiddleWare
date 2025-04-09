@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"rlp-member-service/log"
+	"rlp-middleware/log"
 
 	"github.com/gin-gonic/gin"
 )

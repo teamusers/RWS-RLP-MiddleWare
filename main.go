@@ -1,7 +1,7 @@
 package main
 
 import (
-	router "rlp-member-service/api"
+	router "rlp-middleware/api"
 )
 
 func main() {

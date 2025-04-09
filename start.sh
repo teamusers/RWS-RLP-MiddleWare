@@ -4,7 +4,7 @@
 export DALINK_GO_CONFIG_PATH=/app/stonks-api/prod.yml
 
 # Process name
-PROCESS_NAME="./rlp-member-service-api"
+PROCESS_NAME="./rlp-middleware-api"
 LOG_FILE="output.log"
 
 # Check if the process exists

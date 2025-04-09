@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"net/http"
 
-	model "rlp-member-service/models"
-	"rlp-member-service/system"
+	model "rlp-middleware/models"
+	"rlp-middleware/system"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
 	// Adjust the import path based on your project structure and module name.
-	"rlp-member-service/api/interceptor"
+	"rlp-middleware/api/interceptor"
 )
 
 // AuthRequest represents the expected JSON body for the authentication request.
