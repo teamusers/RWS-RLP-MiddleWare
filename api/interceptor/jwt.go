@@ -34,7 +34,7 @@ func GenerateToken(appID string) (string, error) {
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 			IssuedAt:  time.Now().Unix(),
-			Issuer:    "rlp-middleware-api", // Replace with your app name or identifier.
+			Issuer:    "rlp-member-service-api", // Replace with your app name or identifier.
 		},
 	}
 

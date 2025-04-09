@@ -9,9 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"rlp-middleware/api/http/services"
-	model "rlp-middleware/models"
-	"rlp-middleware/system"
+	"rlp-member-service/api/http/services"
+	model "rlp-member-service/models"
+	"rlp-member-service/system"
 )
 
 // GetUsers handles GET /users - list all users along with their phone numbers.
@@ -125,6 +125,9 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	// RLP - API
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "user created",
 		"data":    user,

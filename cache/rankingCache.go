@@ -3,7 +3,7 @@ package mycache
 import (
 	"time"
 
-	"rlp-middleware/system"
+	"rlp-member-service/system"
 
 	"github.com/dgraph-io/ristretto/v2"
 )

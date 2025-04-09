@@ -1,8 +1,8 @@
 package http
 
 import (
-	v1 "rlp-middleware/api/http/controllers/v1"
-	"rlp-middleware/api/interceptor"
+	v1 "rlp-member-service/api/http/controllers/v1"
+	"rlp-member-service/api/interceptor"
 
 	"github.com/gin-gonic/gin"
 )
