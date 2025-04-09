@@ -6,7 +6,7 @@ import (
 
 	"rlp-middleware/config"
 	log "rlp-middleware/log"
-	"rlp-middleware/model"
+	model "rlp-middleware/models"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"

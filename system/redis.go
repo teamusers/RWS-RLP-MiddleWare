@@ -15,6 +15,8 @@ import (
 var rdb *redis.Client
 var ctx = context.Background()
 
+var Nil = redis.Nil
+
 func init() {
 	var conf = config.GetConfig()
 	if conf.AllStart > 0 {

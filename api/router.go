@@ -5,8 +5,6 @@ import (
 	"net/http"
 
 	general "rlp-middleware/api/http"
-	"rlp-middleware/api/interceptor"
-	"rlp-middleware/api/ws"
 	"rlp-middleware/config"
 
 	"github.com/gin-gonic/gin"
@@ -33,11 +31,7 @@ func Init() *gin.Engine {
 
 	r.GET("/index", helloHandler)
 
-	wsGroup := r.Group("/ws", interceptor.WSInterceptor())
-	wsGroup.GET("chat", ws.Chat)
-
-	apiGroup := r.Group("/api", interceptor.HttpInterceptor())
-	//apiGroup := r.Group("/api", interceptor.APITokenInterceptor())
+	apiGroup := r.Group("/api")
 	for _, opt := range options {
 		opt(apiGroup)
 	}
