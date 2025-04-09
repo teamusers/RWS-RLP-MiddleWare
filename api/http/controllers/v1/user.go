@@ -109,7 +109,7 @@ func CreateUser(c *gin.Context) {
 		// Record found - email already exists.
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
 		return
-	} else if err != gorm.ErrRecordNotFound && err != nil {
+	} else if err != gorm.ErrRecordNotFound {
 		// Some other error occurred while querying.
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
