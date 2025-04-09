@@ -80,6 +80,8 @@ func GetUser(c *gin.Context) {
 			return
 		}
 
+		//send email
+
 		// Return the response with the custom JSON format.
 		c.JSON(http.StatusOK, gin.H{
 			"message": "email not registered",
@@ -125,6 +127,9 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	// RLP - API
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "user created",
 		"data":    user,
