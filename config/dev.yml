@@ -30,11 +30,5 @@ http:
 
 allStart: 1
 proxyEnable : true
-
-
-IDP:
-  Description: RWS-IDP
-  Expires: 10/5/2025
-  Value:  
-  SecretID:  
+ 
 
