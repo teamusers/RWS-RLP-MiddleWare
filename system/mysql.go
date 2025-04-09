@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"rlp-middleware/config"
-	log "rlp-middleware/log"
-	model "rlp-middleware/models"
+	"rlp-member-service/config"
+	log "rlp-member-service/log"
+	model "rlp-member-service/models"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"

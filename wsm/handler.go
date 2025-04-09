@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"rlp-middleware/log"
+	"rlp-member-service/log"
 
 	"github.com/gorilla/websocket"
 )

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	general "rlp-middleware/api/http"
-	"rlp-middleware/config"
+	general "rlp-member-service/api/http"
+	"rlp-member-service/config"
 
 	"github.com/gin-gonic/gin"
 )

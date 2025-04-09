@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"rlp-middleware/api/common"
-	"rlp-middleware/codes"
-	"rlp-middleware/log"
-	"rlp-middleware/wsm"
+	"rlp-member-service/api/common"
+	"rlp-member-service/codes"
+	"rlp-member-service/log"
+	"rlp-member-service/wsm"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"

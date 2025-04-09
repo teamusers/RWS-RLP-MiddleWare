@@ -2,7 +2,7 @@
 set -e
 REMOTE_USER="root"
 REMOTE_HOST="47.84.41.204"
-REMOTE_DIR="/app/rlp-middleware-api"
+REMOTE_DIR="/app/rlp-member-service-api"
 echo "Start executing update and build......"
 ssh ${REMOTE_USER}@${REMOTE_HOST} "cd ${REMOTE_DIR} && ./build.sh"
 echo "Start launching the application......"

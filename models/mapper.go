@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"rlp-middleware/codes"
+	"rlp-member-service/codes"
 )
 
 type SysChannel struct {

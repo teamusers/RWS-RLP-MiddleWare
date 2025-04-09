@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	system "rlp-middleware/log"
+	system "rlp-member-service/log"
 
 	"github.com/spf13/viper"
 )

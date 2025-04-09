@@ -1,4 +1,4 @@
-module rlp-middleware
+module rlp-member-service
 
 go 1.22.3
 
