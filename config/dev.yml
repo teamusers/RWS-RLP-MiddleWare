@@ -35,6 +35,6 @@ proxyEnable : true
 IDP:
   Description: RWS-IDP
   Expires: 10/5/2025
-  Value: sAF8Q~kIo5suQ7qvRynlM6EqrAck3.3LPtPTyaeJ
-  SecretID: 91c36643-f577-4b5d-bd44-f3386b3e9c87
+  Value:  
+  SecretID:  
 
