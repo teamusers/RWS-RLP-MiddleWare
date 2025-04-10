@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rlp-middleware-deployment
+spec:
+  replicas: 2  # Adjust the number of replicas if needed
+  selector:
+    matchLabels:
+      app: rlp-middleware
+  template:
+    metadata:
+      labels:
+        app: rlp-middleware
+    spec:
+      containers:
+      - name: rlp-middleware
+        image: rlpmiddleware.azurecr.io/rlp-middleware:latest
+        ports:
+        - containerPort: 18080  # Change this if your app listens on a different port

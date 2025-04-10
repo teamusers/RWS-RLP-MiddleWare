@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: "my-secret-pw"    # Change this to a secure password.
+          - name: MYSQL_DATABASE
+            value: "mbc_api_main"    # Optional: Name of the initial database.
+          - name: MYSQL_USER
+            value: "yourUser"            # Optional: Username for a user.
+          - name: MYSQL_PASSWORD
+            value: "yourUserPassword"    # Optional: Password for the user.
+        ports:
+          - containerPort: 3306
+        volumeMounts:
+          - name: mysql-storage
+            mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc

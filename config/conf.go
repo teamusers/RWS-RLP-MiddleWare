@@ -10,6 +10,7 @@ import (
 
 	system "rlp-middleware/log"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
@@ -170,18 +171,30 @@ func init() {
 
 	if configFilePathFromEnv := os.Getenv("DALINK_GO_CONFIG_PATH"); configFilePathFromEnv != "" {
 		confFilePath = configFilePathFromEnv
+		log.Println("DALINK_GO_CONFIG_PATH:", confFilePath)
 	} else {
 		_, filename, _, _ := runtime.Caller(0)
 		testDir := filepath.Dir(filename)
-		confFilePath, _ = findProjectRoot(testDir, "__mark__")
+		log.Println("filename:", filename)
+		log.Println("Looking for marker in:", testDir)
+		confFilePath = testDir
+		//confFilePath, _ = findProjectRoot(testDir, "__mark__")
 		if len(confFilePath) > 0 {
-			confFilePath += "/config/dev.yml"
+			confFilePath += "/dev.yml"
 		}
 	}
+
+	log.Println("Found project root as:", confFilePath)
 	if len(confFilePath) == 0 {
-		log.Fatal("System root directory setting error.")
+		log.Fatal("System root directory setting error.123")
 	}
 	log.Println("current config file ", confFilePath)
+
+	configFileToCheck := confFilePath
+	if _, err := os.Stat(configFileToCheck); os.IsNotExist(err) {
+		log.Fatalf("Configuration file does not exist at path: %s", configFileToCheck)
+	}
+	log.Println("Current config file exists at:", configFileToCheck)
 
 	viper.SetConfigFile(confFilePath)
 
@@ -199,7 +212,7 @@ func init() {
 
 	system.InitLogger(systemConfig.Log.Path)
 
-	//_ = godotenv.Load()
+	_ = godotenv.Load()
 
 	system.Infof("initing default %s chain config", "Solana")
 }

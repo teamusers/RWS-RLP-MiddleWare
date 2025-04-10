@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  selector:
+    app: mysql
+  ports:
+    - protocol: TCP
+      port: 3306         # The port that other pods will connect to.
+      targetPort: 3306   # The port exposed by the MySQL container.
+  type: ClusterIP
