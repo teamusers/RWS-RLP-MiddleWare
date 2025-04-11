@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"log"
 	config "rlp-middleware/config"
-	models "rlp-middleware/models"
 
 	"gopkg.in/gomail.v2"
 )
@@ -17,8 +16,8 @@ type EmailService struct {
 }
 
 type TemplateData struct {
-	User *models.User
-	OTP  string
+	Email string
+	OTP   string
 }
 
 func NewEmailService(smtpConfig *config.SmtpConfig) *EmailService {
@@ -35,7 +34,11 @@ func NewEmailService(smtpConfig *config.SmtpConfig) *EmailService {
 	}
 }
 
-func (es *EmailService) SendEmail(recipient, subject, templateName string, templateData any) error {
+func (es *EmailService) SendOtpEmail(recipient string, templateData TemplateData) error {
+	return es.sendEmail(recipient, "RWS Loyalty Program - Verify OTP", "request_email_otp.html", templateData)
+}
+
+func (es *EmailService) sendEmail(recipient, subject, templateName string, templateData any) error {
 	content, err := es.loadTemplate(templateName, templateData)
 	if err != nil {
 		return fmt.Errorf("failed to load template: %w", err)
@@ -56,7 +59,7 @@ func (es *EmailService) SendEmail(recipient, subject, templateName string, templ
 		return fmt.Errorf("failed to send email: %w", err)
 	}
 
-	log.Printf("Email sent successfully to %s", recipient)
+	log.Printf("email sent successfully to %s", recipient)
 	return nil
 }
 

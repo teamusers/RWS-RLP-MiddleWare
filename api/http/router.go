@@ -17,10 +17,12 @@ func Routers(e *gin.RouterGroup) {
 	usersGroup := v1Group.Group("/user", interceptor.HttpInterceptor())
 	{
 		// The endpoints below will all require a valid access token.
-		usersGroup.GET("", v1.GetUser)
-		usersGroup.POST("", v1.CreateUser)
+		// usersGroup.GET("", v1.GetUser)
+		// usersGroup.POST("", v1.CreateUser)
 		//usersGroup.PUT("/:id", v1.UpdateUser)
 		//usersGroup.DELETE("/:id", v1.DeleteUser)
+		usersGroup.GET("/login", v1.InitiateLogin)
+		usersGroup.PUT("/pin", v1.UpdateBurnPin)
 	}
 
 	loginGroup := v1Group.Group("/login/user", interceptor.HttpInterceptor())
