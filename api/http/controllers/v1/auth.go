@@ -5,23 +5,24 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"net/http"
 
-	"rlp-middleware/config"
 	model "rlp-middleware/models"
 	"rlp-middleware/system"
-	"rlp-middleware/utils"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
 	// Adjust the import path based on your project structure and module name.
-	"rlp-middleware/api/http/requests"
-	"rlp-middleware/api/http/responses"
-	"rlp-middleware/api/http/services"
 	"rlp-middleware/api/interceptor"
 )
+
+// AuthRequest represents the expected JSON body for the authentication request.
+type AuthRequest struct {
+	Timestamp string `json:"Timestamp"`
+	Nonce     string `json:"Nonce"`
+	Signature string `json:"Signature"`
+}
 
 // getSecretKey is a dummy function to lookup the secret key using the AppID.
 // In a real implementation, this might query a database or another secure store.
@@ -60,7 +61,7 @@ func AuthHandler(c *gin.Context) {
 	}
 
 	// Decode the JSON body.
-	var req requests.AuthRequest
+	var req AuthRequest
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON body"})
 		return
@@ -81,7 +82,7 @@ func AuthHandler(c *gin.Context) {
 	}
 
 	// Concatenate AppID, Timestamp, and Nonce to create the base string.
-	baseString := appID + *req.Timestamp + *req.Nonce
+	baseString := appID + req.Timestamp + req.Nonce
 	fmt.Println("Base String:", baseString)
 
 	// Compute the HMAC-SHA256 signature.
@@ -92,7 +93,7 @@ func AuthHandler(c *gin.Context) {
 	fmt.Println("Expected Signature:", expectedSignature)
 
 	// Compare the computed signature with the provided signature.
-	if !hmac.Equal([]byte(expectedSignature), []byte(*req.Sign)) {
+	if !hmac.Equal([]byte(expectedSignature), []byte(req.Signature)) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "invalid signature",
 			"data": gin.H{
@@ -117,71 +118,4 @@ func AuthHandler(c *gin.Context) {
 			"accessToken": token,
 		},
 	})
-}
-
-func InitiateLogin(c *gin.Context) {
-	var req requests.InitiateLoginRequest
-	if err := c.BindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON body"})
-		return
-	}
-
-	// check email address existence
-	// TODO: Call Member Service here
-
-	if req.DebugMode != nil {
-		log.Println("debug mode enabled for initate login")
-
-		switch *req.DebugMode {
-		case 2:
-			log.Println("simulate email NOT found")
-			utils.RespondJSON(c, http.StatusCreated, "email not found", responses.LoginResponse{})
-			return
-		case 3:
-			log.Println("simulate network error")
-			utils.RespondJSON(c, http.StatusBadRequest, "internal error", responses.LoginResponse{})
-			return
-		default:
-			log.Println("simulate email found")
-		}
-	}
-
-	// user found
-	log.Println("valid email address found")
-
-	// generate otp
-	otpService := services.NewOTPService()
-	otpResp, err := otpService.GenerateOTP(c, *req.Email)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate OTP"})
-		return
-	}
-
-	// request login session token
-	// TODO: Call Member Service here
-	loginSessionToken := "sampleToken"
-	loginSessionExpiry := "1298738172489"
-
-	//send otp via email
-	emailData := services.TemplateData{
-		Email: *req.Email,
-		OTP:   otpResp.OTP,
-	}
-
-	cfg := config.GetConfig()
-	emailService := services.NewEmailService(&cfg.Smtp)
-	if err := emailService.SendOtpEmail(*req.Email, emailData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to send email otp"})
-		return
-	}
-
-	// Return response
-	response := responses.LoginResponse{
-		OTP:               &otpResp.OTP,
-		ExpireIn:          &otpResp.ExpiresAt,
-		LoginSessionToken: &loginSessionToken,
-		LoginExpireIn:     &loginSessionExpiry,
-	}
-
-	utils.RespondJSON(c, http.StatusOK, "email found", response)
 }

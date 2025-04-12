@@ -22,8 +22,6 @@ func Routers(e *gin.RouterGroup) {
 		usersGroup.POST("", user.CreateUser)
 		//usersGroup.PUT("/:id", v1.UpdateUser)
 		//usersGroup.DELETE("/:id", v1.DeleteUser)
-		usersGroup.GET("/login", v1.InitiateLogin)
-		usersGroup.PUT("/pin", v1.UpdateBurnPin)
 	}
 
 	loginGroup := v1Group.Group("/user/login", interceptor.HttpInterceptor())
