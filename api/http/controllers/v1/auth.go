@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"lbe/codes"
 	model "lbe/models"
 	"lbe/system"
 	"net/http"
@@ -14,6 +15,8 @@ import (
 
 	// Adjust the import path based on your project structure and module name.
 	"lbe/api/http/requests"
+	"lbe/api/http/responses"
+
 	"lbe/api/interceptor"
 )
 
@@ -44,12 +47,13 @@ func AuthHandler(c *gin.Context) {
 	// Retrieve the AppID from header.
 	appID := c.GetHeader("AppID")
 	if appID == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "invalid appid",
-			"data": gin.H{
-				"accessToken": nil,
+		resp := responses.APIResponse{
+			Message: "invalid appid",
+			Data: responses.AuthResponse{
+				AccessToken: "",
 			},
-		})
+		}
+		c.JSON(codes.CODE_INVALID_APPID, resp)
 		return
 	}
 
@@ -65,12 +69,13 @@ func AuthHandler(c *gin.Context) {
 	secretKey, err := getSecretKey(db, appID)
 
 	if err != nil || secretKey == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "invalid appid",
-			"data": gin.H{
-				"accessToken": nil,
+		resp := responses.APIResponse{
+			Message: "invalid appid",
+			Data: responses.AuthResponse{
+				AccessToken: "",
 			},
-		})
+		}
+		c.JSON(codes.CODE_INVALID_APPID, resp)
 		return
 	}
 
@@ -87,12 +92,13 @@ func AuthHandler(c *gin.Context) {
 
 	// Compare the computed signature with the provided signature.
 	if !hmac.Equal([]byte(expectedSignature), []byte(req.Signature)) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "invalid signature",
-			"data": gin.H{
-				"accessToken": nil,
+		resp := responses.APIResponse{
+			Message: "invalid signature",
+			Data: responses.AuthResponse{
+				AccessToken: "",
 			},
-		})
+		}
+		c.JSON(codes.CODE_INVALID_SIGNATURE, resp)
 		return
 	}
 
@@ -104,11 +110,11 @@ func AuthHandler(c *gin.Context) {
 		return
 	}
 
-	// Return the JWT token in the JSON response.
-	c.JSON(http.StatusOK, gin.H{
-		"message": "token successfully generated",
-		"data": gin.H{
-			"accessToken": token,
+	resp := responses.APIResponse{
+		Message: "token successfully generated",
+		Data: responses.AuthResponse{
+			AccessToken: token,
 		},
-	})
+	}
+	c.JSON(http.StatusOK, resp)
 }

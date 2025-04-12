@@ -15,7 +15,7 @@ type CustomClaims struct {
 
 // jwtSecret holds the secret key used for signing tokens.
 // It is initially set to a default value.
-var jwtSecret = []byte("RLP-Version1")
+var jwtSecret = []byte("lbe-jwt-secretKey")
 
 // SetJWTSecret allows you to update the jwtSecret from configuration.
 func SetJWTSecret(secret string) {

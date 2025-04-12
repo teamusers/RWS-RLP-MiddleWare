@@ -3,7 +3,9 @@ package home
 import (
 	"context"
 	"lbe/api/http/requests"
+	"lbe/api/http/responses"
 	"lbe/api/http/services"
+	"lbe/codes"
 	model "lbe/models"
 	"lbe/system"
 	"net/http"
@@ -34,16 +36,18 @@ func Login(c *gin.Context) {
 	if err != nil {
 		// If no user is found, return an error.
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(201, gin.H{
-				"message": "email not found",
-				"data": gin.H{
-					"otp":               nil,
-					"otp_expireIn":      nil,
-					"loginSessionToken": nil,
-					"login_expireIn":    nil,
+			resp := responses.APIResponse{
+				Message: "email not found",
+				Data: responses.LoginResponse{
+					OTP:               "",
+					ExpireIn:          0,
+					LoginSessionToken: "",
+					LoginExpireIn:     0,
 				},
-			})
+			}
+			c.JSON(codes.CODE_EMAIL_NOTFOUND, resp)
 			return
+
 		}
 		// For any other errors, return an internal server error.
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -64,16 +68,16 @@ func Login(c *gin.Context) {
 	//Call IDP to return login session token & login expirein
 	loginSessionToken := "idpSessionToken-ToBeProvide"
 	login_expireIn := 30 * time.Minute //to be provide later
+	loginExpireInSeconds := int64(login_expireIn.Seconds())
 
-	// Return the response with the custom JSON format.
-	c.JSON(http.StatusOK, gin.H{
-		"message": "email found",
-		"data": gin.H{
-			"otp":               otpResp.OTP,
-			"otp_expireIn":      otpResp.ExpiresAt,
-			"loginSessionToken": loginSessionToken,
-			"login_expireIn":    login_expireIn,
+	resp := responses.APIResponse{
+		Message: "email found",
+		Data: responses.LoginResponse{
+			OTP:               otpResp.OTP,
+			ExpireIn:          otpResp.ExpiresAt,
+			LoginSessionToken: loginSessionToken,
+			LoginExpireIn:     loginExpireInSeconds,
 		},
-	})
-
+	}
+	c.JSON(http.StatusOK, resp)
 }

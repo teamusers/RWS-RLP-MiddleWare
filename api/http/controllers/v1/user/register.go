@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"lbe/api/http/requests"
+	"lbe/api/http/responses"
 	"lbe/api/http/services"
+	"lbe/codes"
 	model "lbe/models"
 	"lbe/system"
 
@@ -35,13 +37,14 @@ func GetUser(c *gin.Context) {
 		err := db.Preload("PhoneNumbers").Where("email = ?", email).First(&user).Error
 		if err == nil {
 			// User found: return an error indicating that the email already exists.
-			c.JSON(201, gin.H{
-				"message": "email registered",
-				"data": gin.H{
-					"otp":          nil,
-					"otp_expireIn": nil,
+			resp := responses.APIResponse{
+				Message: "email registered",
+				Data: responses.SignUpResponse{
+					OTP:      "",
+					ExpireIn: 0,
 				},
-			})
+			}
+			c.JSON(codes.CODE_EMAIL_REGISTERED, resp)
 			return
 		}
 		if err != gorm.ErrRecordNotFound {
@@ -60,15 +63,14 @@ func GetUser(c *gin.Context) {
 		}
 
 		//send email
-
-		// Return the response with the custom JSON format.
-		c.JSON(http.StatusOK, gin.H{
-			"message": "email not registered",
-			"data": gin.H{
-				"otp":          otpResp.OTP,
-				"otp_expireIn": otpResp.ExpiresAt,
+		resp := responses.APIResponse{
+			Message: "email not registered",
+			Data: responses.SignUpResponse{
+				OTP:      otpResp.OTP,
+				ExpireIn: otpResp.ExpiresAt,
 			},
-		})
+		}
+		c.JSON(http.StatusOK, resp)
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sign up type provided"})
 	}
