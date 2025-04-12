@@ -6,39 +6,20 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-
+	"lbe/api/http/requests"
 	"lbe/api/http/services"
 	model "lbe/models"
 	"lbe/system"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
-
-// GetUsers handles GET /users - list all users along with their phone numbers.
-/**
-func GetUsers(c *gin.Context) {
-	db := system.GetDb()
-	var users []model.User
-	// Preload phone numbers to include them in the JSON response
-	if err := db.Preload("PhoneNumbers").Find(&users).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, users)
-}
-**/
-
-// SignUpRequest represents the expected JSON structure for the request body.
-type SignUpRequest struct {
-	Email      string `json:"email" binding:"required,email"`
-	SignUpType string `json:"sign_up_type" binding:"required"`
-}
 
 // GetUsers handles GET /users
 // If a user with the provided email already exists, it returns an error that the email already exists.
 // If no user is found, it continues to generate an OTP.
 func GetUser(c *gin.Context) {
-	var req SignUpRequest
+	var req requests.SignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Valid email and sign_up_type are required in the request body"})
 		return
@@ -48,7 +29,6 @@ func GetUser(c *gin.Context) {
 
 	switch signUpType {
 	case "new":
-		// Get a database handle.
 		db := system.GetDb()
 		// Attempt to find a user by email.
 		var user model.User
@@ -70,7 +50,6 @@ func GetUser(c *gin.Context) {
 			return
 		}
 
-		// If we reach here, it means user was not found.
 		// Generate OTP using the service.
 		otpService := services.NewOTPService()
 		ctx := context.Background()

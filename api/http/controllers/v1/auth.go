@@ -5,24 +5,17 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"net/http"
-
 	model "lbe/models"
 	"lbe/system"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
 	// Adjust the import path based on your project structure and module name.
+	"lbe/api/http/requests"
 	"lbe/api/interceptor"
 )
-
-// AuthRequest represents the expected JSON body for the authentication request.
-type AuthRequest struct {
-	Timestamp string `json:"Timestamp"`
-	Nonce     string `json:"Nonce"`
-	Signature string `json:"Signature"`
-}
 
 // getSecretKey is a dummy function to lookup the secret key using the AppID.
 // In a real implementation, this might query a database or another secure store.
@@ -61,7 +54,7 @@ func AuthHandler(c *gin.Context) {
 	}
 
 	// Decode the JSON body.
-	var req AuthRequest
+	var req requests.AuthRequest
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON body"})
 		return

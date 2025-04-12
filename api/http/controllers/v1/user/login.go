@@ -2,27 +2,22 @@ package home
 
 import (
 	"context"
+	"lbe/api/http/requests"
+	"lbe/api/http/services"
+	model "lbe/models"
+	"lbe/system"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-
-	"lbe/api/http/services"
-	model "lbe/models"
-	"lbe/system"
 )
-
-// SignUpRequest represents the expected JSON structure for the request body.
-type LoginRequest struct {
-	Email string `json:"email" binding:"required,email"`
-}
 
 // GetUsers handles GET /users
 // If a user with the provided email already exists, it returns an error that the email not exists.
 // If no user is found, it continues to generate an OTP.
 func Login(c *gin.Context) {
-	var req LoginRequest
+	var req requests.LoginRequest
 	// Bind the JSON payload to LoginRequest struct.
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Valid email is required in the request body"})
