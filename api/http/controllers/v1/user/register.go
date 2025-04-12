@@ -134,10 +134,11 @@ func CreateUser(c *gin.Context) {
 
 	// RLP - API
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "user created",
-		"data":    user,
-	})
+	resp := responses.APIResponse{
+		Message: "user created",
+		Data:    user,
+	}
+	c.JSON(http.StatusCreated, resp)
 }
 
 /*
