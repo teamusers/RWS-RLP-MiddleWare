@@ -32,6 +32,7 @@ type Config struct {
 	Cmd         CmdConfig      `yaml:"cmd"`
 	Http        HttpConfig     `yaml:"http"`
 	ProxyEnable bool           `yaml:"proxyEnable"`
+	Smtp        SmtpConfig     `yaml:"smtp"`
 }
 
 // DatabaseConfig holds the database connection parameters.
@@ -80,6 +81,14 @@ type AveConf struct {
 	Avekey  string `yaml:"avekey"`
 	Aveauth string `yaml:"aveauth"`
 	Tpl     string `yaml:"tpl"`
+}
+
+type SmtpConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	From     string `yaml:"from"`
 }
 
 func initRpcs(ts []ChainConfig) {
