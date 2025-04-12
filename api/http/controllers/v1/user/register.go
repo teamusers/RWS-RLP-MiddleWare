@@ -9,9 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"rlp-middleware/api/http/services"
-	model "rlp-middleware/models"
-	"rlp-middleware/system"
+	"lbe/api/http/services"
+	model "lbe/models"
+	"lbe/system"
 )
 
 // GetUsers handles GET /users - list all users along with their phone numbers.

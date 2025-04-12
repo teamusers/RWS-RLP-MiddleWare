@@ -1,4 +1,4 @@
-module rlp-middleware
+module lbe
 
 go 1.22.3
 

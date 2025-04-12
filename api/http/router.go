@@ -1,9 +1,9 @@
 package http
 
 import (
-	v1 "rlp-middleware/api/http/controllers/v1"
-	user "rlp-middleware/api/http/controllers/v1/user"
-	"rlp-middleware/api/interceptor"
+	v1 "lbe/api/http/controllers/v1"
+	user "lbe/api/http/controllers/v1/user"
+	"lbe/api/interceptor"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,7 +1,7 @@
 package main
 
 import (
-	router "rlp-middleware/api"
+	router "lbe/api"
 )
 
 func main() {

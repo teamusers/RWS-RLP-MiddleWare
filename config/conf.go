@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	system "rlp-middleware/log"
+	system "lbe/log"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"

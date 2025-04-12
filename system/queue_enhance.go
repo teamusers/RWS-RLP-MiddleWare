@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"rlp-middleware/log"
+	"lbe/log"
 )
 
 type processHandler[T comparable] func(slot T, lock *sync.WaitGroup)

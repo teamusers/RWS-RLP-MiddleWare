@@ -2,9 +2,9 @@
 set -e
 
 # Configure parameters
-PROJECT_DIR="/app/rlp-middleware-api"         # Directory where the code is located
-OUTPUT_DIR="/app/bin/rlp-middleware-api"           # Build output directory
-BINARY_NAME="rlp-middleware-api"               # Name of the generated binary file
+PROJECT_DIR="/app/lbe-api"         # Directory where the code is located
+OUTPUT_DIR="/app/bin/lbe-api"           # Build output directory
+BINARY_NAME="lbe-api"               # Name of the generated binary file
 
 echo "Switch to the project directory: $PROJECT_DIR"
 cd "$PROJECT_DIR"

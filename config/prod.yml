@@ -19,7 +19,7 @@ jwt:
   jwtSecret: RLP-Version1
 
 log:
-  path: /app123/rlp-middleware-api
+  path: /app123/lbe-api
 
 cmd:
   port: 9501

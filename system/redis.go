@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"rlp-middleware/config"
+	"lbe/config"
 
 	redis "github.com/redis/go-redis/v9"
 )
