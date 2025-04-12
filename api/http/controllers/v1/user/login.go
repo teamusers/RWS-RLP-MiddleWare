@@ -22,7 +22,10 @@ func Login(c *gin.Context) {
 	var req requests.LoginRequest
 	// Bind the JSON payload to LoginRequest struct.
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Valid email is required in the request body"})
+		resp := responses.ErrorResponse{
+			Error: "Valid email is required in the request body",
+		}
+		c.JSON(http.StatusMethodNotAllowed, resp)
 		return
 	}
 	email := req.Email
@@ -50,7 +53,10 @@ func Login(c *gin.Context) {
 
 		}
 		// For any other errors, return an internal server error.
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		resp := responses.ErrorResponse{
+			Error: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, resp)
 		return
 	}
 
@@ -59,7 +65,10 @@ func Login(c *gin.Context) {
 	ctx := context.Background()
 	otpResp, err := otpService.GenerateOTP(ctx, email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate OTP"})
+		resp := responses.ErrorResponse{
+			Error: "Failed to generate OTP",
+		}
+		c.JSON(http.StatusInternalServerError, resp)
 		return
 	}
 

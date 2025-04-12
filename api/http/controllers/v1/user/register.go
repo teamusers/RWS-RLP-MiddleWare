@@ -3,7 +3,6 @@ package home
 import (
 	"context"
 	"net/http"
-	"strconv"
 	"time"
 
 	"lbe/api/http/requests"
@@ -23,7 +22,10 @@ import (
 func GetUser(c *gin.Context) {
 	var req requests.SignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Valid email and sign_up_type are required in the request body"})
+		resp := responses.ErrorResponse{
+			Error: "Valid email and sign_up_type are required in the request body",
+		}
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 	email := req.Email
@@ -49,7 +51,10 @@ func GetUser(c *gin.Context) {
 		}
 		if err != gorm.ErrRecordNotFound {
 			// An unexpected error occurred during the query.
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			resp := responses.ErrorResponse{
+				Error: err.Error(),
+			}
+			c.JSON(http.StatusInternalServerError, resp)
 			return
 		}
 
@@ -58,7 +63,10 @@ func GetUser(c *gin.Context) {
 		ctx := context.Background()
 		otpResp, err := otpService.GenerateOTP(ctx, email)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate OTP"})
+			resp := responses.ErrorResponse{
+				Error: "Failed to generate OTP",
+			}
+			c.JSON(http.StatusInternalServerError, resp)
 			return
 		}
 
@@ -72,7 +80,10 @@ func GetUser(c *gin.Context) {
 		}
 		c.JSON(http.StatusOK, resp)
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sign up type provided"})
+		resp := responses.ErrorResponse{
+			Error: "Invalid sign up type provided",
+		}
+		c.JSON(http.StatusBadRequest, resp)
 	}
 }
 
@@ -82,7 +93,10 @@ func CreateUser(c *gin.Context) {
 	var user model.User
 	// Bind the incoming JSON payload to the user struct.
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		resp := responses.ErrorResponse{
+			Error: err.Error(),
+		}
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
@@ -90,11 +104,17 @@ func CreateUser(c *gin.Context) {
 	var existingUser model.User
 	if err := db.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
 		// Record found - email already exists.
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
+		resp := responses.ErrorResponse{
+			Error: "Email already exists",
+		}
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	} else if err != gorm.ErrRecordNotFound {
 		// Some other error occurred while querying.
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		resp := responses.ErrorResponse{
+			Error: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, resp)
 		return
 	}
 
@@ -105,7 +125,10 @@ func CreateUser(c *gin.Context) {
 
 	// Create the user along with any associated phone numbers.
 	if err := db.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		resp := responses.ErrorResponse{
+			Error: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, resp)
 		return
 	}
 
@@ -117,6 +140,7 @@ func CreateUser(c *gin.Context) {
 	})
 }
 
+/*
 // UpdateUser handles PUT /users/:id - update an existing user and optionally update phone numbers.
 func UpdateUser(c *gin.Context) {
 	db := system.GetDb()
@@ -195,3 +219,4 @@ func DeleteUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
+*/

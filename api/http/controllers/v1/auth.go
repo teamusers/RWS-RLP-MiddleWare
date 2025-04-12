@@ -34,7 +34,10 @@ func getSecretKey(db *gorm.DB, appID string) (string, error) {
 func AuthHandler(c *gin.Context) {
 	// (Optional) Check the request method.
 	if c.Request.Method != http.MethodGet {
-		c.JSON(http.StatusMethodNotAllowed, gin.H{"error": "Method Not Allowed"})
+		resp := responses.ErrorResponse{
+			Error: "Method Not Allowed",
+		}
+		c.JSON(http.StatusMethodNotAllowed, resp)
 		return
 	}
 
@@ -60,7 +63,10 @@ func AuthHandler(c *gin.Context) {
 	// Decode the JSON body.
 	var req requests.AuthRequest
 	if err := c.BindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON body"})
+		resp := responses.ErrorResponse{
+			Error: "Invalid JSON body",
+		}
+		c.JSON(http.StatusMethodNotAllowed, resp)
 		return
 	}
 
@@ -81,14 +87,11 @@ func AuthHandler(c *gin.Context) {
 
 	// Concatenate AppID, Timestamp, and Nonce to create the base string.
 	baseString := appID + req.Timestamp + req.Nonce
-	fmt.Println("Base String:", baseString)
-
 	// Compute the HMAC-SHA256 signature.
 	mac := hmac.New(sha256.New, []byte(secretKey))
 	mac.Write([]byte(baseString))
 	expectedMAC := mac.Sum(nil)
 	expectedSignature := hex.EncodeToString(expectedMAC)
-	fmt.Println("Expected Signature:", expectedSignature)
 
 	// Compare the computed signature with the provided signature.
 	if !hmac.Equal([]byte(expectedSignature), []byte(req.Signature)) {
@@ -102,11 +105,13 @@ func AuthHandler(c *gin.Context) {
 		return
 	}
 
-	// At this point the request is authenticated.
 	// Call the exported GenerateToken function from the middleware package.
 	token, err := interceptor.GenerateToken(appID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		resp := responses.ErrorResponse{
+			Error: "Failed to generate token",
+		}
+		c.JSON(http.StatusMethodNotAllowed, resp)
 		return
 	}
 
