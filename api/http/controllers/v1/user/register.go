@@ -2,9 +2,12 @@ package home
 
 import (
 	"context"
+	"errors"
+	"log"
 	"net/http"
 	"time"
 
+	"lbe/api/http/requests"
 	"lbe/api/http/responses"
 	"lbe/api/http/services"
 	"lbe/codes"
@@ -12,7 +15,6 @@ import (
 	"lbe/system"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func GetUser(c *gin.Context) {
@@ -27,60 +29,54 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	switch signUpType {
-	case "new":
-		db := system.GetDb()
-		// Attempt to find a user by email.
-		var user model.User
-		err := db.Preload("PhoneNumbers").Where("email = ?", email).First(&user).Error
-		if err == nil {
-			// User found: return an error indicating that the email already exists.
+	err := services.GetRegisterUserByEmail(email, signUpType)
+	if err != nil {
+		if errors.Is(err, services.ErrRecordNotFound) {
+			// If no user is found, return an error.
 			resp := responses.APIResponse{
 				Message: "email registered",
-				Data: responses.SignUpResponse{
-					OTP:      "",
-					ExpireIn: 0,
+				Data: responses.LoginResponse{
+					OTP:               "",
+					ExpireIn:          0,
+					LoginSessionToken: "",
+					LoginExpireIn:     0,
 				},
 			}
 			c.JSON(codes.CODE_EMAIL_REGISTERED, resp)
 			return
 		}
-		if err != gorm.ErrRecordNotFound {
-			// An unexpected error occurred during the query.
-			resp := responses.ErrorResponse{
-				Error: err.Error(),
-			}
-			c.JSON(http.StatusInternalServerError, resp)
-			return
-		}
-
-		// Generate OTP using the service.
-		otpService := services.NewOTPService()
-		ctx := context.Background()
-		otpResp, err := otpService.GenerateOTP(ctx, email)
-		if err != nil {
-			resp := responses.ErrorResponse{
-				Error: "Failed to generate OTP",
-			}
-			c.JSON(http.StatusInternalServerError, resp)
-			return
-		}
-
-		//send email
-		resp := responses.APIResponse{
-			Message: "email not registered",
-			Data: responses.SignUpResponse{
-				OTP:      otpResp.OTP,
-				ExpireIn: otpResp.ExpiresAt,
-			},
-		}
-		c.JSON(http.StatusOK, resp)
-	default:
+		// For any other errors, return an internal server error.
 		resp := responses.ErrorResponse{
-			Error: "Invalid sign up type provided",
+			Error: err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusInternalServerError, resp)
+		return
 	}
+
+	// Generate OTP using the service.
+	otpService := services.NewOTPService()
+	ctx := context.Background()
+	otpResp, err := otpService.GenerateOTP(ctx, email)
+	if err != nil {
+		resp := responses.ErrorResponse{
+			Error: "Failed to generate OTP",
+		}
+		c.JSON(http.StatusInternalServerError, resp)
+		return
+	}
+
+	//To DO : Cache GR member info within expiry timestamp & Generate reg_ID
+
+	//To DO : send email
+	resp := responses.APIResponse{
+		Message: "email not registered",
+		Data: responses.SignUpResponse{
+			OTP:      otpResp.OTP,
+			ExpireIn: otpResp.ExpiresAt,
+		},
+	}
+	c.JSON(http.StatusOK, resp)
+
 }
 
 // CreateUser handles POST /users - create a new user along with (optional) phone numbers.
@@ -96,30 +92,11 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	// Check if a user with the same email already exists.
-	var existingUser model.User
-	if err := db.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
-		// Record found - email already exists.
-		resp := responses.ErrorResponse{
-			Error: "Email already exists",
-		}
-		c.JSON(http.StatusBadRequest, resp)
-		return
-	} else if err != gorm.ErrRecordNotFound {
-		// Some other error occurred while querying.
-		resp := responses.ErrorResponse{
-			Error: err.Error(),
-		}
-		c.JSON(http.StatusInternalServerError, resp)
-		return
-	}
-
 	// Set timestamps for the new record.
 	now := time.Now()
 	user.CreatedAt = now
 	user.UpdatedAt = now
-
-	// Create the user along with any associated phone numbers.
+	// To DO : To be change to RLP create user. RLP - API, Temporary Store into DB 1st
 	if err := db.Create(&user).Error; err != nil {
 		resp := responses.ErrorResponse{
 			Error: err.Error(),
@@ -128,7 +105,26 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	// RLP - API
+	var req requests.User
+	req.ExternalID = user.ExternalID
+	req.ExternalTYPE = user.ExternalTYPE // Adjust if field names differ between the structs
+	req.Email = user.Email
+	req.BurnPin = user.BurnPin
+	req.GR_ID = "gr_id"                         // To be update by rlp.gr_id
+	req.RLP_ID = "rlp_id"                       // To be update by rlp.rlp_id
+	req.RWS_Membership_ID = "rws_membership_id" // To be update by rws_membership_id
+	req.RWS_Membership_Number = 123456          // To be update by RWS_Membership_Number
+
+	err := services.PostRegisterUser(req)
+	if err != nil {
+		// Log the error
+		log.Printf("Post Register User failed: %v", err)
+		resp := responses.ErrorResponse{
+			Error: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, resp)
+		return
+	}
 
 	resp := responses.APIResponse{
 		Message: "user created",

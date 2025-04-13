@@ -84,7 +84,7 @@ type User struct {
 	Country      string    `gorm:"column:country;size:3" json:"country"`
 	FirstName    string    `gorm:"column:first_name;size:255" json:"first_name"`
 	LastName     string    `gorm:"column:last_name;size:255" json:"last_name"`
-	BurnPin      string    `gorm:"column:burn_pin;size:4" json:"burn_pin"`
+	BurnPin      uint64    `gorm:"column:burn_pin;size:4" json:"burn_pin"`
 	CreatedAt    time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt    time.Time `gorm:"column:updated_at" json:"updated_at"`
 
