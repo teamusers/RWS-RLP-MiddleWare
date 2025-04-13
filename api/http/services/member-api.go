@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 
 	"lbe/api/http/responses"
+	"lbe/codes"
 	"lbe/config"
 	"net/http"
 	"time"
@@ -90,7 +92,7 @@ func GetLoginUserByEmail(email string) (*responses.UserResponse, error) {
 	// Set the Bearer token and required headers.
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("AppID", "app123")
+	req.Header.Set("AppID", config.GetConfig().API.Memberservice.AppID)
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
@@ -100,14 +102,22 @@ func GetLoginUserByEmail(email string) (*responses.UserResponse, error) {
 	defer resp.Body.Close()
 
 	// For demonstration, we assume that if the email is not found,
-	// the endpoint returns HTTP Status 404. If so, we simulate a gorm.ErrRecordNotFound.
-	if resp.StatusCode == http.StatusNotFound {
+	// the endpoint returns HTTP Status 201. If so, we simulate a gorm.ErrRecordNotFound.
+	if resp.StatusCode == codes.CODE_EMAIL_NOTFOUND {
 		return nil, ErrRecordNotFound
 	}
 
-	// For any other non-OK status, return an error.
+	// Assuming resp is *http.Response
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(token)
+		// Read the response body
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			// In case of error reading the body, just return the status code
+			return nil, fmt.Errorf("error calling member services: received status code %d, but failed to read response body: %v", resp.StatusCode, err)
+		}
+		defer resp.Body.Close()
+
+		return nil, fmt.Errorf("error calling member services: received status code %d and response: %s", resp.StatusCode, string(body))
 	}
 
 	// Decode the response.

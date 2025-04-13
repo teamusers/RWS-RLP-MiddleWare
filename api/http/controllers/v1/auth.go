@@ -42,7 +42,10 @@ func AuthHandler(c *gin.Context) {
 
 	// Check the Content-Type header.
 	if c.GetHeader("Content-Type") != "application/json" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Content-Type must be application/json"})
+		resp := responses.ErrorResponse{
+			Error: "Content-Type must be application/json",
+		}
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
