@@ -1,7 +1,7 @@
 
 database:
   type: mysql
-  host: localhost
+  host: 135.171.8.254
   port: 3306
   user: root
   password: my-secret-pw
