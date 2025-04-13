@@ -13,7 +13,7 @@ import (
 
 var logger *logrus.Logger
 
-// InitLogger 初始化 Logger，支持每日自动备份并保留近三天日志
+// InitLogger initializes Logger, supporting daily automatic backups and retaining logs for the past three days.
 func InitLogger(path string) {
 	logger = logrus.New()
 	logger.SetFormatter(&logrus.TextFormatter{
@@ -21,21 +21,21 @@ func InitLogger(path string) {
 		TimestampFormat: "2006-01-02 15:04:05",
 	})
 	logger.SetLevel(logrus.InfoLevel)
-	logger.SetReportCaller(true) // 启用调用者信息
+	logger.SetReportCaller(true) // Enable caller information.
 
 	// 创建日志目录
 	if err := os.MkdirAll(path, 0755); err != nil {
-		fmt.Printf("❌ 无法创建日志目录: %v\n", err)
+		fmt.Printf("❌ Unable to create log directory: %v\n", err)
 		return
 	}
 
-	// 日志文件轮转配置（按天切割日志，保留最近 3 天）
+	// Log file rotation configuration (rotate logs daily, retaining the most recent 3 days).
 	infoLog := &lumberjack.Logger{
 		Filename:   path + "/info.log",
-		MaxSize:    10,   // 单个日志文件最大 10MB
-		MaxAge:     3,    // 只保留最近 3 天的日志
-		MaxBackups: 3,    // 最多保留 3 个备份
-		Compress:   true, // 启用压缩
+		MaxSize:    10,   // Single log file maximum 10MB
+		MaxAge:     3,    // Only retain logs for the most recent 3 days.
+		MaxBackups: 3,    // Keep at most 3 backups."
+		Compress:   true, // Enable compression.
 	}
 
 	errorLog := &lumberjack.Logger{
@@ -52,7 +52,7 @@ func InitLogger(path string) {
 
 	logger.SetOutput(os.Stdout)
 
-	// Hook: INFO 级别日志写入 info.log
+	// Hook: Write INFO level logs to info.log.
 	logger.AddHook(&FileHook{
 		Writer: multiWriterInfo,
 		LogLevels: []logrus.Level{
@@ -61,7 +61,7 @@ func InitLogger(path string) {
 		},
 	})
 
-	// Hook: ERROR 级别日志写入 error.log
+	// Hook: Write ERROR level logs to error.log.
 	logger.AddHook(&FileHook{
 		Writer: multiWriterError,
 		LogLevels: []logrus.Level{
@@ -71,18 +71,18 @@ func InitLogger(path string) {
 		},
 	})
 
-	logger.Info("✅ Logger 初始化成功，日志自动轮转，每天备份，保留最近 3 天")
+	logger.Info("✅ Logger Initialization successful, logs are automatically rotated, backed up daily, and the most recent 3 days are retained.")
 }
 
-// FileHook 自定义 Hook，支持写入日志文件
+// FileHook custom hook, supports writing to log files.
 type FileHook struct {
 	Writer    io.Writer
 	LogLevels []logrus.Level
 }
 
-// Fire 实现 logrus Hook，将日志写入文件
+// Fire implements a logrus Hook that writes logs to a file.
 func (hook *FileHook) Fire(entry *logrus.Entry) error {
-	entry.Data["file"], entry.Data["func"] = getCaller() // 记录调用者信息
+	entry.Data["file"], entry.Data["func"] = getCaller() // Record caller information.
 	formatter := &logrus.TextFormatter{
 		FullTimestamp:   true,
 		TimestampFormat: "2006-01-02 15:04:05",
@@ -95,12 +95,12 @@ func (hook *FileHook) Fire(entry *logrus.Entry) error {
 	return err
 }
 
-// Levels 返回 Hook 适用的日志级别
+// Levels returns the log levels applicable to the hook.
 func (hook *FileHook) Levels() []logrus.Level {
 	return hook.LogLevels
 }
 
-// 获取调用日志的代码位置
+// Get the code location of the log call.
 func getCaller() (string, string) {
 	for i := 3; i < 15; i++ {
 		pc, file, line, ok := runtime.Caller(i)
@@ -115,12 +115,12 @@ func getCaller() (string, string) {
 	return "unknown", "unknown"
 }
 
-// 过滤 logrus 本身的调用
+// Filter logrus's own calls.
 func isLogrusFile(file string) bool {
 	return strings.Contains(file, "logrus") || strings.Contains(file, "logger.go")
 }
 
-// 去掉 GOPATH 或 module path，优化 file 显示
+// Remove GOPATH or module path to optimize file display.
 func trimGoPath(file string) string {
 	goPath := os.Getenv("GOPATH")
 	if goPath != "" {
@@ -132,7 +132,7 @@ func trimGoPath(file string) string {
 	return file
 }
 
-// **日志方法封装**
+// **Log method encapsulation.**
 func Info(args ...interface{}) {
 	logger.Info(args...)
 }
@@ -157,7 +157,7 @@ func Fatalf(format string, args ...interface{}) {
 	logger.Fatalf(format, args...)
 }
 
-// 获取 logger 实例
+// Get logger instance.
 func GetLogger() *logrus.Logger {
 	return logger
 }
