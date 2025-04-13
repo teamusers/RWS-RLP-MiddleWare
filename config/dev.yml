@@ -5,7 +5,7 @@ database:
   port: 3306
   user: root
   password: my-secret-pw
-  dbname: mbc_api_main
+  dbname: lbe
   sslmode: disable
   TimeZone: Asia/Shanghai
 
