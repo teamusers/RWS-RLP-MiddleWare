@@ -19,7 +19,7 @@ import (
 // Endpoints
 const (
 	authURL          = "/api/v1/auth"
-	usersURL         = "/api/v1/user/login"
+	usersLoginURL    = "/api/v1/user/login"
 	usersRegisterURL = "/api/v1/user/register"
 )
 
@@ -84,7 +84,7 @@ func GetLoginUserByEmail(email string) (*responses.UserResponse, error) {
 		return nil, err
 	}
 
-	urlWithEmail := fmt.Sprintf("%s/%s", BuildFullURL(usersURL), email)
+	urlWithEmail := fmt.Sprintf("%s/%s", BuildFullURL(usersLoginURL), email)
 	req, err := http.NewRequest("GET", urlWithEmail, nil)
 	if err != nil {
 		return nil, err
