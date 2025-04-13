@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"lbe/api/http/requests"
 	"lbe/api/http/responses"
 	"lbe/api/http/services"
 	"lbe/codes"
@@ -20,16 +19,16 @@ import (
 // If a user with the provided email already exists, it returns an error that the email already exists.
 // If no user is found, it continues to generate an OTP.
 func GetUser(c *gin.Context) {
-	var req requests.SignUpRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	email := c.Param("email")
+	signUpType := c.Param("sign_up_type")
+
+	if email == "" || signUpType == "" {
 		resp := responses.ErrorResponse{
-			Error: "Valid email and sign_up_type are required in the request body",
+			Error: "Valid email and sign_up_type are required as query parameters",
 		}
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-	email := req.Email
-	signUpType := req.SignUpType
 
 	switch signUpType {
 	case "new":

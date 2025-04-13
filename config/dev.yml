@@ -28,6 +28,12 @@ cmd:
 http:
   port: 18080
 
+api:
+  memberservice:
+    host : http://localhost:18081 
+    appid : App123
+    secret: mySuperSecretKey
+
 allStart: 1
 proxyEnable : true
  

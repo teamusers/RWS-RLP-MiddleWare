@@ -32,6 +32,14 @@ type Config struct {
 	Cmd         CmdConfig      `yaml:"cmd"`
 	Http        HttpConfig     `yaml:"http"`
 	ProxyEnable bool           `yaml:"proxyEnable"`
+	// other fields you already have...
+	API struct {
+		Memberservice struct {
+			Host   string `yaml:"host"`
+			AppID  string `yaml:"appid"`
+			Secret string `yaml:"secret"`
+		} `yaml:"memberservice"`
+	} `yaml:"api"`
 }
 
 // DatabaseConfig holds the database connection parameters.

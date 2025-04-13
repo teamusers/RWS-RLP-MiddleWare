@@ -2,8 +2,6 @@ package home
 
 import (
 	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"lbe/codes"
 	model "lbe/models"
@@ -16,6 +14,7 @@ import (
 	// Adjust the import path based on your project structure and module name.
 	"lbe/api/http/requests"
 	"lbe/api/http/responses"
+	"lbe/api/http/services"
 
 	"lbe/api/interceptor"
 )
@@ -85,13 +84,17 @@ func AuthHandler(c *gin.Context) {
 		return
 	}
 
-	// Concatenate AppID, Timestamp, and Nonce to create the base string.
-	baseString := appID + req.Timestamp + req.Nonce
-	// Compute the HMAC-SHA256 signature.
-	mac := hmac.New(sha256.New, []byte(secretKey))
-	mac.Write([]byte(baseString))
-	expectedMAC := mac.Sum(nil)
-	expectedSignature := hex.EncodeToString(expectedMAC)
+	authReq, err := services.GenerateSignatureWithParams(appID, req.Nonce, req.Timestamp, secretKey)
+
+	if err != nil {
+		resp := responses.ErrorResponse{
+			Error: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, resp)
+		// Handle the error, for example, send a JSON error response.
+		return
+	}
+	expectedSignature := authReq.Signature
 
 	// Compare the computed signature with the provided signature.
 	if !hmac.Equal([]byte(expectedSignature), []byte(req.Signature)) {
