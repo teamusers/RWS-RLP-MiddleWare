@@ -15,9 +15,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetUsers handles GET /users
-// If a user with the provided email already exists, it returns an error that the email already exists.
-// If no user is found, it continues to generate an OTP.
 func GetUser(c *gin.Context) {
 	email := c.Param("email")
 	signUpType := c.Param("sign_up_type")
@@ -139,84 +136,3 @@ func CreateUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, resp)
 }
-
-/*
-// UpdateUser handles PUT /users/:id - update an existing user and optionally update phone numbers.
-func UpdateUser(c *gin.Context) {
-	db := system.GetDb()
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
-	var user model.User
-	if err := db.Preload("PhoneNumbers").First(&user, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
-		return
-	}
-
-	var updatedData model.User
-	if err := c.ShouldBindJSON(&updatedData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Update core user fields
-	user.ExternalID = updatedData.ExternalID
-	user.OptedIn = updatedData.OptedIn
-	user.ExternalTYPE = updatedData.ExternalTYPE
-	user.Email = updatedData.Email
-	user.DOB = updatedData.DOB
-	user.Country = updatedData.Country
-	user.FirstName = updatedData.FirstName
-	user.LastName = updatedData.LastName
-	user.BurnPin = updatedData.BurnPin
-	user.UpdatedAt = time.Now()
-
-	// Optionally, update phone numbers.
-	// Here we replace all existing phone numbers if new ones are provided.
-	if len(updatedData.PhoneNumbers) > 0 {
-		// Delete the current phone numbers for this user.
-		if err := db.Where("user_id = ?", user.ID).Delete(&model.UserPhoneNumber{}).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		user.PhoneNumbers = updatedData.PhoneNumbers
-		// Optionally, iterate over the new phone numbers to set their timestamps and foreign key.
-		now := time.Now()
-		for idx := range user.PhoneNumbers {
-			user.PhoneNumbers[idx].UserID = user.ID
-			user.PhoneNumbers[idx].CreatedAt = now
-			user.PhoneNumbers[idx].UpdatedAt = now
-		}
-	}
-
-	if err := db.Save(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, user)
-}
-
-// DeleteUser handles DELETE /users/:id - delete a user and cascade delete phone numbers.
-func DeleteUser(c *gin.Context) {
-	db := system.GetDb()
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
-	// The foreign key constraint (with ON DELETE CASCADE) in the database will handle the deletion of associated phone numbers.
-	if err := db.Delete(&model.User{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
-}
-*/
