@@ -19,6 +19,7 @@ func Routers(e *gin.RouterGroup) {
 		usersGroup.GET("/register/:email/:sign_up_type", user.GetUser)
 		usersGroup.POST("/register", user.CreateUser)
 
+		//GET - LBE-5 - /api/v1/user/pin - burn PIN update
 		//GET - LBE-6 - api/v1/user/gr - GR user's profile verification
 		//GET - LBE-7 - api/v1/user/gr-cms - GR user's profile pushed by CMS
 		//GET - LBE-8 - api/v1/user/gr-reg - verify GR user's profile pushed by CMS
