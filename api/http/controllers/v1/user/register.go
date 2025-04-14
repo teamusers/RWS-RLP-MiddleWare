@@ -96,7 +96,7 @@ func CreateUser(c *gin.Context) {
 	now := time.Now()
 	user.CreatedAt = now
 	user.UpdatedAt = now
-	// To DO : To be change to RLP create user. RLP - API, Temporary Store into DB 1st
+	//To DO : To be change to RLP create user. RLP - API, Temporary Store into DB 1st
 	if err := db.Create(&user).Error; err != nil {
 		resp := responses.ErrorResponse{
 			Error: err.Error(),
@@ -105,6 +105,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	//To DO : get RLP information and link accordingly
 	var req requests.User
 	req.ExternalID = user.ExternalID
 	req.ExternalTYPE = user.ExternalTYPE // Adjust if field names differ between the structs

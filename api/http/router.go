@@ -11,25 +11,21 @@ import (
 func Routers(e *gin.RouterGroup) {
 
 	v1Group := e.Group("/v1")
-
 	v1Group.GET("/auth", v1.AuthHandler)
-
-	// Create a sub-group for "/users" with the HttpInterceptor middleware applied.
-	usersGroup := v1Group.Group("/user/register", interceptor.HttpInterceptor())
+	usersGroup := v1Group.Group("/user", interceptor.HttpInterceptor())
 	{
 		// The endpoints below will all require a valid access token.
-		usersGroup.GET("/:email/:sign_up_type", user.GetUser)
-		usersGroup.POST("", user.CreateUser)
-		//usersGroup.PUT("/:id", v1.UpdateUser)
-		//usersGroup.DELETE("/:id", v1.DeleteUser)
-	}
+		usersGroup.GET("/login/:email", user.Login)
+		usersGroup.GET("/register/:email/:sign_up_type", user.GetUser)
+		usersGroup.POST("/register", user.CreateUser)
 
-	loginGroup := v1Group.Group("/user/login", interceptor.HttpInterceptor())
-	{
-		// The endpoints below will all require a valid access token.
-		loginGroup.GET("/:email", user.Login)
-		//usersGroup.PUT("/:id", v1.UpdateUser)
-		//usersGroup.DELETE("/:id", v1.DeleteUser)
+		//GET - LBE-6 - api/v1/user/gr - GR user's profile verification
+		//GET - LBE-7 - api/v1/user/gr-cms - GR user's profile pushed by CMS
+		//GET - LBE-8 - api/v1/user/gr-reg - verify GR user's profile pushed by CMS
+		//GET - LBE-9 - api/v1/member - view member profile
+		//PUT - LBE-10 - api/v1/member/update - update member profile (name, phone, marketing consent, burn PIN)
+		//PUT - LBE-11 - api/v1/member/archive - withdraw member profile (active_status=0, previous email=current email, email=null)
+
 	}
 
 }
