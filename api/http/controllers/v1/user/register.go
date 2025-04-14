@@ -1,4 +1,4 @@
-package home
+package user
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"lbe/api/http/responses"
 	"lbe/api/http/services"
 	"lbe/codes"
-	model "lbe/models"
+	"lbe/model"
 	"lbe/system"
 
 	"github.com/gin-gonic/gin"

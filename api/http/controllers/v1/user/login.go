@@ -1,4 +1,4 @@
-package home
+package user
 
 import (
 	"context"

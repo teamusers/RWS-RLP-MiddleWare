@@ -2,6 +2,7 @@ package http
 
 import (
 	v1 "lbe/api/http/controllers/v1"
+
 	user "lbe/api/http/controllers/v1/user"
 	"lbe/api/interceptor"
 

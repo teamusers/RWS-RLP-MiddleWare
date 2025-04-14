@@ -1,10 +1,10 @@
-package home
+package v1
 
 import (
 	"crypto/hmac"
 	"fmt"
 	"lbe/codes"
-	model "lbe/models"
+	"lbe/model"
 	"lbe/system"
 	"net/http"
 

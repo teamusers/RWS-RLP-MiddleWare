@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"lbe/config"
-	log "lbe/log"
-	model "lbe/models"
+	"lbe/log"
+	"lbe/model"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
@@ -70,6 +70,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err) // Use sys.Logger to log fatal errors
 	}
+
 	// Assign the database instance to the global variable DB
 	DB = database
 
