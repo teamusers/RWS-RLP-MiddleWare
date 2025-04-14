@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetUsers handles GET /users
 func Login(c *gin.Context) {
 	email := c.Param("email")
 	if email == "" {
@@ -25,7 +24,6 @@ func Login(c *gin.Context) {
 	user, err := services.GetLoginUserByEmail(email)
 	if err != nil {
 		if errors.Is(err, services.ErrRecordNotFound) {
-			// If no user is found, return an error.
 			resp := responses.APIResponse{
 				Message: "email not found",
 				Data: responses.LoginResponse{
@@ -38,7 +36,6 @@ func Login(c *gin.Context) {
 			c.JSON(codes.CODE_EMAIL_NOTFOUND, resp)
 			return
 		}
-		// For any other errors, return an internal server error.
 		resp := responses.ErrorResponse{
 			Error: err.Error(),
 		}
@@ -46,11 +43,9 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Assign the values from the service response.
 	loginSessionToken := user.Data.LoginSessionToken
 	loginExpireInSeconds := user.Data.LoginExpireIn
 
-	// If the user exists, generate OTP using the service.
 	otpService := services.NewOTPService()
 	ctx := context.Background()
 	otpResp, err := otpService.GenerateOTP(ctx, email)
@@ -62,7 +57,8 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	//Call send email services
+	//To DO : Call send email services
+
 	resp := responses.APIResponse{
 		Message: "email found",
 		Data: responses.LoginResponse{

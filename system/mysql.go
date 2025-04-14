@@ -70,10 +70,6 @@ func init() {
 	if err != nil {
 		log.Fatal(err) // Use sys.Logger to log fatal errors
 	}
-
-	// Enable debug mode if needed:
-	database = database.Debug()
-
 	// Assign the database instance to the global variable DB
 	DB = database
 

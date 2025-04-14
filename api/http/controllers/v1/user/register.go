@@ -32,7 +32,6 @@ func GetUser(c *gin.Context) {
 	err := services.GetRegisterUserByEmail(email, signUpType)
 	if err != nil {
 		if errors.Is(err, services.ErrRecordNotFound) {
-			// If no user is found, return an error.
 			resp := responses.APIResponse{
 				Message: "email registered",
 				Data: responses.LoginResponse{
@@ -45,7 +44,6 @@ func GetUser(c *gin.Context) {
 			c.JSON(codes.CODE_EMAIL_REGISTERED, resp)
 			return
 		}
-		// For any other errors, return an internal server error.
 		resp := responses.ErrorResponse{
 			Error: err.Error(),
 		}
@@ -78,8 +76,6 @@ func GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 
 }
-
-// CreateUser handles POST /users - create a new user along with (optional) phone numbers.
 func CreateUser(c *gin.Context) {
 	db := system.GetDb()
 	var user model.User
@@ -92,7 +88,6 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	// Set timestamps for the new record.
 	now := time.Now()
 	user.CreatedAt = now
 	user.UpdatedAt = now

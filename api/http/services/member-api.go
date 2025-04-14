@@ -26,14 +26,11 @@ const (
 var ErrRecordNotFound = errors.New("record not found")
 
 func GetAccessToken() (string, error) {
-	// Create the request body according to the given specification.
-
 	AppID := config.GetConfig().API.Memberservice.AppID
 	secretKey := config.GetConfig().API.Memberservice.Secret
 	reqBody, err := GenerateSignature(AppID, secretKey)
 
 	if err != nil {
-		// Handle the error appropriately.
 		log.Fatalf("unable to generate auth signature: %v", err)
 	}
 
@@ -49,7 +46,6 @@ func GetAccessToken() (string, error) {
 		return "", err
 	}
 
-	// Set required headers.
 	req.Header.Set("AppID", AppID)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -102,13 +98,10 @@ func GetLoginUserByEmail(email string) (*responses.UserResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	// For demonstration, we assume that if the email is not found,
-	// the endpoint returns HTTP Status 201. If so, we simulate a gorm.ErrRecordNotFound.
 	if resp.StatusCode == codes.CODE_EMAIL_NOTFOUND {
 		return nil, ErrRecordNotFound
 	}
 
-	// Assuming resp is *http.Response
 	if resp.StatusCode != http.StatusOK {
 		// Read the response body
 		body, err := io.ReadAll(resp.Body)
@@ -155,14 +148,10 @@ func GetRegisterUserByEmail(email string, signUpType string) error {
 		return err
 	}
 	defer resp.Body.Close()
-
-	// For demonstration, we assume that if the email is not found,
-	// the endpoint returns HTTP Status 201. If so, we simulate a gorm.ErrRecordNotFound.
 	if resp.StatusCode == codes.CODE_EMAIL_REGISTERED {
 		return ErrRecordNotFound
 	}
 
-	// Assuming resp is *http.Response
 	if resp.StatusCode != http.StatusOK {
 		// Read the response body
 		body, err := io.ReadAll(resp.Body)

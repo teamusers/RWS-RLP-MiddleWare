@@ -1,4 +1,3 @@
-// services/auth_service.go
 package services
 
 import (
@@ -10,11 +9,9 @@ import (
 	"time"
 
 	"lbe/api/http/requests"
-	"lbe/config" // adjust with your module path
+	"lbe/config"
 )
 
-// GenerateSignature auto-generates the nonce and timestamp, reads AppID and secretKey from config,
-// and then computes the signature.
 func GenerateSignature(appID, secretKey string) (*requests.AuthRequest, error) {
 	// Initialize random seed.
 	rand.New(rand.NewSource(time.Now().UnixNano()))

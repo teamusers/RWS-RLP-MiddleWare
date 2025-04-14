@@ -2,7 +2,6 @@ package router
 
 import (
 	"fmt"
-	"net/http"
 
 	general "lbe/api/http"
 	"lbe/config"
@@ -28,9 +27,6 @@ func Init() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-
-	r.GET("/index", helloHandler)
-
 	apiGroup := r.Group("/api")
 	for _, opt := range options {
 		opt(apiGroup)
@@ -47,9 +43,4 @@ func Init() *gin.Engine {
 
 	r.Run(fmt.Sprintf(":%d", config.GetConfig().Http.Port))
 	return r
-}
-
-// helloHandler returns the filtered list of endpoints in JSON.
-func helloHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, endpointList)
 }

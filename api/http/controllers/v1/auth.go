@@ -8,19 +8,16 @@ import (
 	"lbe/system"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-
-	// Adjust the import path based on your project structure and module name.
 	"lbe/api/http/requests"
 	"lbe/api/http/responses"
 	"lbe/api/http/services"
 
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+
 	"lbe/api/interceptor"
 )
 
-// getSecretKey is a dummy function to lookup the secret key using the AppID.
-// In a real implementation, this might query a database or another secure store.
 func getSecretKey(db *gorm.DB, appID string) (string, error) {
 	var channel model.SysChannel
 	if err := db.Where("app_id = ?", appID).First(&channel).Error; err != nil {
