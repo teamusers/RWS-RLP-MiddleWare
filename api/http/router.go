@@ -11,7 +11,7 @@ import (
 func Routers(e *gin.RouterGroup) {
 
 	v1Group := e.Group("/v1")
-	v1Group.GET("/auth", v1.AuthHandler)
+	v1Group.POST("/auth", v1.AuthHandler)
 	usersGroup := v1Group.Group("/user", interceptor.HttpInterceptor())
 	{
 		// The endpoints below will all require a valid access token.

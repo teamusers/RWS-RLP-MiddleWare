@@ -29,7 +29,7 @@ func getSecretKey(db *gorm.DB, appID string) (string, error) {
 // AuthHandler processes the GET /api/v1/auth endpoint.
 func AuthHandler(c *gin.Context) {
 	// (Optional) Check the request method.
-	if c.Request.Method != http.MethodGet {
+	if c.Request.Method != http.MethodPost {
 		resp := responses.ErrorResponse{
 			Error: "Method Not Allowed",
 		}

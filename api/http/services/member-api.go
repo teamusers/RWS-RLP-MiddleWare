@@ -41,7 +41,7 @@ func GetAccessToken() (string, error) {
 	}
 
 	// Create a new HTTP request.
-	req, err := http.NewRequest("GET", BuildFullURL(authURL), bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", BuildFullURL(authURL), bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", err
 	}
