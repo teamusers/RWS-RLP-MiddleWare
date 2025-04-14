@@ -35,10 +35,14 @@ func GetUser(c *gin.Context) {
 			resp := responses.APIResponse{
 				Message: "email registered",
 				Data: responses.LoginResponse{
-					OTP:               "",
-					ExpireIn:          0,
-					LoginSessionToken: "",
-					LoginExpireIn:     0,
+					Otp: model.Otp{
+						Otp:       nil,
+						OtpExpiry: nil,
+					},
+					LoginSessionToken: model.LoginSessionToken{
+						LoginSessionToken:       nil,
+						LoginSessionTokenExpiry: nil,
+					},
 				},
 			}
 			c.JSON(codes.CODE_EMAIL_REGISTERED, resp)
@@ -68,10 +72,7 @@ func GetUser(c *gin.Context) {
 	//To DO : send email
 	resp := responses.APIResponse{
 		Message: "email not registered",
-		Data: responses.SignUpResponse{
-			OTP:      otpResp.OTP,
-			ExpireIn: otpResp.ExpiresAt,
-		},
+		Data:    otpResp,
 	}
 	c.JSON(http.StatusOK, resp)
 

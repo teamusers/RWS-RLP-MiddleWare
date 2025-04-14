@@ -6,6 +6,7 @@ import (
 	"lbe/api/http/responses"
 	"lbe/api/http/services"
 	"lbe/codes"
+	"lbe/model"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,10 +28,14 @@ func Login(c *gin.Context) {
 			resp := responses.APIResponse{
 				Message: "email not found",
 				Data: responses.LoginResponse{
-					OTP:               "",
-					ExpireIn:          0,
-					LoginSessionToken: "",
-					LoginExpireIn:     0,
+					Otp: model.Otp{
+						Otp:       nil,
+						OtpExpiry: nil,
+					},
+					LoginSessionToken: model.LoginSessionToken{
+						LoginSessionToken:       nil,
+						LoginSessionTokenExpiry: nil,
+					},
 				},
 			}
 			c.JSON(codes.CODE_EMAIL_NOTFOUND, resp)
@@ -42,9 +47,6 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, resp)
 		return
 	}
-
-	loginSessionToken := user.Data.LoginSessionToken
-	loginExpireInSeconds := user.Data.LoginExpireIn
 
 	otpService := services.NewOTPService()
 	ctx := context.Background()
@@ -62,10 +64,8 @@ func Login(c *gin.Context) {
 	resp := responses.APIResponse{
 		Message: "email found",
 		Data: responses.LoginResponse{
-			OTP:               otpResp.OTP,
-			ExpireIn:          otpResp.ExpiresAt,
-			LoginSessionToken: loginSessionToken,
-			LoginExpireIn:     loginExpireInSeconds,
+			Otp:               otpResp,
+			LoginSessionToken: user.Data,
 		},
 	}
 	c.JSON(http.StatusOK, resp)

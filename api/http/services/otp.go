@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
-	"lbe/api/http/responses"
+	"lbe/model"
 	"lbe/system"
 	"math/rand"
 	"strconv"
@@ -12,7 +12,7 @@ import (
 
 // OTPService is responsible for generating and validating OTP tokens.
 type OTPService interface {
-	GenerateOTP(ctx context.Context, identifier string) (responses.OTPResponse, error)
+	GenerateOTP(ctx context.Context, identifier string) (model.Otp, error)
 	ValidateOTP(ctx context.Context, identifier string, otp string) (bool, error)
 }
 
@@ -25,7 +25,7 @@ func NewOTPService() OTPService {
 
 // GenerateOTP generates a 6-digit OTP, stores it in Redis with a 30-minute expiration,
 // and returns the OTP along with its expiration time.
-func (s *otpService) GenerateOTP(ctx context.Context, identifier string) (responses.OTPResponse, error) {
+func (s *otpService) GenerateOTP(ctx context.Context, identifier string) (model.Otp, error) {
 	// Seed the random number generator (consider seeding once in your application's startup in production)
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -50,9 +50,9 @@ func (s *otpService) GenerateOTP(ctx context.Context, identifier string) (respon
 	expiresAt := time.Now().Add(expiration).Unix()
 
 	// Return the OTP and the expiration time.
-	return responses.OTPResponse{
-		OTP:       otpStr,
-		ExpiresAt: expiresAt,
+	return model.Otp{
+		Otp:       &otpStr,
+		OtpExpiry: &expiresAt,
 	}, nil
 }
 

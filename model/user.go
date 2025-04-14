@@ -78,7 +78,7 @@ type User struct {
 	ID           uint64    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	ExternalID   string    `gorm:"column:external_id;size:50" json:"external_id"`
 	OptedIn      bool      `gorm:"column:opted_in" json:"opted_in"`
-	ExternalTYPE string    `gorm:"column:external_id_type;size:50" json:"external_id2"`
+	ExternalTYPE string    `gorm:"column:external_id_type;size:50" json:"external_id_2"`
 	Email        string    `gorm:"column:email;size:255" json:"email"`
 	DOB          Date      `gorm:"column:dob" json:"dob"`
 	Country      string    `gorm:"column:country;size:3" json:"country"`
