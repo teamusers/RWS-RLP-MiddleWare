@@ -72,8 +72,8 @@ func GetAccessToken() (string, error) {
 }
 
 // GetUserByEmail first gets an access token, then calls the users endpoint using the token
-// to query a user by email. It returns a UserResponse or an error.
-func GetLoginUserByEmail(email string) (*responses.UserResponse, error) {
+// to query a user by email. It returns a Login session token or an error.
+func GetLoginUserByEmail(email string) (*responses.MemberLoginResponse, error) {
 	// Get the access token.
 	token, err := GetAccessToken()
 	if err != nil {
@@ -115,7 +115,7 @@ func GetLoginUserByEmail(email string) (*responses.UserResponse, error) {
 	}
 
 	// Decode the response.
-	var userResp responses.UserResponse
+	var userResp responses.MemberLoginResponse
 	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func GetRegisterUserByEmail(email string, signUpType string) error {
 	}
 
 	// Decode the response.
-	var userResp responses.UserResponse
+	var userResp responses.MemberLoginResponse
 	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
 		return err
 	}
@@ -218,7 +218,7 @@ func PostRegisterUser(payload interface{}) error {
 	}
 
 	// Optionally, decode the response if you need to process it further.
-	var userResp responses.UserResponse
+	var userResp responses.MemberLoginResponse
 	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
 		return err
 	}

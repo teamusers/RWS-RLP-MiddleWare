@@ -1,13 +1,12 @@
 package user
 
 import (
-	"context"
 	"errors"
 	"lbe/api/http/requests"
 	"lbe/api/http/responses"
 	"lbe/api/http/services"
 	"lbe/codes"
-	"lbe/model"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,19 +18,11 @@ func Login(c *gin.Context) {
 
 	// Bind the incoming JSON payload to the req struct.
 	if err := c.ShouldBindJSON(&req); err != nil {
-		resp := responses.ErrorResponse{
-			Error: "Invalid request payload",
+		resp := responses.APIResponse{
+			Message: "invalid json request body",
+			Data:    responses.LoginResponse{},
 		}
-		c.JSON(http.StatusBadRequest, resp)
-		return
-	}
-
-	// Check if the email field is empty.
-	if req.Email == "" {
-		resp := responses.ErrorResponse{
-			Error: "Valid email is required in the request body",
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusMethodNotAllowed, resp)
 		return
 	}
 
@@ -40,33 +31,27 @@ func Login(c *gin.Context) {
 		if errors.Is(err, services.ErrRecordNotFound) {
 			resp := responses.APIResponse{
 				Message: "email not found",
-				Data: responses.LoginResponse{
-					Otp: model.Otp{
-						Otp:       nil,
-						OtpExpiry: nil,
-					},
-					LoginSessionToken: model.LoginSessionToken{
-						LoginSessionToken:       nil,
-						LoginSessionTokenExpiry: nil,
-					},
-				},
+				Data:    responses.LoginResponse{},
 			}
 			c.JSON(codes.CODE_EMAIL_NOTFOUND, resp)
 			return
 		}
-		resp := responses.ErrorResponse{
-			Error: err.Error(),
+		log.Printf("error encountered getting login user: %v", err)
+		resp := responses.APIResponse{
+			Message: "internal error",
+			Data:    responses.LoginResponse{},
 		}
 		c.JSON(http.StatusInternalServerError, resp)
 		return
 	}
 
 	otpService := services.NewOTPService()
-	ctx := context.Background()
-	otpResp, err := otpService.GenerateOTP(ctx, req.Email)
+	otpResp, err := otpService.GenerateOTP(c, req.Email)
 	if err != nil {
-		resp := responses.ErrorResponse{
-			Error: "Failed to generate OTP",
+		log.Printf("error encountered generating otp: %v", err)
+		resp := responses.APIResponse{
+			Message: "internal error",
+			Data:    responses.LoginResponse{},
 		}
 		c.JSON(http.StatusInternalServerError, resp)
 		return

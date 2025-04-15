@@ -33,7 +33,6 @@ func AuthHandler(c *gin.Context) {
 	// Retrieve the AppID from header.
 	appID := c.GetHeader("AppID")
 	if appID == "" {
-		log.Println("missing appid header")
 		resp := responses.APIResponse{
 			Message: "missing appid",
 			Data:    responses.AuthResponse{},
@@ -45,7 +44,6 @@ func AuthHandler(c *gin.Context) {
 	// Decode the JSON body.
 	var req requests.AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Println("invalid json request provided")
 		resp := responses.APIResponse{
 			Message: "invalid json request body",
 			Data:    responses.AuthResponse{},
@@ -59,7 +57,6 @@ func AuthHandler(c *gin.Context) {
 	secretKey, err := getSecretKey(db, appID)
 
 	if err != nil || secretKey == "" {
-		log.Println("invalid app id header provided")
 		resp := responses.APIResponse{
 			Message: "invalid appid",
 			Data:    responses.AuthResponse{},
@@ -82,7 +79,6 @@ func AuthHandler(c *gin.Context) {
 
 	// Compare the computed signature with the provided signature.
 	if !hmac.Equal([]byte(authReq.Signature), []byte(req.Signature)) {
-		log.Println("invalid signature")
 		resp := responses.APIResponse{
 			Message: "invalid signature",
 			Data:    responses.AuthResponse{},

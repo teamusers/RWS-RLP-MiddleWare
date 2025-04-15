@@ -9,9 +9,7 @@ type MemberAuthResponse struct {
 	} `json:"data"`
 }
 
-// UserResponse represents the expected response from the users endpoint.
-// You can expand the fields based on what the endpoint returns.
-type UserResponse struct {
+type MemberLoginResponse struct {
 	Message string                  `json:"message"`
 	Data    model.LoginSessionToken `json:"data"`
 }
