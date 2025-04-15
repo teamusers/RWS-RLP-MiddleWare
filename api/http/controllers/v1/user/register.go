@@ -166,3 +166,46 @@ func VerifyGrExistence(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 
 }
+
+func VerifyGrCmsExistence(c *gin.Context) {
+	var req requests.RegisterGrCms
+
+	// Bind the incoming JSON payload.
+	if err := c.ShouldBindJSON(&req); err != nil {
+		resp := responses.APIResponse{
+			Message: "invalid json request body",
+		}
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	err := services.GetRegisterUserByEmail(*req.GrMember.Email)
+	if err != nil {
+		if errors.Is(err, services.ErrRecordNotFound) { //TO DO - Fix and standardize error
+			resp := responses.APIResponse{
+				Message: "email registered",
+			}
+			c.JSON(codes.CODE_EMAIL_REGISTERED, resp)
+			return
+		}
+		log.Printf("error encountered getting registered user: %v", err)
+		resp := responses.APIResponse{
+			Message: "internal error",
+		}
+		c.JSON(http.StatusInternalServerError, resp)
+		return
+	}
+
+	// TO DO - cache gr member info within expiry timestamp and generate reg_id
+	regId := uuid.New()
+	system.ObjectSet(regId.String(), req.GrMember, 30*time.Minute)
+
+	// TO DO - send registration email with url and reg_id
+
+	// return email existence status
+	resp := responses.APIResponse{
+		Message: "email not registered",
+	}
+	c.JSON(http.StatusOK, resp)
+
+}

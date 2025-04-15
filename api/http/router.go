@@ -27,9 +27,10 @@ func Routers(e *gin.RouterGroup) {
 
 		//PUT - LBE-5 - api/v1/user/pin - burn PIN update
 		usersGroup.PUT("/pin", user.UpdateBurnPin)
-		//GET - LBE-6 - api/v1/user/gr - GR user's profile verification
-		usersGroup.GET("/gr", user.VerifyGrExistence)
+		//POST - LBE-6 - api/v1/user/gr - GR user's profile verification
+		usersGroup.POST("/gr", user.VerifyGrExistence)
 		//POST - LBE-7 - api/v1/user/gr-cms - GR user's profile pushed by CMS
+		usersGroup.POST("/gr-cms", user.VerifyGrCmsExistence)
 		//GET - LBE-8 - api/v1/user/gr-reg - verify GR user's profile pushed by CMS
 
 		//View Transaction - Timeline APIs
