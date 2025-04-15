@@ -1,10 +1,13 @@
 package user
 
 import (
+	"lbe/api/http/requests"
 	"lbe/api/http/responses"
+	"lbe/api/http/services"
 	"lbe/codes"
 	"lbe/model"
 	"lbe/system"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -115,6 +118,34 @@ func UpdateMemberProfile(c *gin.Context) {
 	resp := responses.APIResponse{
 		Message: "update successfully",
 		Data:    user,
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
+func UpdateBurnPin(c *gin.Context) {
+	var req requests.UpdateBurnPin
+
+	// Bind the incoming JSON payload to the req struct.
+	if err := c.ShouldBindJSON(&req); err != nil {
+		resp := responses.APIResponse{
+			Message: "invalid json request body",
+		}
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	err := services.UpdateBurnPin(req)
+	if err != nil {
+		log.Printf("error encountered updating burn pin: %v", err)
+		resp := responses.APIResponse{
+			Message: "update unsuccessful",
+		}
+		c.JSON(http.StatusCreated, resp)
+		return
+	}
+
+	resp := responses.APIResponse{
+		Message: "update successful",
 	}
 	c.JSON(http.StatusOK, resp)
 }

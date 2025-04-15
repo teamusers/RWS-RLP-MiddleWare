@@ -89,6 +89,8 @@ func CreateUser(c *gin.Context) {
 	user.CreatedAt = now
 	user.UpdatedAt = now
 
+	//TO DO - If sign_up_type = TM: request TM info and validate
+
 	//TO DO - Update RLP_ID generation logic
 	rlpId := uuid.New()
 
@@ -104,6 +106,8 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	//TO DO - If sign_up_type = GR or TM: Request user tier update (redundant?)
+
 	//To DO - RLP | member service : get RLP information and link accordingly to member service
 	var req requests.User
 	req.ExternalID = user.ExternalID
@@ -115,7 +119,7 @@ func CreateUser(c *gin.Context) {
 	req.RWS_Membership_ID = "rws_membership_id" // To be update by rws_membership_id
 	req.RWS_Membership_Number = 123456          // To be update by RWS_Membership_Number
 
-	// Request member service update - link MS_ID and RLP_ID
+	//TO DO - Request member service update - different based on sign_up_type
 	err := services.PostRegisterUser(req)
 	if err != nil {
 		// Log the error
