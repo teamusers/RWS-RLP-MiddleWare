@@ -57,6 +57,14 @@ func ObjectGet[T any](key string, value *T) (*T, error) {
 	return value, nil
 }
 
+func ObjectDelete(key string) error {
+	err := rdb.Del(ctx, key).Err()
+	if err != nil {
+		return fmt.Errorf("error deleting key '%s': %v", key, err)
+	}
+	return nil
+}
+
 func PublishTokenSearch(tokenSearch []byte) {
 	go func() {
 		cmd := rdb.Publish(ctx, "tokensearch", tokenSearch)

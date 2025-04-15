@@ -32,6 +32,7 @@ func Routers(e *gin.RouterGroup) {
 		//POST - LBE-7 - api/v1/user/gr-cms - GR user's profile pushed by CMS
 		usersGroup.POST("/gr-cms", user.VerifyGrCmsExistence)
 		//GET - LBE-8 - api/v1/user/gr-reg - verify GR user's profile pushed by CMS
+		usersGroup.GET("/gr-reg/:reg_id", user.GetCachedGrCmsProfile)
 
 		//View Transaction - Timeline APIs
 		//View Store Transaction - SM.TransactionsDomain.API  - post /api/1.0/transactions/info/get_store_transactions

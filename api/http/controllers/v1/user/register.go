@@ -209,3 +209,37 @@ func VerifyGrCmsExistence(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 
 }
+
+func GetCachedGrCmsProfile(c *gin.Context) {
+
+	regId := c.Param("reg_id")
+	if regId == "" {
+		resp := responses.APIResponse{
+			Message: "missing reg_id query parameter",
+			Data:    model.GrMember{},
+		}
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	cachedGrCmsProfile, err := system.ObjectGet(regId, &model.GrMember{})
+	if err != nil {
+		log.Printf("error getting cache value: %v", err)
+		resp := responses.APIResponse{
+			Message: "unsuccessful",
+			Data:    model.GrMember{},
+		}
+		c.JSON(http.StatusCreated, resp)
+		return
+	}
+
+	// return cached profile
+	resp := responses.APIResponse{
+		Message: "successful",
+		Data:    cachedGrCmsProfile,
+	}
+	c.JSON(http.StatusOK, resp)
+
+	// delete cached data since value found
+	system.ObjectDelete(regId)
+}
