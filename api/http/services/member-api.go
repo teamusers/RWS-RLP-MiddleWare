@@ -21,6 +21,7 @@ const (
 	authURL          = "/api/v1/auth"
 	usersLoginURL    = "/api/v1/user/login"
 	usersRegisterURL = "/api/v1/user/register"
+	updateBurnPinURL = "/api/v1/user/pin"
 )
 
 var ErrRecordNotFound = errors.New("record not found")
@@ -74,29 +75,12 @@ func GetAccessToken() (string, error) {
 // GetUserByEmail first gets an access token, then calls the users endpoint using the token
 // to query a user by email. It returns a Login session token or an error.
 func GetLoginUserByEmail(email string) (*responses.MemberLoginResponse, error) {
-	// Get the access token.
-	token, err := GetAccessToken()
-	if err != nil {
-		return nil, err
-	}
-
 	urlWithEmail := fmt.Sprintf("%s/%s", BuildFullURL(usersLoginURL), email)
-	req, err := http.NewRequest("GET", urlWithEmail, nil)
+
+	resp, err := buildHttpClient("GET", urlWithEmail, email)
 	if err != nil {
 		return nil, err
 	}
-
-	// Set the Bearer token and required headers.
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("AppID", config.GetConfig().API.Memberservice.AppID)
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode == codes.CODE_EMAIL_NOTFOUND {
 		return nil, ErrRecordNotFound
@@ -124,30 +108,13 @@ func GetLoginUserByEmail(email string) (*responses.MemberLoginResponse, error) {
 }
 
 func GetRegisterUserByEmail(email string) error {
-	// Get the access token.
-	token, err := GetAccessToken()
-	if err != nil {
-		return err
-	}
-
 	// Build the full URL by combining the base URL, email, and signUpType
 	urlWithParams := fmt.Sprintf("%s/%s", BuildFullURL(usersRegisterURL), email)
-	req, err := http.NewRequest("GET", urlWithParams, nil)
+	resp, err := buildHttpClient("GET", urlWithParams, email)
 	if err != nil {
 		return err
 	}
 
-	// Set the Bearer token and required headers.
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("AppID", config.GetConfig().API.Memberservice.AppID)
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
 	if resp.StatusCode == codes.CODE_EMAIL_REGISTERED {
 		return ErrRecordNotFound
 	}
@@ -175,37 +142,14 @@ func GetRegisterUserByEmail(email string) error {
 
 // PostRegisterUser posts a JSON payload to register a user by combining email and signUpType in the URL.
 func PostRegisterUser(payload interface{}) error {
-	// Get the access token.
-	token, err := GetAccessToken()
-	if err != nil {
-		return err
-	}
 
 	// Build the full URL by combining the base URL, email, and signUpType.
 	urlWithParams := BuildFullURL(usersRegisterURL)
 
-	// Marshal the passed payload into JSON.
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("error marshaling payload: %w", err)
-	}
-
-	// Create a new POST request with the JSON payload.
-	req, err := http.NewRequest("POST", urlWithParams, bytes.NewBuffer(jsonData))
+	resp, err := buildHttpClient("POST", urlWithParams, payload)
 	if err != nil {
 		return err
 	}
-
-	// Set the required headers.
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
 
 	// Check for a non-OK status.
 	if resp.StatusCode != http.StatusCreated {
@@ -225,4 +169,61 @@ func PostRegisterUser(payload interface{}) error {
 
 	// You could use userResp further if needed.
 	return nil
+}
+
+func UpdateBurnPin(payload interface{}) error {
+	// Build the full URL by combining the base URL, email, and signUpType.
+	urlWithParams := BuildFullURL(updateBurnPinURL)
+
+	resp, err := buildHttpClient("PUT", urlWithParams, payload)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		// Read the response body
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			// In case of error reading the body, just return the status code
+			return fmt.Errorf("error calling member services: received status code %d, but failed to read response body: %v", resp.StatusCode, err)
+		}
+		defer resp.Body.Close()
+
+		return fmt.Errorf("error calling member services: received status code %d and response: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
+func buildHttpClient(httpMethod string, url string, payload any) (*http.Response, error) {
+	// Get the access token.
+	token, err := GetAccessToken()
+	if err != nil {
+		return nil, err
+	}
+
+	// Marshal the passed payload into JSON.
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling payload: %w", err)
+	}
+
+	// Create a new POST request with the JSON payload.
+	req, err := http.NewRequest(httpMethod, url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the required headers.
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("AppID", config.GetConfig().API.Memberservice.AppID)
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, err
 }

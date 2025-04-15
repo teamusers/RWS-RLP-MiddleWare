@@ -12,3 +12,8 @@ type User struct {
 	RWS_Membership_ID     string `json:"rws_membership_id"`
 	RWS_Membership_Number uint64 `json:"rws_membership_number"`
 }
+
+type UpdateBurnPin struct {
+	Email   string `json:"email" binding:"required"`
+	BurnPin string `json:"burn_pin" binding:"required"`
+}
