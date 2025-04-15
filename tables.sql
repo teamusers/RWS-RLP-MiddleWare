@@ -1,42 +1,43 @@
--- Create the `users` table
-CREATE TABLE `users` (
-  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-  `external_id` VARCHAR(50) NOT NULL,
-  `opted_in` BOOLEAN NOT NULL DEFAULT FALSE,
-  `external_id_type` VARCHAR(50),
-  `email` VARCHAR(50),
-  `dob` DATE,
-  `country` VARCHAR(50),
-  `first_name` VARCHAR(255),
-  `last_name` VARCHAR(255),
-  `burn_pin` INT(4), 
-  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+-- Create the users table
+CREATE TABLE users (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    external_id VARCHAR(50) NOT NULL,
+    opted_in BIT NOT NULL DEFAULT 0,
+    external_id_type VARCHAR(50),
+    email VARCHAR(50),
+    dob DATE,
+    country VARCHAR(50),
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    burn_pin INT, -- MSSQL does not support INT(4), so using INT instead.
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE()
+);
+GO
 
--- Create the `user_phone_numbers` table with a foreign key referencing the `users` table
-CREATE TABLE `users_phone_numbers` (
-  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-  `user_id` BIGINT NOT NULL,
-  `phone_number` VARCHAR(20),
-  `phone_type` VARCHAR(20),
-  `preference_flags` VARCHAR(50), 
-  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  CONSTRAINT `fk_user_id`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `users`(`id`)
-    ON DELETE CASCADE
-) ENGINE=InnoDB;
+-- Create the users_phone_numbers table with a foreign key referencing the users table
+CREATE TABLE users_phone_numbers (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    phone_number VARCHAR(20),
+    phone_type VARCHAR(20),
+    preference_flags VARCHAR(50),
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+GO
 
-CREATE TABLE `sys_channel` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `app_id` varchar(100) NOT NULL,
-  `app_key` varchar(100) NOT NULL,
-  `status` char(2) NOT NULL DEFAULT '10',
-  `sig_method` varchar(100) NOT NULL DEFAULT 'SHA256',
-  `create_time` datetime DEFAULT NULL,
-  `update_time` datetime NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+-- Create the sys_channel table
+CREATE TABLE sys_channel (
+    id BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    app_id VARCHAR(100) NOT NULL,
+    app_key VARCHAR(100) NOT NULL,
+    status CHAR(2) NOT NULL DEFAULT '10',
+    sig_method VARCHAR(100) NOT NULL DEFAULT 'SHA256',
+    create_time DATETIME NULL,
+    update_time DATETIME NOT NULL
+);
+GO

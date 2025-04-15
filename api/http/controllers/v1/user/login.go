@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"lbe/api/http/requests"
 	"lbe/api/http/responses"
 	"lbe/api/http/services"
 	"lbe/codes"
@@ -13,16 +14,28 @@ import (
 )
 
 func Login(c *gin.Context) {
-	email := c.Param("email")
-	if email == "" {
+
+	var req requests.Login
+
+	// Bind the incoming JSON payload to the req struct.
+	if err := c.ShouldBindJSON(&req); err != nil {
 		resp := responses.ErrorResponse{
-			Error: "Valid email is required as query parameter",
+			Error: "Invalid request payload",
 		}
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	user, err := services.GetLoginUserByEmail(email)
+	// Check if the email field is empty.
+	if req.Email == "" {
+		resp := responses.ErrorResponse{
+			Error: "Valid email is required in the request body",
+		}
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	user, err := services.GetLoginUserByEmail(req.Email)
 	if err != nil {
 		if errors.Is(err, services.ErrRecordNotFound) {
 			resp := responses.APIResponse{
@@ -50,7 +63,7 @@ func Login(c *gin.Context) {
 
 	otpService := services.NewOTPService()
 	ctx := context.Background()
-	otpResp, err := otpService.GenerateOTP(ctx, email)
+	otpResp, err := otpService.GenerateOTP(ctx, req.Email)
 	if err != nil {
 		resp := responses.ErrorResponse{
 			Error: "Failed to generate OTP",

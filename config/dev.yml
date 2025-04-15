@@ -1,8 +1,9 @@
 
 database:
-  type: mysql
-  host: 135.171.8.254
-  port: 3306
+  type: mysql # mssql
+  host: 135.171.8.254   # DESKTOP-QMALRMM
+  instance:   # SQLEXPRESS
+  port: 3306 # 1433
   user: root
   password: my-secret-pw
   dbname: lbe

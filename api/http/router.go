@@ -16,17 +16,23 @@ func Routers(e *gin.RouterGroup) {
 	usersGroup := v1Group.Group("/user", interceptor.HttpInterceptor())
 	{
 		// The endpoints below will all require a valid access token.
-		usersGroup.GET("/login/:email", user.Login)
-		usersGroup.GET("/register/:email/:sign_up_type", user.GetUser)
+		usersGroup.POST("/login", user.Login)
+		usersGroup.POST("/register/verify", user.GetUser)
 		usersGroup.POST("/register", user.CreateUser)
 
-		//GET - LBE-5 - api/v1/user/pin - burn PIN update
-		//GET - LBE-6 - api/v1/user/gr - GR user's profile verification
-		//GET - LBE-7 - api/v1/user/gr-cms - GR user's profile pushed by CMS
-		//GET - LBE-8 - api/v1/user/gr-reg - verify GR user's profile pushed by CMS
-		//GET - LBE-9 - api/v1/member - view member profile
-		//PUT - LBE-10 - api/v1/member/update - update member profile (name, phone, marketing consent, burn PIN)
+		usersGroup.GET("/member/:external_id", user.GetMemberProfile)
+		usersGroup.PUT("/member/update/:external_id", user.UpdateMemberProfile)
+		//archive not ready yet for RLP - SessionM API
 		//PUT - LBE-11 - api/v1/member/archive - withdraw member profile (active_status=0, previous email=current email, email=null)
+
+		//PUT - LBE-5 - api/v1/user/pin - burn PIN update
+		//GET - LBE-6 - api/v1/user/gr - GR user's profile verification
+		//POST - LBE-7 - api/v1/user/gr-cms - GR user's profile pushed by CMS
+		//GET - LBE-8 - api/v1/user/gr-reg - verify GR user's profile pushed by CMS
+
+		//View Transaction - Timeline APIs
+		//View Store Transaction - SM.TransactionsDomain.API  - post /api/1.0/transactions/info/get_store_transactions
+		//API - create/update Transaction - post /api/1.0/transactions/info/get_transaction - Get the Transaction ID and generate a new one in LBE
 
 	}
 

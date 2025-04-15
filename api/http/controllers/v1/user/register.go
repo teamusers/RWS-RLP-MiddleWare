@@ -18,18 +18,27 @@ import (
 )
 
 func GetUser(c *gin.Context) {
-	email := c.Param("email")
-	signUpType := c.Param("sign_up_type")
+	var req requests.Register
 
-	if email == "" || signUpType == "" {
+	// Bind the incoming JSON payload.
+	if err := c.ShouldBindJSON(&req); err != nil {
 		resp := responses.ErrorResponse{
-			Error: "Valid email and sign_up_type are required as query parameters",
+			Error: "Invalid request payload",
 		}
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	err := services.GetRegisterUserByEmail(email, signUpType)
+	// Validate both the email and sign_up_type.
+	if req.Email == "" || req.SignUpType == "" {
+		resp := responses.ErrorResponse{
+			Error: "Valid email and sign_up_type are required in the request body",
+		}
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	err := services.GetRegisterUserByEmail(req.Email, req.SignUpType)
 	if err != nil {
 		if errors.Is(err, services.ErrRecordNotFound) {
 			resp := responses.APIResponse{
@@ -58,7 +67,7 @@ func GetUser(c *gin.Context) {
 	// Generate OTP using the service.
 	otpService := services.NewOTPService()
 	ctx := context.Background()
-	otpResp, err := otpService.GenerateOTP(ctx, email)
+	otpResp, err := otpService.GenerateOTP(ctx, req.Email)
 	if err != nil {
 		resp := responses.ErrorResponse{
 			Error: "Failed to generate OTP",
@@ -92,7 +101,7 @@ func CreateUser(c *gin.Context) {
 	now := time.Now()
 	user.CreatedAt = now
 	user.UpdatedAt = now
-	//To DO : To be change to RLP create user. RLP - API, Temporary Store into DB 1st
+	//To DO - RLP : To be change to RLP create user. RLP - API, Temporary Store into DB 1st
 	if err := db.Create(&user).Error; err != nil {
 		resp := responses.ErrorResponse{
 			Error: err.Error(),
@@ -101,7 +110,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	//To DO : get RLP information and link accordingly
+	//To DO - RLP : get RLP information and link accordingly
 	var req requests.User
 	req.ExternalID = user.ExternalID
 	req.ExternalTYPE = user.ExternalTYPE // Adjust if field names differ between the structs
