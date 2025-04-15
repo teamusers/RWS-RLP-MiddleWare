@@ -17,7 +17,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func ValidateUserExistence(c *gin.Context) {
+func VerifyUserExistence(c *gin.Context) {
 	var req requests.Register
 
 	// Bind the incoming JSON payload.
@@ -137,4 +137,32 @@ func CreateUser(c *gin.Context) {
 		Data:    user,
 	}
 	c.JSON(http.StatusCreated, resp)
+}
+
+func VerifyGrExistence(c *gin.Context) {
+	var req requests.RegisterGr
+
+	// Bind the incoming JSON payload.
+	if err := c.ShouldBindJSON(&req); err != nil {
+		resp := responses.APIResponse{
+			Message: "invalid json request body",
+			Data:    responses.GetGrMemberResponse{},
+		}
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	// TO DO - CMS: Request GR member info
+
+	// return response from CMS
+	resp := responses.APIResponse{
+		Message: "successful",
+		Data: responses.GetGrMemberResponse{
+			GrMember: model.GrMember{
+				GrId: &req.GrId,
+			},
+		},
+	}
+	c.JSON(http.StatusOK, resp)
+
 }
