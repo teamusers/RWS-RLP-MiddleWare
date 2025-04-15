@@ -22,7 +22,7 @@ func Login(c *gin.Context) {
 			Message: "invalid json request body",
 			Data:    responses.LoginResponse{},
 		}
-		c.JSON(http.StatusMethodNotAllowed, resp)
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 

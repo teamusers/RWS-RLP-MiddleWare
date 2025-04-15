@@ -123,7 +123,7 @@ func GetLoginUserByEmail(email string) (*responses.MemberLoginResponse, error) {
 	return &userResp, nil
 }
 
-func GetRegisterUserByEmail(email string, signUpType string) error {
+func GetRegisterUserByEmail(email string) error {
 	// Get the access token.
 	token, err := GetAccessToken()
 	if err != nil {
@@ -131,7 +131,7 @@ func GetRegisterUserByEmail(email string, signUpType string) error {
 	}
 
 	// Build the full URL by combining the base URL, email, and signUpType
-	urlWithParams := fmt.Sprintf("%s/%s/%s", BuildFullURL(usersRegisterURL), email, signUpType)
+	urlWithParams := fmt.Sprintf("%s/%s", BuildFullURL(usersRegisterURL), email)
 	req, err := http.NewRequest("GET", urlWithParams, nil)
 	if err != nil {
 		return err

@@ -1,7 +1,6 @@
 package user
 
 import (
-	"context"
 	"errors"
 	"log"
 	"net/http"
@@ -15,50 +14,36 @@ import (
 	"lbe/system"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-func GetUser(c *gin.Context) {
+func ValidateUserExistence(c *gin.Context) {
 	var req requests.Register
 
 	// Bind the incoming JSON payload.
 	if err := c.ShouldBindJSON(&req); err != nil {
-		resp := responses.ErrorResponse{
-			Error: "Invalid request payload",
+		resp := responses.APIResponse{
+			Message: "invalid json request body",
+			Data:    model.Otp{},
 		}
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	// Validate both the email and sign_up_type.
-	if req.Email == "" || req.SignUpType == "" {
-		resp := responses.ErrorResponse{
-			Error: "Valid email and sign_up_type are required in the request body",
-		}
-		c.JSON(http.StatusBadRequest, resp)
-		return
-	}
-
-	err := services.GetRegisterUserByEmail(req.Email, req.SignUpType)
+	err := services.GetRegisterUserByEmail(req.Email)
 	if err != nil {
 		if errors.Is(err, services.ErrRecordNotFound) {
 			resp := responses.APIResponse{
 				Message: "email registered",
-				Data: responses.LoginResponse{
-					Otp: model.Otp{
-						Otp:       nil,
-						OtpExpiry: nil,
-					},
-					LoginSessionToken: model.LoginSessionToken{
-						LoginSessionToken:       nil,
-						LoginSessionTokenExpiry: nil,
-					},
-				},
+				Data:    model.Otp{},
 			}
 			c.JSON(codes.CODE_EMAIL_REGISTERED, resp)
 			return
 		}
-		resp := responses.ErrorResponse{
-			Error: err.Error(),
+		log.Printf("error encountered getting registered user: %v", err)
+		resp := responses.APIResponse{
+			Message: "internal error",
+			Data:    model.Otp{},
 		}
 		c.JSON(http.StatusInternalServerError, resp)
 		return
@@ -66,19 +51,19 @@ func GetUser(c *gin.Context) {
 
 	// Generate OTP using the service.
 	otpService := services.NewOTPService()
-	ctx := context.Background()
-	otpResp, err := otpService.GenerateOTP(ctx, req.Email)
+	otpResp, err := otpService.GenerateOTP(c, req.Email)
 	if err != nil {
-		resp := responses.ErrorResponse{
-			Error: "Failed to generate OTP",
+		log.Printf("error encountered generating otp: %v", err)
+		resp := responses.APIResponse{
+			Message: "internal error",
+			Data:    model.Otp{},
 		}
 		c.JSON(http.StatusInternalServerError, resp)
 		return
 	}
 
-	//To DO : Cache GR member info within expiry timestamp & Generate reg_ID
-
 	//To DO : send email
+
 	resp := responses.APIResponse{
 		Message: "email not registered",
 		Data:    otpResp,
@@ -86,13 +71,15 @@ func GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 
 }
+
 func CreateUser(c *gin.Context) {
 	db := system.GetDb()
 	var user model.User
 	// Bind the incoming JSON payload to the user struct.
 	if err := c.ShouldBindJSON(&user); err != nil {
-		resp := responses.ErrorResponse{
-			Error: err.Error(),
+		resp := responses.APIResponse{
+			Message: "invalid json request body",
+			Data:    model.User{},
 		}
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -101,32 +88,41 @@ func CreateUser(c *gin.Context) {
 	now := time.Now()
 	user.CreatedAt = now
 	user.UpdatedAt = now
+
+	//TO DO - Update RLP_ID generation logic
+	rlpId := uuid.New()
+
+	//TO DO - Add member tier matching logic
+
 	//To DO - RLP : To be change to RLP create user. RLP - API, Temporary Store into DB 1st
 	if err := db.Create(&user).Error; err != nil {
-		resp := responses.ErrorResponse{
-			Error: err.Error(),
+		resp := responses.APIResponse{
+			Message: "internal server error",
+			Data:    model.User{},
 		}
 		c.JSON(http.StatusInternalServerError, resp)
 		return
 	}
 
-	//To DO - RLP : get RLP information and link accordingly
+	//To DO - RLP | member service : get RLP information and link accordingly to member service
 	var req requests.User
 	req.ExternalID = user.ExternalID
 	req.ExternalTYPE = user.ExternalTYPE // Adjust if field names differ between the structs
 	req.Email = user.Email
 	req.BurnPin = user.BurnPin
 	req.GR_ID = "gr_id"                         // To be update by rlp.gr_id
-	req.RLP_ID = "rlp_id"                       // To be update by rlp.rlp_id
+	req.RLP_ID = rlpId.String()                 // To be update by rlp.rlp_id
 	req.RWS_Membership_ID = "rws_membership_id" // To be update by rws_membership_id
 	req.RWS_Membership_Number = 123456          // To be update by RWS_Membership_Number
 
+	// Request member service update - link MS_ID and RLP_ID
 	err := services.PostRegisterUser(req)
 	if err != nil {
 		// Log the error
 		log.Printf("Post Register User failed: %v", err)
-		resp := responses.ErrorResponse{
-			Error: err.Error(),
+		resp := responses.APIResponse{
+			Message: "internal server error",
+			Data:    model.User{},
 		}
 		c.JSON(http.StatusInternalServerError, resp)
 		return

@@ -17,7 +17,7 @@ func Routers(e *gin.RouterGroup) {
 	{
 		// The endpoints below will all require a valid access token.
 		usersGroup.POST("/login", user.Login)
-		usersGroup.POST("/register/verify", user.GetUser)
+		usersGroup.POST("/register/verify", user.ValidateUserExistence)
 		usersGroup.POST("/register", user.CreateUser)
 
 		usersGroup.GET("/member/:external_id", user.GetMemberProfile)

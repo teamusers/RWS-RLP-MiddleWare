@@ -48,7 +48,7 @@ func AuthHandler(c *gin.Context) {
 			Message: "invalid json request body",
 			Data:    responses.AuthResponse{},
 		}
-		c.JSON(http.StatusMethodNotAllowed, resp)
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
