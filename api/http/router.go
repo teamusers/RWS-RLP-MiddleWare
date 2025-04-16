@@ -17,8 +17,11 @@ func Routers(e *gin.RouterGroup) {
 	{
 
 		memberGroup.GET("/:external_id", v1.GetMemberProfile)
-		memberGroup.PUT("/member/pin", v1.UpdateBurnPin)
+		memberGroup.PUT("/pin", v1.UpdateBurnPin)
 		memberGroup.PUT("/update/:external_id", v1.UpdateMemberProfile)
+
+		//archive not ready yet for RLP - SessionM API
+		//PUT - LBE-11 - api/v1/member/archive - withdraw member profile (active_status=0, previous email=current email, email=null)
 	}
 	usersGroup := v1Group.Group("/user", interceptor.HttpInterceptor())
 	{
@@ -27,21 +30,12 @@ func Routers(e *gin.RouterGroup) {
 		usersGroup.POST("/register/verify", user.VerifyUserExistence)
 		usersGroup.POST("/register", user.CreateUser)
 
-		//archive not ready yet for RLP - SessionM API
-		//PUT - LBE-11 - api/v1/member/archive - withdraw member profile (active_status=0, previous email=current email, email=null)
-
-		//PUT - LBE-5 - api/v1/user/pin - burn PIN update
 		//POST - LBE-6 - api/v1/user/gr - GR user's profile verification
 		usersGroup.POST("/gr", user.VerifyGrExistence)
 		//POST - LBE-7 - api/v1/user/gr-cms - GR user's profile pushed by CMS
 		usersGroup.POST("/gr-cms", user.VerifyGrCmsExistence)
 		//GET - LBE-8 - api/v1/user/gr-reg - verify GR user's profile pushed by CMS
 		usersGroup.GET("/gr-reg/:reg_id", user.GetCachedGrCmsProfile)
-
-		//View Transaction - Timeline APIs
-		//View Store Transaction - SM.TransactionsDomain.API  - post /api/1.0/transactions/info/get_store_transactions
-		//API - create/update Transaction - post /api/1.0/transactions/info/get_transaction - Get the Transaction ID and generate a new one in LBE
-
 	}
 
 }
