@@ -63,21 +63,21 @@ func init() {
 		// Use static port mode.
 		dsn = fmt.Sprintf(
 			"sqlserver://%s:%s@%s:%d?database=%s&packet%%20size=4096",
-			cfg.Database.User,     // e.g., "sa"
-			cfg.Database.Password, // e.g., "2good2btrue"
-			cfg.Database.Host,     // e.g., "DESKTOP-QMALRMM"
-			cfg.Database.Port,     // e.g., 1433 (static port)
-			cfg.Database.DBName,   // e.g., "lbe"
+			cfg.Database.User,
+			cfg.Database.Password,
+			cfg.Database.Host,
+			cfg.Database.Port,
+			cfg.Database.DBName,
 		)
 	} else if cfg.Database.Instance != "" {
 		// Use named instance mode.
 		dsn = fmt.Sprintf(
 			"sqlserver://%s:%s@%s?instance=%s&database=%s&packet%%20size=4096",
-			cfg.Database.User,     // e.g., "sa"
-			cfg.Database.Password, // e.g., "2good2btrue"
-			cfg.Database.Host,     // e.g., "DESKTOP-QMALRMM"
-			cfg.Database.Instance, // e.g., "SQLEXPRESS"
-			cfg.Database.DBName,   // e.g., "lbe"
+			cfg.Database.User,
+			cfg.Database.Password,
+			cfg.Database.Host,
+			cfg.Database.Instance,
+			cfg.Database.DBName,
 		)
 	} else {
 		// Fallback: use host only.
@@ -90,9 +90,6 @@ func init() {
 		)
 	}
 
-	// Log the DSN for debugging purposes (masking the password).
-	// Example output (if instance mode is used):
-	//   "Using DSN: sqlserver://sa:***@DESKTOP-QMALRMM?instance=SQLEXPRESS&database=lbe&packet%20size=4096"
 	var safeDSN string
 	if cfg.Database.Port != 0 {
 		safeDSN = fmt.Sprintf("sqlserver://%s:***@%s:%d?database=%s&packet%%20size=4096",
