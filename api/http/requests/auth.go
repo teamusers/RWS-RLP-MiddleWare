@@ -1,7 +1,7 @@
 package requests
 
 type AuthRequest struct {
-	Timestamp string `json:"timestamp"`
-	Nonce     string `json:"nonce"`
-	Signature string `json:"signature"`
+	Timestamp string `json:"timestamp" binding:"required"`
+	Nonce     string `json:"nonce" binding:"required"`
+	Signature string `json:"signature" binding:"required"`
 }

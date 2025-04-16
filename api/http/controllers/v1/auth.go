@@ -6,6 +6,7 @@ import (
 	"lbe/codes"
 	"lbe/model"
 	"lbe/system"
+	"log"
 	"net/http"
 
 	"lbe/api/http/requests"
@@ -28,32 +29,13 @@ func getSecretKey(db *gorm.DB, appID string) (string, error) {
 
 // AuthHandler processes the GET /api/v1/auth endpoint.
 func AuthHandler(c *gin.Context) {
-	// (Optional) Check the request method.
-	if c.Request.Method != http.MethodPost {
-		resp := responses.ErrorResponse{
-			Error: "Method Not Allowed",
-		}
-		c.JSON(http.StatusMethodNotAllowed, resp)
-		return
-	}
-
-	// Check the Content-Type header.
-	if c.GetHeader("Content-Type") != "application/json" {
-		resp := responses.ErrorResponse{
-			Error: "Content-Type must be application/json",
-		}
-		c.JSON(http.StatusBadRequest, resp)
-		return
-	}
 
 	// Retrieve the AppID from header.
 	appID := c.GetHeader("AppID")
 	if appID == "" {
 		resp := responses.APIResponse{
-			Message: "invalid appid",
-			Data: responses.AuthResponse{
-				AccessToken: "",
-			},
+			Message: "missing appid",
+			Data:    responses.AuthResponse{},
 		}
 		c.JSON(codes.CODE_INVALID_APPID, resp)
 		return
@@ -61,11 +43,12 @@ func AuthHandler(c *gin.Context) {
 
 	// Decode the JSON body.
 	var req requests.AuthRequest
-	if err := c.BindJSON(&req); err != nil {
-		resp := responses.ErrorResponse{
-			Error: "Invalid JSON body",
+	if err := c.ShouldBindJSON(&req); err != nil {
+		resp := responses.APIResponse{
+			Message: "invalid json request body",
+			Data:    responses.AuthResponse{},
 		}
-		c.JSON(http.StatusMethodNotAllowed, resp)
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
@@ -76,9 +59,7 @@ func AuthHandler(c *gin.Context) {
 	if err != nil || secretKey == "" {
 		resp := responses.APIResponse{
 			Message: "invalid appid",
-			Data: responses.AuthResponse{
-				AccessToken: "",
-			},
+			Data:    responses.AuthResponse{},
 		}
 		c.JSON(codes.CODE_INVALID_APPID, resp)
 		return
@@ -87,22 +68,20 @@ func AuthHandler(c *gin.Context) {
 	authReq, err := services.GenerateSignatureWithParams(appID, req.Nonce, req.Timestamp, secretKey)
 
 	if err != nil {
-		resp := responses.ErrorResponse{
-			Error: err.Error(),
+		log.Printf("error encountered generating auth signature: %v", err)
+		resp := responses.APIResponse{
+			Message: "internal error",
+			Data:    responses.AuthResponse{},
 		}
 		c.JSON(http.StatusInternalServerError, resp)
-		// Handle the error, for example, send a JSON error response.
 		return
 	}
-	expectedSignature := authReq.Signature
 
 	// Compare the computed signature with the provided signature.
-	if !hmac.Equal([]byte(expectedSignature), []byte(req.Signature)) {
+	if !hmac.Equal([]byte(authReq.Signature), []byte(req.Signature)) {
 		resp := responses.APIResponse{
 			Message: "invalid signature",
-			Data: responses.AuthResponse{
-				AccessToken: "",
-			},
+			Data:    responses.AuthResponse{},
 		}
 		c.JSON(codes.CODE_INVALID_SIGNATURE, resp)
 		return
@@ -111,10 +90,12 @@ func AuthHandler(c *gin.Context) {
 	// Call the exported GenerateToken function from the middleware package.
 	token, err := interceptor.GenerateToken(appID)
 	if err != nil {
-		resp := responses.ErrorResponse{
-			Error: "Failed to generate token",
+		log.Printf("error encountered generating token: %v", err)
+		resp := responses.APIResponse{
+			Message: "internal error",
+			Data:    responses.AuthResponse{},
 		}
-		c.JSON(http.StatusMethodNotAllowed, resp)
+		c.JSON(http.StatusInternalServerError, resp)
 		return
 	}
 
