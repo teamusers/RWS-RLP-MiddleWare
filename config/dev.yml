@@ -1,10 +1,10 @@
 
 database:
-  type: mysql # mssql
-  host: 135.171.8.254   # DESKTOP-QMALRMM
+  type: mssql # mssql
+  host: 4.145.179.35   # DESKTOP-QMALRMM
   instance:   # SQLEXPRESS
-  port: 3306 # 1433
-  user: root # sa
+  port: 1433 # 1433
+  user: sa # sa
   password: my-secret-pw # Your@StrongP@ssw0rd
   dbname: lbe
   sslmode: disable
