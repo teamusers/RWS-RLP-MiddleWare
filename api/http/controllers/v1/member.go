@@ -1,4 +1,4 @@
-package user
+package v1
 
 import (
 	"lbe/api/http/requests"

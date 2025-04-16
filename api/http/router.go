@@ -13,6 +13,13 @@ func Routers(e *gin.RouterGroup) {
 
 	v1Group := e.Group("/v1")
 	v1Group.POST("/auth", v1.AuthHandler)
+	memberGroup := v1Group.Group("/member", interceptor.HttpInterceptor())
+	{
+
+		memberGroup.GET("/:external_id", v1.GetMemberProfile)
+		memberGroup.PUT("/member/pin", v1.UpdateBurnPin)
+		memberGroup.PUT("/update/:external_id", v1.UpdateMemberProfile)
+	}
 	usersGroup := v1Group.Group("/user", interceptor.HttpInterceptor())
 	{
 		// The endpoints below will all require a valid access token.
@@ -20,13 +27,10 @@ func Routers(e *gin.RouterGroup) {
 		usersGroup.POST("/register/verify", user.VerifyUserExistence)
 		usersGroup.POST("/register", user.CreateUser)
 
-		usersGroup.GET("/member/:external_id", user.GetMemberProfile)
-		usersGroup.PUT("/member/update/:external_id", user.UpdateMemberProfile)
 		//archive not ready yet for RLP - SessionM API
 		//PUT - LBE-11 - api/v1/member/archive - withdraw member profile (active_status=0, previous email=current email, email=null)
 
 		//PUT - LBE-5 - api/v1/user/pin - burn PIN update
-		usersGroup.PUT("/pin", user.UpdateBurnPin)
 		//POST - LBE-6 - api/v1/user/gr - GR user's profile verification
 		usersGroup.POST("/gr", user.VerifyGrExistence)
 		//POST - LBE-7 - api/v1/user/gr-cms - GR user's profile pushed by CMS

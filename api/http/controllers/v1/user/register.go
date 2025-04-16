@@ -91,7 +91,7 @@ func CreateUser(c *gin.Context) {
 
 	//TO DO - If sign_up_type = TM: request TM info and validate
 
-	//TO DO - Update RLP_ID generation logic
+	//TO DO - Update RLP_ID generation logic - yyyymmdd 0000-9999
 	rlpId := uuid.New()
 
 	//TO DO - Add member tier matching logic
