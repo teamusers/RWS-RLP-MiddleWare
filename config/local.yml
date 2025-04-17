@@ -56,3 +56,10 @@ dex:
       - name: Slerf
         ca: 7BgBvyjrZX1YKz4oh9mjb8ZScatkkwb8DzFx7LoiVkM3
         initprice: 0.07
+
+smtp:
+  host: smtp.gmail.com
+  port: 587
+  user: smtpemail@gmail.com
+  password: smtppassword
+  from: smtpemail@gmail.com

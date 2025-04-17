@@ -10,6 +10,7 @@ import (
 	"lbe/api/http/responses"
 	"lbe/api/http/services"
 	"lbe/codes"
+	"lbe/config"
 	"lbe/model"
 	"lbe/system"
 
@@ -62,7 +63,23 @@ func VerifyUserExistence(c *gin.Context) {
 		return
 	}
 
-	//To DO : send email
+	//Call send email services
+	emailData := services.EmailOtpTemplateData{
+		Email: req.Email,
+		OTP:   *otpResp.Otp,
+	}
+
+	cfg := config.GetConfig()
+	emailService := services.NewEmailService(&cfg.Smtp)
+	if err := emailService.SendOtpEmail(req.Email, emailData); err != nil {
+		log.Printf("failed to send email otp: %v", err)
+		resp := responses.APIResponse{
+			Message: "internal error",
+			Data:    model.User{},
+		}
+		c.JSON(http.StatusInternalServerError, resp)
+		return
+	}
 
 	resp := responses.APIResponse{
 		Message: "email not registered",
