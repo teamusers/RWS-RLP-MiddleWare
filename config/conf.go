@@ -32,6 +32,7 @@ type Config struct {
 	Cmd         CmdConfig      `yaml:"cmd"`
 	Http        HttpConfig     `yaml:"http"`
 	ProxyEnable bool           `yaml:"proxyEnable"`
+	Smtp        SmtpConfig     `yaml:"smtp"`
 	// other fields you already have...
 	API struct {
 		Memberservice struct {
@@ -53,6 +54,14 @@ type DatabaseConfig struct {
 	DBName   string `yaml:"dbname"`
 	SSLMode  string `yaml:"sslmode"`
 	TimeZone string `yaml:"TimeZone"`
+}
+
+type SmtpConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	From     string `yaml:"from"`
 }
 
 // RedisConfig holds the Redis connection parameters.
