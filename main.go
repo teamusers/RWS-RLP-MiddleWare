@@ -10,6 +10,6 @@ func main() {
 	//	log.Fatal("Error loading .env file")
 	//}
 	//topic.StartSubscription()
-
+	//gin.SetMode(gin.ReleaseMode)
 	router.Init()
 }

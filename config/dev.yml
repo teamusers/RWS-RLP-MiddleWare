@@ -1,11 +1,11 @@
 
 database:
-  type: mssql # mssql
-  host: 4.145.179.35   # DESKTOP-QMALRMM
-  instance:   # SQLEXPRESS
-  port: 1433 # 1433
-  user: sa # sa
-  password: my-secret-pw # Your@StrongP@ssw0rd
+  type: mssql
+  host: DESKTOP-QMALRMM
+  instance:   SQLEXPRESS # SQLEXPRESS
+  port: 1433
+  user: sa
+  password: 2good2btrue
   dbname: lbe
   sslmode: disable
   TimeZone: Asia/Shanghai
