@@ -73,69 +73,53 @@ func GetAccessToken() (string, error) {
 // GetUserByEmail first gets an access token, then calls the users endpoint using the token
 // to query a user by email. It returns a Login session token or an error.
 func GetLoginUserByEmail(email string) (*responses.MemberLoginResponse, error) {
-	urlWithEmail := fmt.Sprintf("%s/%s", BuildFullURL(userURL) + "?updateSessionToken=true", email)
+	urlWithEmail := fmt.Sprintf("%s?updateSessionToken=true", BuildFullURL(userURL))
 
-	resp, err := buildHttpClient("POST", urlWithEmail, email)
+	payload := map[string]string{
+		"email": email,
+	}
+
+	resp, err := buildHttpClient("POST", urlWithEmail, payload)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
-	if resp.StatusCode == codes.CODE_EMAIL_NOTFOUND {
-		return nil, ErrRecordNotFound
+	switch resp.StatusCode {
+		case http.StatusOK:
+			var userResp responses.MemberLoginResponse
+			if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
+				return nil, err
+			}
+			return &userResp, nil
+		case 201:
+			return nil, ErrRecordNotFound
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
 	}
-
-	if resp.StatusCode != http.StatusOK {
-		// Read the response body
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			// In case of error reading the body, just return the status code
-			return nil, fmt.Errorf("error calling member services: received status code %d, but failed to read response body: %v", resp.StatusCode, err)
-		}
-		defer resp.Body.Close()
-
-		return nil, fmt.Errorf("error calling member services: received status code %d and response: %s", resp.StatusCode, string(body))
-	}
-
-	// Decode the response.
-	var userResp responses.MemberLoginResponse
-	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
-		return nil, err
-	}
-
-	return &userResp, nil
 }
+
 
 func GetRegisterUserByEmail(email string) error {
-	// Build the full URL by combining the base URL, email, and signUpType
-	urlWithParams := fmt.Sprintf("%s/%s", BuildFullURL(userURL), email)
-	resp, err := buildHttpClient("POST", urlWithParams, email)
+	urlWithParams := BuildFullURL(userURL)
+	payload := map[string]string{
+		"email": email,
+	}
+
+	resp, err := buildHttpClient("POST", urlWithParams, payload)
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode == codes.CODE_EMAIL_REGISTERED {
-		return ErrRecordNotFound
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 201 {
+		return nil 
 	}
-
-	if resp.StatusCode != http.StatusOK {
-		// Read the response body
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			// In case of error reading the body, just return the status code
-			return fmt.Errorf("error calling member services: received status code %d, but failed to read response body: %v", resp.StatusCode, err)
-		}
-		defer resp.Body.Close()
-
-		return fmt.Errorf("error calling member services: received status code %d and response: %s", resp.StatusCode, string(body))
-	}
-
-	// Decode the response.
-	var userResp responses.GetMemberUserResponse
-	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
-		return err
-	}
-
-	return nil
+	body, _ := io.ReadAll(resp.Body)
+	return fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
 }
+
 
 // PostRegisterUser posts a JSON payload to register a user by combining email and signUpType in the URL.
 func PostRegisterUser(payload interface{}) error {
@@ -149,23 +133,16 @@ func PostRegisterUser(payload interface{}) error {
 	}
 
 	// Check for a non-OK status.
-	if resp.StatusCode != http.StatusCreated {
-		// Read the response body.
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("error calling member services: received status code %d, but failed to read response body: %w", resp.StatusCode, err)
-		}
-		return fmt.Errorf("error calling member services: received status code %d and response: %s", resp.StatusCode, string(body))
-	}
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return fmt.Errorf("error calling member services: received status code %d and response: %s", 201, "User already exists")
+	case 201:
+		return nil
+	default:
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
+}
 
-	// Optionally, decode the response if you need to process it further.
-	var userResp responses.GetMemberUserResponse
-	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
-		return err
-	}
-
-	// You could use userResp further if needed.
-	return nil
 }
 
 func UpdateBurnPin(payload interface{}) error {
