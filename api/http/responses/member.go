@@ -13,12 +13,3 @@ type MemberLoginResponse struct {
 	Message string                  `json:"message"`
 	Data    model.LoginSessionToken `json:"data"`
 }
-
-type GetMemberUserResponse struct {
-	Message string                  `json:"message"`
-	Data    model.MembershipUser 		`json:"data"`
-}
-
-type UpdateBurnPin struct {
-	Message string                  `json:"message"`
-}

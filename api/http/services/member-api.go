@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 
 	"lbe/api/http/responses"
 	"lbe/codes"
@@ -18,7 +19,8 @@ import (
 // Endpoints
 const (
 	authURL          = "/api/v1/auth"
-	userURL = "/api/v1/user"
+	usersLoginURL    = "/api/v1/user/login"
+	usersRegisterURL = "/api/v1/user/register"
 	updateBurnPinURL = "/api/v1/user/pin"
 )
 
@@ -72,10 +74,10 @@ func GetAccessToken() (string, error) {
 
 // GetUserByEmail first gets an access token, then calls the users endpoint using the token
 // to query a user by email. It returns a Login session token or an error.
-func GetLoginUserByEmail(email string) (*responses.GetMemberUserResponse, error) {
-	urlWithEmail := fmt.Sprintf("%s/%s", BuildFullURL(userURL) + "?updateSessionToken=true", email)
+func GetLoginUserByEmail(email string) (*responses.MemberLoginResponse, error) {
+	urlWithEmail := fmt.Sprintf("%s/%s", BuildFullURL(usersLoginURL), email)
 
-	resp, err := buildHttpClient("POST", urlWithEmail, email)
+	resp, err := buildHttpClient("GET", urlWithEmail, email)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +99,7 @@ func GetLoginUserByEmail(email string) (*responses.GetMemberUserResponse, error)
 	}
 
 	// Decode the response.
-	var userResp responses.GetMemberUserResponse
+	var userResp responses.MemberLoginResponse
 	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
 		return nil, err
 	}
@@ -107,11 +109,12 @@ func GetLoginUserByEmail(email string) (*responses.GetMemberUserResponse, error)
 
 func GetRegisterUserByEmail(email string) error {
 	// Build the full URL by combining the base URL, email, and signUpType
-	urlWithParams := fmt.Sprintf("%s/%s", BuildFullURL(userURL), email)
-	resp, err := buildHttpClient("POST", urlWithParams, email)
+	urlWithParams := fmt.Sprintf("%s/%s", BuildFullURL(usersRegisterURL), email)
+	resp, err := buildHttpClient("GET", urlWithParams, email)
 	if err != nil {
 		return err
 	}
+
 	if resp.StatusCode == codes.CODE_EMAIL_REGISTERED {
 		return ErrRecordNotFound
 	}
@@ -129,7 +132,7 @@ func GetRegisterUserByEmail(email string) error {
 	}
 
 	// Decode the response.
-	var userResp responses.GetMemberUserResponse
+	var userResp responses.MemberLoginResponse
 	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
 		return err
 	}
@@ -141,7 +144,7 @@ func GetRegisterUserByEmail(email string) error {
 func PostRegisterUser(payload interface{}) error {
 
 	// Build the full URL by combining the base URL, email, and signUpType.
-	urlWithParams := BuildFullURL(userURL)
+	urlWithParams := BuildFullURL(usersRegisterURL)
 
 	resp, err := buildHttpClient("POST", urlWithParams, payload)
 	if err != nil {
@@ -159,7 +162,7 @@ func PostRegisterUser(payload interface{}) error {
 	}
 
 	// Optionally, decode the response if you need to process it further.
-	var userResp responses.GetMemberUserResponse
+	var userResp responses.MemberLoginResponse
 	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
 		return err
 	}
