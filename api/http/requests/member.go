@@ -15,5 +15,10 @@ type User struct {
 
 type UpdateBurnPin struct {
 	Email   string `json:"email" binding:"required"`
-	BurnPin string `json:"burn_pin" binding:"required"`
+	BurnPin int64  `json:"burn_pin" binding:"required"`
+}
+
+type CreateUser struct {
+	User  User   `json:"user"`
+	Email string `json:"email"`
 }
