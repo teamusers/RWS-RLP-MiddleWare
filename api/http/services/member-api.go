@@ -7,9 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 
+	"lbe/api/http/requests"
 	"lbe/api/http/responses"
-	"lbe/codes"
 	"lbe/config"
 	"net/http"
 	"time"
@@ -18,7 +19,7 @@ import (
 // Endpoints
 const (
 	authURL          = "/api/v1/auth"
-	userURL = "/api/v1/user"
+	userURL          = "/api/v1/user"
 	updateBurnPinURL = "/api/v1/user/pin"
 )
 
@@ -75,8 +76,8 @@ func GetAccessToken() (string, error) {
 func GetLoginUserByEmail(email string) (*responses.MemberLoginResponse, error) {
 	urlWithEmail := fmt.Sprintf("%s?updateSessionToken=true", BuildFullURL(userURL))
 
-	payload := map[string]string{
-		"email": email,
+	payload := requests.CreateUser{
+		Email: email,
 	}
 
 	resp, err := buildHttpClient("POST", urlWithEmail, payload)
@@ -86,25 +87,24 @@ func GetLoginUserByEmail(email string) (*responses.MemberLoginResponse, error) {
 	defer resp.Body.Close()
 
 	switch resp.StatusCode {
-		case http.StatusOK:
-			var userResp responses.MemberLoginResponse
-			if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
-				return nil, err
-			}
-			return &userResp, nil
-		case 201:
-			return nil, ErrRecordNotFound
-		default:
-			body, _ := io.ReadAll(resp.Body)
-			return nil, fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
+	case http.StatusOK:
+		var userResp responses.MemberLoginResponse
+		if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
+			return nil, err
+		}
+		return &userResp, nil
+	case 201:
+		return nil, ErrRecordNotFound
+	default:
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
 	}
 }
 
-
 func GetRegisterUserByEmail(email string) error {
 	urlWithParams := BuildFullURL(userURL)
-	payload := map[string]string{
-		"email": email,
+	payload := requests.CreateUser{
+		Email: email,
 	}
 
 	resp, err := buildHttpClient("POST", urlWithParams, payload)
@@ -114,12 +114,11 @@ func GetRegisterUserByEmail(email string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 201 {
-		return nil 
+		return nil
 	}
 	body, _ := io.ReadAll(resp.Body)
 	return fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
 }
-
 
 // PostRegisterUser posts a JSON payload to register a user by combining email and signUpType in the URL.
 func PostRegisterUser(payload interface{}) error {
@@ -141,7 +140,7 @@ func PostRegisterUser(payload interface{}) error {
 	default:
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
-}
+	}
 
 }
 
