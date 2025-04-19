@@ -126,15 +126,16 @@ func CreateUser(c *gin.Context) {
 	//TO DO - If sign_up_type = GR or TM: Request user tier update (redundant?)
 
 	//To DO - RLP | member service : get RLP information and link accordingly to member service
-	var req requests.User
-	req.ExternalID = user.ExternalID
-	req.ExternalTYPE = user.ExternalTYPE // Adjust if field names differ between the structs
-	req.Email = user.Email
-	req.BurnPin = user.BurnPin
-	req.GR_ID = "gr_id"                         // To be update by rlp.gr_id
-	req.RLP_ID = rlpId.String()                 // To be update by rlp.rlp_id
-	req.RWS_Membership_ID = "rws_membership_id" // To be update by rws_membership_id
-	req.RWS_Membership_Number = 123456          // To be update by RWS_Membership_Number
+	var req requests.CreateUser
+	req.User.ExternalID = user.ExternalID
+	req.User.ExternalTYPE = user.ExternalTYPE // Adjust if field names differ between the structs
+	req.User.Email = user.Email
+	req.User.BurnPin = user.BurnPin
+	req.User.GR_ID = "gr_id"                         // To be update by rlp.gr_id
+	req.User.RLP_ID = rlpId.String()                 // To be update by rlp.rlp_id
+	req.User.RWS_Membership_ID = "rws_membership_id" // To be update by rws_membership_id
+	req.User.RWS_Membership_Number = 123456          // To be update by RWS_Membership_Number
+	req.Email = user.Email          // To be update by RWS_Membership_Number
 
 	//TO DO - Request member service update - different based on sign_up_type
 	err := services.PostRegisterUser(req)
