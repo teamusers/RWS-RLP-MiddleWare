@@ -33,7 +33,7 @@ func getSecretKey(db *gorm.DB, appID string) (string, error) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        AppID     header    string               true   "Client system AppID"
+// @Param        AppID     header    string               true   "Client system AppID" default(app1234)
 // @Param        request   body      requests.AuthRequest true   "Authentication request payload"
 // @Success      200       {object}  responses.APIResponse{data=responses.AuthResponse}
 // @Failure      400       {object}  responses.APIResponse

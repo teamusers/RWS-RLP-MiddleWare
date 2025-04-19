@@ -1,5 +1,6 @@
 package requests
 
 type Login struct {
-	Email string `json:"email" binding:"required"`
+	// Email address of the user attempting to log in
+	Email string `json:"email" binding:"required" example:"user@example.com"`
 }

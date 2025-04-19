@@ -31,6 +31,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "default": "app1234",
                         "description": "Client system AppID",
                         "name": "AppID",
                         "in": "header",
@@ -654,22 +655,34 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "dob": {
-                    "type": "string"
+                    "description": "Dob is the date of birth in YYYY-MM-DD format.",
+                    "type": "string",
+                    "example": "1985-04-12"
                 },
                 "email": {
-                    "type": "string"
+                    "description": "Email is the member's email address.",
+                    "type": "string",
+                    "example": "jane.doe@example.com"
                 },
                 "f_name": {
-                    "type": "string"
+                    "description": "FirstName is the given name of the GR member.",
+                    "type": "string",
+                    "example": "Jane"
                 },
                 "gr_id": {
-                    "type": "string"
+                    "description": "GrId is the unique GR member identifier.",
+                    "type": "string",
+                    "example": "GR12345"
                 },
                 "l_name": {
-                    "type": "string"
+                    "description": "LastName is the family name of the GR member.",
+                    "type": "string",
+                    "example": "Doe"
                 },
                 "mobile": {
-                    "type": "string"
+                    "description": "Mobile is the contact phone number.",
+                    "type": "string",
+                    "example": "98765432"
                 }
             }
         },
@@ -677,11 +690,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "otp": {
-                    "type": "string"
+                    "description": "Otp is the one‑time password sent to the user.\nexample: \"123456\"",
+                    "type": "string",
+                    "example": "123456"
                 },
                 "otp_expiry": {
-                    "description": "Unix timestamp",
-                    "type": "integer"
+                    "description": "OtpExpiry is the Unix timestamp (seconds since epoch) when the OTP expires.\nexample: 1744176000",
+                    "type": "integer",
+                    "example": 1744176000
                 }
             }
         },
@@ -689,47 +705,59 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "burn_pin": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1234
                 },
                 "country": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "SGP"
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-04-19T10:00:00Z"
                 },
                 "dob": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2007-08-05"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "user@example.com"
                 },
                 "external_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "abc123"
                 },
-                "external_id_2": {
-                    "type": "string"
+                "external_id_type": {
+                    "type": "string",
+                    "example": "EMAIL"
                 },
                 "first_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Brendan"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 42
                 },
                 "last_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Test"
                 },
                 "opted_in": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "phone_numbers": {
-                    "description": "PhoneNumbers represents the one-to-many relationship to UserPhoneNumber.",
+                    "description": "PhoneNumbers holds zero or more phone numbers associated with this user.",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.UserPhoneNumber"
                     }
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-04-19T11:00:00Z"
                 }
             }
         },
@@ -737,26 +765,32 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-04-19T10:05:00Z"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 101
                 },
                 "phone_number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+6598765432"
                 },
                 "phone_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "mobile"
                 },
                 "preference_flags": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "primary"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-04-19T10:05:00Z"
                 },
                 "user_id": {
-                    "description": "foreign key to User.ID",
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 42
                 }
             }
         },
@@ -769,13 +803,19 @@ const docTemplate = `{
             ],
             "properties": {
                 "nonce": {
-                    "type": "string"
+                    "description": "A unique random string for each request to prevent replay attacks.",
+                    "type": "string",
+                    "example": "API"
                 },
                 "signature": {
-                    "type": "string"
+                    "description": "HMAC-SHA256 signature of \"appID|timestamp|nonce\" hex-encoded.\nComputed by concatenating the appID, timestamp, and nonce to form a base string,\nthen applying HMAC-SHA256 with the secret key and hex-encoding the resulting digest.",
+                    "type": "string",
+                    "example": "1558850cb1b48e826197c48d6a14c5f3bf4b644bcb0065ceb0b07978296116bc"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "description": "Unix timestamp (seconds since epoch) when the request was generated.",
+                    "type": "string",
+                    "example": "1744075148"
                 }
             }
         },
@@ -786,7 +826,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "description": "Email address of the user attempting to log in",
+                    "type": "string",
+                    "example": "user@example.com"
                 }
             }
         },
@@ -797,7 +839,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "description": "Email address to check for existing registration.",
+                    "type": "string",
+                    "example": "user@example.com"
                 }
             }
         },
@@ -809,10 +853,14 @@ const docTemplate = `{
             ],
             "properties": {
                 "gr_id": {
-                    "type": "string"
+                    "description": "GR system identifier for the member.",
+                    "type": "string",
+                    "example": "GR12345"
                 },
                 "gr_pin": {
-                    "type": "string"
+                    "description": "PIN code associated with the GR member.",
+                    "type": "string",
+                    "example": "9876"
                 }
             }
         },
@@ -823,25 +871,39 @@ const docTemplate = `{
             ],
             "properties": {
                 "dob": {
-                    "type": "string"
+                    "description": "Dob is the date of birth in YYYY-MM-DD format.",
+                    "type": "string",
+                    "example": "1985-04-12"
                 },
                 "email": {
-                    "type": "string"
+                    "description": "Email is the member's email address.",
+                    "type": "string",
+                    "example": "jane.doe@example.com"
                 },
                 "f_name": {
-                    "type": "string"
+                    "description": "FirstName is the given name of the GR member.",
+                    "type": "string",
+                    "example": "Jane"
                 },
                 "gr_id": {
-                    "type": "string"
+                    "description": "GrId is the unique GR member identifier.",
+                    "type": "string",
+                    "example": "GR12345"
                 },
                 "l_name": {
-                    "type": "string"
+                    "description": "LastName is the family name of the GR member.",
+                    "type": "string",
+                    "example": "Doe"
                 },
                 "mobile": {
-                    "type": "string"
+                    "description": "Mobile is the contact phone number.",
+                    "type": "string",
+                    "example": "98765432"
                 },
                 "url": {
-                    "type": "string"
+                    "description": "URL to send the registration confirmation link to.",
+                    "type": "string",
+                    "example": "https://example.com/confirm?reg_id=abc123"
                 }
             }
         },
@@ -853,10 +915,14 @@ const docTemplate = `{
             ],
             "properties": {
                 "burn_pin": {
-                    "type": "integer"
+                    "description": "BurnPin is the new numeric PIN to set.",
+                    "type": "integer",
+                    "example": 4321
                 },
                 "email": {
-                    "type": "string"
+                    "description": "Email of the user whose burn PIN is being updated.",
+                    "type": "string",
+                    "example": "user@example.com"
                 }
             }
         },
@@ -864,43 +930,67 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "burn_pin": {
-                    "type": "integer"
+                    "description": "BurnPin is the numeric PIN used for burn operations.",
+                    "type": "integer",
+                    "example": 1234
                 },
                 "email": {
-                    "type": "string"
+                    "description": "Email is the user’s email address.",
+                    "type": "string",
+                    "example": "user@example.com"
                 },
                 "external_id": {
-                    "type": "string"
+                    "description": "ExternalID is the client system’s unique identifier for this user.",
+                    "type": "string",
+                    "example": "abc123"
                 },
                 "external_id_type": {
-                    "type": "string"
+                    "description": "ExternalTYPE describes the type or source of the external ID.",
+                    "type": "string",
+                    "example": "EMAIL"
                 },
                 "gr_id": {
-                    "type": "string"
+                    "description": "GR_ID is the group or partner system identifier for the user.",
+                    "type": "string",
+                    "example": "GR12345"
                 },
                 "rlp_id": {
-                    "type": "string"
+                    "description": "RLP_ID is the RLP system identifier for the user.",
+                    "type": "string",
+                    "example": "RLP67890"
                 },
                 "rws_membership_id": {
-                    "type": "string"
+                    "description": "RWS_Membership_ID is the RWS membership ID assigned to this user.",
+                    "type": "string",
+                    "example": "RWS54321"
                 },
                 "rws_membership_number": {
-                    "type": "integer"
+                    "description": "RWS_Membership_Number is the numeric membership number in the RWS system.",
+                    "type": "integer",
+                    "example": 987654
                 },
                 "session_expiry": {
-                    "type": "integer"
+                    "description": "SessionExpiry is the Unix timestamp (seconds since epoch) when the session token expires.",
+                    "type": "integer",
+                    "example": 1712345678
                 },
                 "session_token": {
-                    "type": "string"
+                    "description": "SessionToken is the login session token issued to the user.",
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1..."
                 }
             }
         },
         "responses.APIResponse": {
             "type": "object",
             "properties": {
-                "data": {},
+                "data": {
+                    "description": "Data holds the response payload. Its type depends on the endpoint:\ne.g. AuthResponse for /auth, LoginResponse for /user/login, etc."
+                },
                 "message": {
-                    "type": "string"
+                    "description": "Message provides a human‑readable status or result description.\nExample: \"user created\", \"email found\"",
+                    "type": "string",
+                    "example": "operation successful"
                 }
             }
         },
@@ -908,7 +998,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "access_token": {
-                    "type": "string"
+                    "description": "AccessToken is the JWT issued to the client for subsequent requests.\nExample: \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"",
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
                 }
             }
         },
@@ -916,7 +1008,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
-                    "type": "string"
+                    "description": "Error provides the error detail.\nExample: \"invalid json request body\"",
+                    "type": "string",
+                    "example": "invalid json request body"
                 }
             }
         },
@@ -924,17 +1018,24 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "login_session_token": {
-                    "type": "string"
+                    "description": "LoginSessionToken is the JWT issued after successful authentication.\nexample: \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"",
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
                 },
                 "login_session_token_expiry": {
-                    "type": "integer"
+                    "description": "LoginSessionTokenExpiry is the Unix timestamp (seconds since epoch) when the token expires.\nexample: 1744176000",
+                    "type": "integer",
+                    "example": 1744176000
                 },
                 "otp": {
-                    "type": "string"
+                    "description": "Otp is the one‑time password sent to the user.\nexample: \"123456\"",
+                    "type": "string",
+                    "example": "123456"
                 },
                 "otp_expiry": {
-                    "description": "Unix timestamp",
-                    "type": "integer"
+                    "description": "OtpExpiry is the Unix timestamp (seconds since epoch) when the OTP expires.\nexample: 1744176000",
+                    "type": "integer",
+                    "example": 1744176000
                 }
             }
         }

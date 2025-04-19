@@ -3,83 +3,130 @@ definitions:
   model.GrMember:
     properties:
       dob:
+        description: Dob is the date of birth in YYYY-MM-DD format.
+        example: "1985-04-12"
         type: string
       email:
+        description: Email is the member's email address.
+        example: jane.doe@example.com
         type: string
       f_name:
+        description: FirstName is the given name of the GR member.
+        example: Jane
         type: string
       gr_id:
+        description: GrId is the unique GR member identifier.
+        example: GR12345
         type: string
       l_name:
+        description: LastName is the family name of the GR member.
+        example: Doe
         type: string
       mobile:
+        description: Mobile is the contact phone number.
+        example: "98765432"
         type: string
     type: object
   model.Otp:
     properties:
       otp:
+        description: |-
+          Otp is the one‑time password sent to the user.
+          example: "123456"
+        example: "123456"
         type: string
       otp_expiry:
-        description: Unix timestamp
+        description: |-
+          OtpExpiry is the Unix timestamp (seconds since epoch) when the OTP expires.
+          example: 1744176000
+        example: 1744176000
         type: integer
     type: object
   model.User:
     properties:
       burn_pin:
+        example: 1234
         type: integer
       country:
+        example: SGP
         type: string
       created_at:
+        example: "2025-04-19T10:00:00Z"
         type: string
       dob:
+        example: "2007-08-05"
         type: string
       email:
+        example: user@example.com
         type: string
       external_id:
+        example: abc123
         type: string
-      external_id_2:
+      external_id_type:
+        example: EMAIL
         type: string
       first_name:
+        example: Brendan
         type: string
       id:
+        example: 42
         type: integer
       last_name:
+        example: Test
         type: string
       opted_in:
+        example: true
         type: boolean
       phone_numbers:
-        description: PhoneNumbers represents the one-to-many relationship to UserPhoneNumber.
+        description: PhoneNumbers holds zero or more phone numbers associated with
+          this user.
         items:
           $ref: '#/definitions/model.UserPhoneNumber'
         type: array
       updated_at:
+        example: "2025-04-19T11:00:00Z"
         type: string
     type: object
   model.UserPhoneNumber:
     properties:
       created_at:
+        example: "2025-04-19T10:05:00Z"
         type: string
       id:
+        example: 101
         type: integer
       phone_number:
+        example: "+6598765432"
         type: string
       phone_type:
+        example: mobile
         type: string
       preference_flags:
+        example: primary
         type: string
       updated_at:
+        example: "2025-04-19T10:05:00Z"
         type: string
       user_id:
-        description: foreign key to User.ID
+        example: 42
         type: integer
     type: object
   requests.AuthRequest:
     properties:
       nonce:
+        description: A unique random string for each request to prevent replay attacks.
+        example: API
         type: string
       signature:
+        description: |-
+          HMAC-SHA256 signature of "appID|timestamp|nonce" hex-encoded.
+          Computed by concatenating the appID, timestamp, and nonce to form a base string,
+          then applying HMAC-SHA256 with the secret key and hex-encoding the resulting digest.
+        example: 1558850cb1b48e826197c48d6a14c5f3bf4b644bcb0065ceb0b07978296116bc
         type: string
       timestamp:
+        description: Unix timestamp (seconds since epoch) when the request was generated.
+        example: "1744075148"
         type: string
     required:
     - nonce
@@ -89,6 +136,8 @@ definitions:
   requests.Login:
     properties:
       email:
+        description: Email address of the user attempting to log in
+        example: user@example.com
         type: string
     required:
     - email
@@ -96,6 +145,8 @@ definitions:
   requests.Register:
     properties:
       email:
+        description: Email address to check for existing registration.
+        example: user@example.com
         type: string
     required:
     - email
@@ -103,8 +154,12 @@ definitions:
   requests.RegisterGr:
     properties:
       gr_id:
+        description: GR system identifier for the member.
+        example: GR12345
         type: string
       gr_pin:
+        description: PIN code associated with the GR member.
+        example: "9876"
         type: string
     required:
     - gr_id
@@ -113,18 +168,32 @@ definitions:
   requests.RegisterGrCms:
     properties:
       dob:
+        description: Dob is the date of birth in YYYY-MM-DD format.
+        example: "1985-04-12"
         type: string
       email:
+        description: Email is the member's email address.
+        example: jane.doe@example.com
         type: string
       f_name:
+        description: FirstName is the given name of the GR member.
+        example: Jane
         type: string
       gr_id:
+        description: GrId is the unique GR member identifier.
+        example: GR12345
         type: string
       l_name:
+        description: LastName is the family name of the GR member.
+        example: Doe
         type: string
       mobile:
+        description: Mobile is the contact phone number.
+        example: "98765432"
         type: string
       url:
+        description: URL to send the registration confirmation link to.
+        example: https://example.com/confirm?reg_id=abc123
         type: string
     required:
     - url
@@ -132,8 +201,12 @@ definitions:
   requests.UpdateBurnPin:
     properties:
       burn_pin:
+        description: BurnPin is the new numeric PIN to set.
+        example: 4321
         type: integer
       email:
+        description: Email of the user whose burn PIN is being updated.
+        example: user@example.com
         type: string
     required:
     - burn_pin
@@ -142,52 +215,105 @@ definitions:
   requests.User:
     properties:
       burn_pin:
+        description: BurnPin is the numeric PIN used for burn operations.
+        example: 1234
         type: integer
       email:
+        description: Email is the user’s email address.
+        example: user@example.com
         type: string
       external_id:
+        description: ExternalID is the client system’s unique identifier for this
+          user.
+        example: abc123
         type: string
       external_id_type:
+        description: ExternalTYPE describes the type or source of the external ID.
+        example: EMAIL
         type: string
       gr_id:
+        description: GR_ID is the group or partner system identifier for the user.
+        example: GR12345
         type: string
       rlp_id:
+        description: RLP_ID is the RLP system identifier for the user.
+        example: RLP67890
         type: string
       rws_membership_id:
+        description: RWS_Membership_ID is the RWS membership ID assigned to this user.
+        example: RWS54321
         type: string
       rws_membership_number:
+        description: RWS_Membership_Number is the numeric membership number in the
+          RWS system.
+        example: 987654
         type: integer
       session_expiry:
+        description: SessionExpiry is the Unix timestamp (seconds since epoch) when
+          the session token expires.
+        example: 1712345678
         type: integer
       session_token:
+        description: SessionToken is the login session token issued to the user.
+        example: eyJhbGciOiJIUzI1...
         type: string
     type: object
   responses.APIResponse:
     properties:
-      data: {}
+      data:
+        description: |-
+          Data holds the response payload. Its type depends on the endpoint:
+          e.g. AuthResponse for /auth, LoginResponse for /user/login, etc.
       message:
+        description: |-
+          Message provides a human‑readable status or result description.
+          Example: "user created", "email found"
+        example: operation successful
         type: string
     type: object
   responses.AuthResponse:
     properties:
       access_token:
+        description: |-
+          AccessToken is the JWT issued to the client for subsequent requests.
+          Example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         type: string
     type: object
   responses.ErrorResponse:
     properties:
       error:
+        description: |-
+          Error provides the error detail.
+          Example: "invalid json request body"
+        example: invalid json request body
         type: string
     type: object
   responses.LoginResponse:
     properties:
       login_session_token:
+        description: |-
+          LoginSessionToken is the JWT issued after successful authentication.
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         type: string
       login_session_token_expiry:
+        description: |-
+          LoginSessionTokenExpiry is the Unix timestamp (seconds since epoch) when the token expires.
+          example: 1744176000
+        example: 1744176000
         type: integer
       otp:
+        description: |-
+          Otp is the one‑time password sent to the user.
+          example: "123456"
+        example: "123456"
         type: string
       otp_expiry:
-        description: Unix timestamp
+        description: |-
+          OtpExpiry is the Unix timestamp (seconds since epoch) when the OTP expires.
+          example: 1744176000
+        example: 1744176000
         type: integer
     type: object
 host: localhost:18080
@@ -204,7 +330,8 @@ paths:
       description: Validates AppID header and HMAC signature, then returns a JWT access
         token.
       parameters:
-      - description: Client system AppID
+      - default: app1234
+        description: Client system AppID
         in: header
         name: AppID
         required: true
