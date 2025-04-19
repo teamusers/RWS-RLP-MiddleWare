@@ -27,7 +27,19 @@ func getSecretKey(db *gorm.DB, appID string) (string, error) {
 	return channel.AppKey, nil
 }
 
-// AuthHandler processes the GET /api/v1/auth endpoint.
+// AuthHandler godoc
+// @Summary      Generate authentication token
+// @Description  Validates AppID header and HMAC signature, then returns a JWT access token.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        AppID     header    string               true   "Client system AppID"
+// @Param        request   body      requests.AuthRequest true   "Authentication request payload"
+// @Success      200       {object}  responses.APIResponse{data=responses.AuthResponse}
+// @Failure      400       {object}  responses.APIResponse
+// @Failure      401       {object}  responses.APIResponse
+// @Failure      500       {object}  responses.APIResponse
+// @Router       /api/v1/auth [post]
 func AuthHandler(c *gin.Context) {
 
 	// Retrieve the AppID from header.
