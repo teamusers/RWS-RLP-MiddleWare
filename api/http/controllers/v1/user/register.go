@@ -18,6 +18,19 @@ import (
 	"github.com/google/uuid"
 )
 
+// VerifyUserExistence godoc
+// @Summary      Verify email for registration
+// @Description  Checks if an email is already registered; if not, sends an OTP for signup.
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        request  body      requests.Register true  "Registration request payload"
+// @Success      200      {object}  responses.APIResponse{data=model.Otp}    "email not registered, OTP sent"
+// @Failure      400      {object}  responses.APIResponse                    "invalid JSON"
+// @Failure      409      {object}  responses.APIResponse                    "email already registered"
+// @Failure      500      {object}  responses.APIResponse                    "internal error"
+// @Security     ApiKeyAuth
+// @Router       /api/v1/user/register/verify [post]
 func VerifyUserExistence(c *gin.Context) {
 	var req requests.Register
 
@@ -89,6 +102,18 @@ func VerifyUserExistence(c *gin.Context) {
 
 }
 
+// CreateUser godoc
+// @Summary      Create new user
+// @Description  Registers a new user record in the system.
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        user     body      model.User        true  "User create payload"
+// @Success      201      {object}  responses.APIResponse{data=model.User}  "user created"
+// @Failure      400      {object}  responses.APIResponse                   "invalid JSON"
+// @Failure      500      {object}  responses.APIResponse                   "internal error"
+// @Security     ApiKeyAuth
+// @Router       /api/v1/user/register [post]
 func CreateUser(c *gin.Context) {
 	db := system.GetDb()
 	var user model.User
@@ -135,7 +160,7 @@ func CreateUser(c *gin.Context) {
 	req.User.RLP_ID = rlpId.String()                 // To be update by rlp.rlp_id
 	req.User.RWS_Membership_ID = "rws_membership_id" // To be update by rws_membership_id
 	req.User.RWS_Membership_Number = 123456          // To be update by RWS_Membership_Number
-	req.Email = user.Email          // To be update by RWS_Membership_Number
+	req.Email = user.Email                           // To be update by RWS_Membership_Number
 
 	//TO DO - Request member service update - different based on sign_up_type
 	err := services.PostRegisterUser(req)
@@ -157,6 +182,18 @@ func CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
+// VerifyGrExistence godoc
+// @Summary      Verify GR member existence
+// @Description  Checks if a GR member ID is already registered.
+// @Tags         gr
+// @Accept       json
+// @Produce      json
+// @Param        request  body      requests.RegisterGr   true  "GR registration check payload"
+// @Success      200      {object}  responses.APIResponse                     "email registered"
+// @Failure      400      {object}  responses.APIResponse                     "invalid JSON"
+// @Failure      500      {object}  responses.APIResponse                     "internal error"
+// @Security     ApiKeyAuth
+// @Router       /api/v1/gr/verify [post]
 func VerifyGrExistence(c *gin.Context) {
 	var req requests.RegisterGr
 
@@ -185,6 +222,19 @@ func VerifyGrExistence(c *gin.Context) {
 
 }
 
+// VerifyGrCmsExistence godoc
+// @Summary      Verify and cache GR CMS member
+// @Description  Checks if a GR CMS member email is in the system and caches their profile for follow‑up.
+// @Tags         grcms
+// @Accept       json
+// @Produce      json
+// @Param        request  body      requests.RegisterGrCms  true  "GR CMS register payload"
+// @Success      200      {object}  responses.APIResponse                     "email not registered"
+// @Failure      400      {object}  responses.APIResponse                     "invalid JSON"
+// @Failure      409      {object}  responses.APIResponse                     "email already registered"
+// @Failure      500      {object}  responses.APIResponse                     "internal error"
+// @Security     ApiKeyAuth
+// @Router       /api/v1/grcms/verify [post]
 func VerifyGrCmsExistence(c *gin.Context) {
 	var req requests.RegisterGrCms
 
@@ -228,6 +278,18 @@ func VerifyGrCmsExistence(c *gin.Context) {
 
 }
 
+// GetCachedGrCmsProfile godoc
+// @Summary      Get cached GR CMS profile
+// @Description  Retrieves a temporarily cached GR CMS profile by registration ID.
+// @Tags         grcms
+// @Accept       json
+// @Produce      json
+// @Param        reg_id   path      string                  true  "Registration ID"
+// @Success      200      {object}  responses.APIResponse{data=model.GrMember}  "successful"
+// @Failure      400      {object}  responses.APIResponse                    "missing reg_id"
+// @Failure      404      {object}  responses.APIResponse                    "not found or expired"
+// @Security     ApiKeyAuth
+// @Router       /api/v1/grcms/profile/{reg_id} [get]
 func GetCachedGrCmsProfile(c *gin.Context) {
 
 	regId := c.Param("reg_id")

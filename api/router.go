@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"net/http"
 
 	general "lbe/api/http"
 	"lbe/config"
@@ -53,6 +54,15 @@ func Init() *gin.Engine {
 	// wire up the swagger UI, telling it to fetch /docs/swagger.json
 	url := ginSwagger.URL("/docs/swagger.json")
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+
+	// redirect root to swagger
+	r.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusTemporaryRedirect, "/swagger/index.html")
+	})
+	// also catch bare /swagger
+	r.GET("/swagger", func(c *gin.Context) {
+		c.Redirect(http.StatusTemporaryRedirect, "/swagger/index.html")
+	})
 
 	// start server
 	r.Run(fmt.Sprintf(":%d", config.GetConfig().Http.Port))

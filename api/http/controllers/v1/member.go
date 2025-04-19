@@ -14,6 +14,18 @@ import (
 	"gorm.io/gorm"
 )
 
+// GetMemberProfile godoc
+// @Summary      Get member profile
+// @Description  Retrieves the profile (including phone numbers) for a given member by external_id.
+// @Tags         member
+// @Accept       json
+// @Produce      json
+// @Param        external_id  path      string                      true  "Member external ID"
+// @Success      201          {object}  responses.APIResponse{data=model.User}  "profile found"
+// @Failure      400          {object}  responses.ErrorResponse              "missing or invalid external_id"
+// @Failure      404          {object}  responses.APIResponse                "member not found"
+// @Failure      500          {object}  responses.ErrorResponse              "internal error"
+// @Router       /api/v1/member/{external_id} [get]
 func GetMemberProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 	if external_id == "" {
@@ -52,6 +64,19 @@ func GetMemberProfile(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
+// UpdateMemberProfile godoc
+// @Summary      Update member profile
+// @Description  Updates a member’s profile fields (non‐zero values in the JSON body).
+// @Tags         member
+// @Accept       json
+// @Produce      json
+// @Param        external_id  path      string                      true  "Member external ID"
+// @Param        request      body      requests.User               true  "Profile fields to update"
+// @Success      200          {object}  responses.APIResponse{data=model.User}  "update successful"
+// @Failure      400          {object}  responses.ErrorResponse              "invalid input"
+// @Failure      404          {object}  responses.APIResponse                "member not found"
+// @Failure      500          {object}  responses.ErrorResponse              "internal error"
+// @Router       /api/v1/member/{external_id} [put]
 func UpdateMemberProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 	if external_id == "" {
@@ -122,6 +147,18 @@ func UpdateMemberProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// UpdateBurnPin godoc
+// @Summary      Update user burn PIN
+// @Description  Updates the burn PIN for a given email address.
+// @Tags         member
+// @Accept       json
+// @Produce      json
+// @Param        request      body      requests.UpdateBurnPin  true  "Email + new burn PIN"
+// @Success      200          {object}  responses.APIResponse            "update successful"
+// @Failure      400          {object}  responses.APIResponse            "invalid JSON or missing fields"
+// @Failure      500          {object}  responses.APIResponse            "update unsuccessful"
+// @Security     ApiKeyAuth
+// @Router       /api/v1/member/burn-pin [put]
 func UpdateBurnPin(c *gin.Context) {
 	var req requests.UpdateBurnPin
 

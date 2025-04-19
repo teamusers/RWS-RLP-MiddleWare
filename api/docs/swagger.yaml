@@ -1,4 +1,78 @@
+basePath: /api/v1
 definitions:
+  model.GrMember:
+    properties:
+      dob:
+        type: string
+      email:
+        type: string
+      f_name:
+        type: string
+      gr_id:
+        type: string
+      l_name:
+        type: string
+      mobile:
+        type: string
+    type: object
+  model.Otp:
+    properties:
+      otp:
+        type: string
+      otp_expiry:
+        description: Unix timestamp
+        type: integer
+    type: object
+  model.User:
+    properties:
+      burn_pin:
+        type: integer
+      country:
+        type: string
+      created_at:
+        type: string
+      dob:
+        type: string
+      email:
+        type: string
+      external_id:
+        type: string
+      external_id_2:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      opted_in:
+        type: boolean
+      phone_numbers:
+        description: PhoneNumbers represents the one-to-many relationship to UserPhoneNumber.
+        items:
+          $ref: '#/definitions/model.UserPhoneNumber'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  model.UserPhoneNumber:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      phone_number:
+        type: string
+      phone_type:
+        type: string
+      preference_flags:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        description: foreign key to User.ID
+        type: integer
+    type: object
   requests.AuthRequest:
     properties:
       nonce:
@@ -12,6 +86,82 @@ definitions:
     - signature
     - timestamp
     type: object
+  requests.Login:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  requests.Register:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  requests.RegisterGr:
+    properties:
+      gr_id:
+        type: string
+      gr_pin:
+        type: string
+    required:
+    - gr_id
+    - gr_pin
+    type: object
+  requests.RegisterGrCms:
+    properties:
+      dob:
+        type: string
+      email:
+        type: string
+      f_name:
+        type: string
+      gr_id:
+        type: string
+      l_name:
+        type: string
+      mobile:
+        type: string
+      url:
+        type: string
+    required:
+    - url
+    type: object
+  requests.UpdateBurnPin:
+    properties:
+      burn_pin:
+        type: integer
+      email:
+        type: string
+    required:
+    - burn_pin
+    - email
+    type: object
+  requests.User:
+    properties:
+      burn_pin:
+        type: integer
+      email:
+        type: string
+      external_id:
+        type: string
+      external_id_type:
+        type: string
+      gr_id:
+        type: string
+      rlp_id:
+        type: string
+      rws_membership_id:
+        type: string
+      rws_membership_number:
+        type: integer
+      session_expiry:
+        type: integer
+      session_token:
+        type: string
+    type: object
   responses.APIResponse:
     properties:
       data: {}
@@ -23,8 +173,29 @@ definitions:
       access_token:
         type: string
     type: object
+  responses.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  responses.LoginResponse:
+    properties:
+      login_session_token:
+        type: string
+      login_session_token_expiry:
+        type: integer
+      otp:
+        type: string
+      otp_expiry:
+        description: Unix timestamp
+        type: integer
+    type: object
+host: localhost:18080
 info:
   contact: {}
+  description: Endpoints for authentication, login and register
+  title: LBE API
+  version: "1.0"
 paths:
   /api/v1/auth:
     post:
@@ -71,4 +242,351 @@ paths:
       summary: Generate authentication token
       tags:
       - auth
+  /api/v1/gr/verify:
+    post:
+      consumes:
+      - application/json
+      description: Checks if a GR member ID is already registered.
+      parameters:
+      - description: GR registration check payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RegisterGr'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: email registered
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "400":
+          description: invalid JSON
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Verify GR member existence
+      tags:
+      - gr
+  /api/v1/grcms/profile/{reg_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a temporarily cached GR CMS profile by registration ID.
+      parameters:
+      - description: Registration ID
+        in: path
+        name: reg_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: successful
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.GrMember'
+              type: object
+        "400":
+          description: missing reg_id
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "404":
+          description: not found or expired
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get cached GR CMS profile
+      tags:
+      - grcms
+  /api/v1/grcms/verify:
+    post:
+      consumes:
+      - application/json
+      description: Checks if a GR CMS member email is in the system and caches their
+        profile for follow‑up.
+      parameters:
+      - description: GR CMS register payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RegisterGrCms'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: email not registered
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "400":
+          description: invalid JSON
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "409":
+          description: email already registered
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Verify and cache GR CMS member
+      tags:
+      - grcms
+  /api/v1/member/{external_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the profile (including phone numbers) for a given member
+        by external_id.
+      parameters:
+      - description: Member external ID
+        in: path
+        name: external_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: profile found
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.User'
+              type: object
+        "400":
+          description: missing or invalid external_id
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "404":
+          description: member not found
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Get member profile
+      tags:
+      - member
+    put:
+      consumes:
+      - application/json
+      description: Updates a member’s profile fields (non‐zero values in the JSON
+        body).
+      parameters:
+      - description: Member external ID
+        in: path
+        name: external_id
+        required: true
+        type: string
+      - description: Profile fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: update successful
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.User'
+              type: object
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "404":
+          description: member not found
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Update member profile
+      tags:
+      - member
+  /api/v1/member/burn-pin:
+    put:
+      consumes:
+      - application/json
+      description: Updates the burn PIN for a given email address.
+      parameters:
+      - description: Email + new burn PIN
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdateBurnPin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: update successful
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "400":
+          description: invalid JSON or missing fields
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "500":
+          description: update unsuccessful
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update user burn PIN
+      tags:
+      - member
+  /api/v1/user/login:
+    post:
+      consumes:
+      - application/json
+      description: Validates user email, generates an OTP, emails it, and returns
+        the OTP details plus a login session token.
+      parameters:
+      - description: Login request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/responses.LoginResponse'
+              type: object
+        "400":
+          description: invalid JSON
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "404":
+          description: email not found
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Start login flow via email
+      tags:
+      - user
+  /api/v1/user/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user record in the system.
+      parameters:
+      - description: User create payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: user created
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.User'
+              type: object
+        "400":
+          description: invalid JSON
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create new user
+      tags:
+      - user
+  /api/v1/user/register/verify:
+    post:
+      consumes:
+      - application/json
+      description: Checks if an email is already registered; if not, sends an OTP
+        for signup.
+      parameters:
+      - description: Registration request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.Register'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: email not registered, OTP sent
+          schema:
+            allOf:
+            - $ref: '#/definitions/responses.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Otp'
+              type: object
+        "400":
+          description: invalid JSON
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "409":
+          description: email already registered
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Verify email for registration
+      tags:
+      - user
+securityDefinitions:
+  ApiKeyAuth  // arbitrary name:
+    description: Type "Bearer <your-jwt>" to authorize
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
