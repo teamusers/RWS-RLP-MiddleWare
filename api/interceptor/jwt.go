@@ -27,7 +27,7 @@ func SetJWTSecret(secret string) {
 // GenerateToken creates a JWT for the provided AppID.
 func GenerateToken(appID string) (string, error) {
 	// Set token expiration time (e.g., 1 hour from now)
-	expirationTime := time.Now().Add(1 * time.Hour)
+	expirationTime := time.Now().Add(4 * time.Hour)
 
 	claims := CustomClaims{
 		AppID: appID,
