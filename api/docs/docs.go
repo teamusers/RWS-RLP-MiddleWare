@@ -990,7 +990,7 @@ const docTemplate = `{
                 "message": {
                     "description": "Message provides a human‑readable status or result description.\nExample: \"user created\", \"email found\"",
                     "type": "string",
-                    "example": "operation successful"
+                    "example": ""
                 }
             }
         },

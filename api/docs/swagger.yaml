@@ -268,7 +268,7 @@ definitions:
         description: |-
           Message provides a human‑readable status or result description.
           Example: "user created", "email found"
-        example: operation successful
+        example: ""
         type: string
     type: object
   responses.AuthResponse:

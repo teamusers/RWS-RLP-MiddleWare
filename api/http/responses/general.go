@@ -5,7 +5,7 @@ package responses
 type APIResponse struct {
 	// Message provides a human‑readable status or result description.
 	// Example: "user created", "email found"
-	Message string `json:"message" example:"operation successful"`
+	Message string `json:"message" example:""`
 
 	// Data holds the response payload. Its type depends on the endpoint:
 	// e.g. AuthResponse for /auth, LoginResponse for /user/login, etc.
