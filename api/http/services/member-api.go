@@ -23,7 +23,7 @@ const (
 	updateBurnPinURL = "/api/v1/user/pin"
 )
 
-var ErrRecordNotFound = errors.New("record not found")
+var ErrCondition = errors.New("condition not match")
 
 func GetAccessToken() (string, error) {
 	AppID := config.GetConfig().API.Memberservice.AppID
@@ -94,7 +94,7 @@ func GetLoginUserByEmail(email string) (*responses.MemberLoginResponse, error) {
 		}
 		return &userResp, nil
 	case 201:
-		return nil, ErrRecordNotFound
+		return nil, ErrCondition
 	default:
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
@@ -113,11 +113,15 @@ func GetRegisterUserByEmail(email string) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 201 {
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return ErrCondition
+	case 201:
 		return nil
+	default:
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
 	}
-	body, _ := io.ReadAll(resp.Body)
-	return fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
 }
 
 // PostRegisterUser posts a JSON payload to register a user by combining email and signUpType in the URL.
@@ -134,7 +138,7 @@ func PostRegisterUser(payload interface{}) error {
 	// Check for a non-OK status.
 	switch resp.StatusCode {
 	case http.StatusOK:
-		return fmt.Errorf("error calling member services: received status code %d and response: %s", 201, "User already exists")
+		return ErrCondition
 	case 201:
 		return nil
 	default:
@@ -181,6 +185,7 @@ func buildHttpClient(httpMethod string, url string, payload any) (*http.Response
 		return nil, fmt.Errorf("error marshaling payload: %w", err)
 	}
 
+	fmt.Print(url)
 	// Create a new POST request with the JSON payload.
 	req, err := http.NewRequest(httpMethod, url, bytes.NewBuffer(jsonData))
 	if err != nil {
@@ -191,7 +196,6 @@ func buildHttpClient(httpMethod string, url string, payload any) (*http.Response
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("AppID", config.GetConfig().API.Memberservice.AppID)
-
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {

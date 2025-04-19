@@ -24,7 +24,6 @@ var endpointList []map[string]string
 func Include(opts ...Option) {
 	options = append(options, opts...)
 }
-
 func Init() *gin.Engine {
 	Include(general.Routers)
 

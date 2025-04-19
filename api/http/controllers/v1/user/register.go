@@ -30,7 +30,7 @@ import (
 // @Failure      409      {object}  responses.APIResponse                    "email already registered"
 // @Failure      500      {object}  responses.APIResponse                    "internal error"
 // @Security     ApiKeyAuth
-// @Router       /api/v1/user/register/verify [post]
+// @Router       /user/register/verify [post]
 func VerifyUserExistence(c *gin.Context) {
 	var req requests.Register
 
@@ -46,7 +46,7 @@ func VerifyUserExistence(c *gin.Context) {
 
 	err := services.GetRegisterUserByEmail(req.Email)
 	if err != nil {
-		if errors.Is(err, services.ErrRecordNotFound) {
+		if errors.Is(err, services.ErrCondition) {
 			resp := responses.APIResponse{
 				Message: "email registered",
 				Data:    model.Otp{},
@@ -113,7 +113,7 @@ func VerifyUserExistence(c *gin.Context) {
 // @Failure      400      {object}  responses.APIResponse                   "invalid JSON"
 // @Failure      500      {object}  responses.APIResponse                   "internal error"
 // @Security     ApiKeyAuth
-// @Router       /api/v1/user/register [post]
+// @Router       /user/register [post]
 func CreateUser(c *gin.Context) {
 	db := system.GetDb()
 	var user model.User
@@ -193,7 +193,7 @@ func CreateUser(c *gin.Context) {
 // @Failure      400      {object}  responses.APIResponse                     "invalid JSON"
 // @Failure      500      {object}  responses.APIResponse                     "internal error"
 // @Security     ApiKeyAuth
-// @Router       /api/v1/gr/verify [post]
+// @Router       /gr/verify [post]
 func VerifyGrExistence(c *gin.Context) {
 	var req requests.RegisterGr
 
@@ -234,7 +234,7 @@ func VerifyGrExistence(c *gin.Context) {
 // @Failure      409      {object}  responses.APIResponse                     "email already registered"
 // @Failure      500      {object}  responses.APIResponse                     "internal error"
 // @Security     ApiKeyAuth
-// @Router       /api/v1/grcms/verify [post]
+// @Router       /grcms/verify [post]
 func VerifyGrCmsExistence(c *gin.Context) {
 	var req requests.RegisterGrCms
 
@@ -249,7 +249,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 
 	err := services.GetRegisterUserByEmail(*req.GrMember.Email)
 	if err != nil {
-		if errors.Is(err, services.ErrRecordNotFound) { //TO DO - Fix and standardize error
+		if errors.Is(err, services.ErrCondition) { //TO DO - Fix and standardize error
 			resp := responses.APIResponse{
 				Message: "email registered",
 			}
@@ -289,7 +289,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 // @Failure      400      {object}  responses.APIResponse                    "missing reg_id"
 // @Failure      404      {object}  responses.APIResponse                    "not found or expired"
 // @Security     ApiKeyAuth
-// @Router       /api/v1/grcms/profile/{reg_id} [get]
+// @Router       /grcms/profile/{reg_id} [get]
 func GetCachedGrCmsProfile(c *gin.Context) {
 
 	regId := c.Param("reg_id")

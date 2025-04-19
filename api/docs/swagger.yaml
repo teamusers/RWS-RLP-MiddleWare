@@ -197,7 +197,7 @@ info:
   title: LBE API
   version: "1.0"
 paths:
-  /api/v1/auth:
+  /auth:
     post:
       consumes:
       - application/json
@@ -242,7 +242,7 @@ paths:
       summary: Generate authentication token
       tags:
       - auth
-  /api/v1/gr/verify:
+  /gr/verify:
     post:
       consumes:
       - application/json
@@ -274,7 +274,7 @@ paths:
       summary: Verify GR member existence
       tags:
       - gr
-  /api/v1/grcms/profile/{reg_id}:
+  /grcms/profile/{reg_id}:
     get:
       consumes:
       - application/json
@@ -310,7 +310,7 @@ paths:
       summary: Get cached GR CMS profile
       tags:
       - grcms
-  /api/v1/grcms/verify:
+  /grcms/verify:
     post:
       consumes:
       - application/json
@@ -347,7 +347,7 @@ paths:
       summary: Verify and cache GR CMS member
       tags:
       - grcms
-  /api/v1/member/{external_id}:
+  /member/{external_id}:
     get:
       consumes:
       - application/json
@@ -383,6 +383,8 @@ paths:
           description: internal error
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Get member profile
       tags:
       - member
@@ -427,10 +429,12 @@ paths:
           description: internal error
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Update member profile
       tags:
       - member
-  /api/v1/member/burn-pin:
+  /member/burn-pin:
     put:
       consumes:
       - application/json
@@ -462,7 +466,7 @@ paths:
       summary: Update user burn PIN
       tags:
       - member
-  /api/v1/user/login:
+  /user/login:
     post:
       consumes:
       - application/json
@@ -504,7 +508,7 @@ paths:
       summary: Start login flow via email
       tags:
       - user
-  /api/v1/user/register:
+  /user/register:
     post:
       consumes:
       - application/json
@@ -541,7 +545,7 @@ paths:
       summary: Create new user
       tags:
       - user
-  /api/v1/user/register/verify:
+  /user/register/verify:
     post:
       consumes:
       - application/json
@@ -584,7 +588,7 @@ paths:
       tags:
       - user
 securityDefinitions:
-  ApiKeyAuth  // arbitrary name:
+  ApiKeyAuth:
     description: Type "Bearer <your-jwt>" to authorize
     in: header
     name: Authorization

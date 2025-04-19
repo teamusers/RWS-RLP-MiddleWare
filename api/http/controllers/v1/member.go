@@ -25,7 +25,8 @@ import (
 // @Failure      400          {object}  responses.ErrorResponse              "missing or invalid external_id"
 // @Failure      404          {object}  responses.APIResponse                "member not found"
 // @Failure      500          {object}  responses.ErrorResponse              "internal error"
-// @Router       /api/v1/member/{external_id} [get]
+// @Security     ApiKeyAuth
+// @Router       /member/{external_id} [get]
 func GetMemberProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 	if external_id == "" {
@@ -76,7 +77,8 @@ func GetMemberProfile(c *gin.Context) {
 // @Failure      400          {object}  responses.ErrorResponse              "invalid input"
 // @Failure      404          {object}  responses.APIResponse                "member not found"
 // @Failure      500          {object}  responses.ErrorResponse              "internal error"
-// @Router       /api/v1/member/{external_id} [put]
+// @Security     ApiKeyAuth
+// @Router       /member/{external_id} [put]
 func UpdateMemberProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 	if external_id == "" {
@@ -158,7 +160,7 @@ func UpdateMemberProfile(c *gin.Context) {
 // @Failure      400          {object}  responses.APIResponse            "invalid JSON or missing fields"
 // @Failure      500          {object}  responses.APIResponse            "update unsuccessful"
 // @Security     ApiKeyAuth
-// @Router       /api/v1/member/burn-pin [put]
+// @Router       /member/burn-pin [put]
 func UpdateBurnPin(c *gin.Context) {
 	var req requests.UpdateBurnPin
 

@@ -10,7 +10,7 @@ import (
 // @host            localhost:18080
 // @BasePath        /api/v1
 
-// @securityDefinitions.apikey  ApiKeyAuth  // arbitrary name
+// @securityDefinitions.apikey  ApiKeyAuth
 // @in                         header
 // @name                       Authorization
 // @description                Type "Bearer <your-jwt>" to authorize

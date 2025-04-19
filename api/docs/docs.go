@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/auth": {
+        "/auth": {
             "post": {
                 "description": "Validates AppID header and HMAC signature, then returns a JWT access token.",
                 "consumes": [
@@ -86,7 +86,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/gr/verify": {
+        "/gr/verify": {
             "post": {
                 "security": [
                     {
@@ -137,7 +137,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/grcms/profile/{reg_id}": {
+        "/grcms/profile/{reg_id}": {
             "get": {
                 "security": [
                     {
@@ -198,7 +198,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/grcms/verify": {
+        "/grcms/verify": {
             "post": {
                 "security": [
                     {
@@ -255,7 +255,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/member/burn-pin": {
+        "/member/burn-pin": {
             "put": {
                 "security": [
                     {
@@ -306,8 +306,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/member/{external_id}": {
+        "/member/{external_id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Retrieves the profile (including phone numbers) for a given member by external_id.",
                 "consumes": [
                     "application/json"
@@ -368,6 +373,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Updates a member’s profile fields (non‐zero values in the JSON body).",
                 "consumes": [
                     "application/json"
@@ -437,7 +447,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/user/login": {
+        "/user/login": {
             "post": {
                 "security": [
                     {
@@ -506,7 +516,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/user/register": {
+        "/user/register": {
             "post": {
                 "security": [
                     {
@@ -569,7 +579,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/user/register/verify": {
+        "/user/register/verify": {
             "post": {
                 "security": [
                     {
@@ -930,7 +940,7 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "ApiKeyAuth  // arbitrary name": {
+        "ApiKeyAuth": {
             "description": "Type \"Bearer \u003cyour-jwt\u003e\" to authorize",
             "type": "apiKey",
             "name": "Authorization",

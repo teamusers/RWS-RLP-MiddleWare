@@ -39,7 +39,7 @@ func getSecretKey(db *gorm.DB, appID string) (string, error) {
 // @Failure      400       {object}  responses.APIResponse
 // @Failure      401       {object}  responses.APIResponse
 // @Failure      500       {object}  responses.APIResponse
-// @Router       /api/v1/auth [post]
+// @Router       /auth [post]
 func AuthHandler(c *gin.Context) {
 
 	// Retrieve the AppID from header.

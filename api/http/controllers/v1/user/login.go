@@ -25,7 +25,7 @@ import (
 // @Failure      404      {object}  responses.APIResponse  "email not found"
 // @Failure      500      {object}  responses.APIResponse  "internal error"
 // @Security     ApiKeyAuth
-// @Router       /api/v1/user/login [post]
+// @Router       /user/login [post]
 func Login(c *gin.Context) {
 
 	var req requests.Login
@@ -42,7 +42,7 @@ func Login(c *gin.Context) {
 
 	user, err := services.GetLoginUserByEmail(req.Email)
 	if err != nil {
-		if errors.Is(err, services.ErrRecordNotFound) {
+		if errors.Is(err, services.ErrCondition) {
 			resp := responses.APIResponse{
 				Message: "email not found",
 				Data:    responses.LoginResponse{},
