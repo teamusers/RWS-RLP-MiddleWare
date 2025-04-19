@@ -37,7 +37,6 @@ func getSecretKey(db *gorm.DB, appID string) (string, error) {
 // @Param        request   body      requests.AuthRequest true   "Authentication request payload"
 // @Success      200       {object}  responses.APIResponse{data=responses.AuthResponse}
 // @Failure      400       {object}  responses.APIResponse
-// @Failure      401       {object}  responses.APIResponse
 // @Failure      500       {object}  responses.APIResponse
 // @Router       /auth [post]
 func AuthHandler(c *gin.Context) {
