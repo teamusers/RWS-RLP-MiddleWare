@@ -112,13 +112,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "email registered",
+                        "description": "successful",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
                     },
                     "400": {
-                        "description": "invalid JSON",
+                        "description": "bad request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
@@ -179,13 +185,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "missing reg_id",
+                        "description": "bad request",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
                     },
-                    "404": {
-                        "description": "not found or expired",
+                    "401": {
+                        "description": "unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
@@ -224,19 +236,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "email not registered",
+                        "description": "successful",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
                     },
                     "400": {
-                        "description": "invalid JSON",
+                        "description": "bad request",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
                     },
-                    "409": {
-                        "description": "email already registered",
+                    "401": {
+                        "description": "unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
@@ -287,7 +299,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "invalid JSON or missing fields",
+                        "description": "bad request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
@@ -329,8 +347,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "profile found",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "allOf": [
                                 {
@@ -348,13 +366,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "missing or invalid external_id",
+                        "description": "bad request",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "member not found",
+                    "401": {
+                        "description": "unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
@@ -422,13 +440,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "invalid input",
+                        "description": "bad request",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "member not found",
+                    "401": {
+                        "description": "unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
@@ -491,13 +509,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "invalid JSON",
+                        "description": "bad request",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
                     },
-                    "404": {
-                        "description": "email not found",
+                    "401": {
+                        "description": "unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
@@ -560,7 +578,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "invalid JSON",
+                        "description": "bad request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
@@ -623,13 +647,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "invalid JSON",
+                        "description": "bad request",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
                     },
-                    "409": {
-                        "description": "email already registered",
+                    "401": {
+                        "description": "unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responses.APIResponse"
                         }
@@ -1051,7 +1075,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "LBE API",
-	Description:      "Endpoints for authentication, login and register",
+	Description:      "Endpoints for authentication, login and register\n\n## 📋 Codes\n| Code   | Description            |\n| ------ | ---------------------- |\n| 1001   | successful             |\n| 1002   | unsuccessful           |\n| 2001   | invalid app id         |\n| 2002   | invalid signature      |",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
