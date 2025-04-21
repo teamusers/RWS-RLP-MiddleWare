@@ -9,12 +9,21 @@ import (
 // @description     Endpoints for authentication, login and register
 // @description
 // @description ## 📋 Codes
-// @description | Code   | Description            |
-// @description | ------ | ---------------------- |
-// @description | 1001   | successful             |
-// @description | 1002   | unsuccessful           |
-// @description | 2001   | invalid app id         |
-// @description | 2002   | invalid signature      |
+// @description | Code   | Description                   |
+// @description | ------ | ----------------------        |
+// @description | 1000   | successful                    |
+// @description | 1001   | unsuccessful                  |
+// @description | 1002   | found                         |
+// @description | 1003   | not found                     |
+// @description | 4000   | internal error                |
+// @description | 4001   | invalid request body          |
+// @description | 4002   | invalid authentication token  |
+// @description | 4003   | missing authentication token  |
+// @description | 4004   | invalid signature             |
+// @description | 4005   | missing signature             |
+// @description | 4006   | invalid appid                 |
+// @description | 4007   | missing appid                 |
+// @description | 4008   | invalid query parameters      |
 // @host            localhost:18080
 // @BasePath        /api/v1
 
