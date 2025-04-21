@@ -27,8 +27,8 @@ import (
 // @Produce      json
 // @Param        request  body      requests.Register true  "Registration request payload"
 // @Success      200      {object}  responses.APIResponse{data=model.Otp}    "email not registered, OTP sent"
-// @Failure      400      {object}  responses.APIResponse                    "invalid JSON"
-// @Failure      409      {object}  responses.APIResponse                    "email already registered"
+// @Failure      400      {object}  responses.APIResponse  					 "bad request"
+// @Failure      401      {object}  responses.APIResponse                    "unauthorized"
 // @Failure      500      {object}  responses.APIResponse                    "internal error"
 // @Security     ApiKeyAuth
 // @Router       /user/register/verify [post]
@@ -111,7 +111,8 @@ func VerifyUserExistence(c *gin.Context) {
 // @Produce      json
 // @Param        user     body      model.User        true  "User create payload"
 // @Success      201      {object}  responses.APIResponse{data=model.User}  "user created"
-// @Failure      400      {object}  responses.APIResponse                   "invalid JSON"
+// @Failure      400      {object}  responses.APIResponse                   "bad request"
+// @Failure      401      {object}  responses.APIResponse                    "unauthorized"
 // @Failure      500      {object}  responses.APIResponse                   "internal error"
 // @Security     ApiKeyAuth
 // @Router       /user/register [post]
@@ -193,8 +194,9 @@ func CreateUser(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      requests.RegisterGr   true  "GR registration check payload"
-// @Success      200      {object}  responses.APIResponse                     "email registered"
-// @Failure      400      {object}  responses.APIResponse                     "invalid JSON"
+// @Success      200      {object}  responses.APIResponse                     "successful"
+// @Failure      400      {object}  responses.APIResponse                     "bad request"
+// @Failure      401      {object}  responses.APIResponse                    "unauthorized"
 // @Failure      500      {object}  responses.APIResponse                     "internal error"
 // @Security     ApiKeyAuth
 // @Router       /gr/verify [post]
@@ -233,9 +235,9 @@ func VerifyGrExistence(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      requests.RegisterGrCms  true  "GR CMS register payload"
-// @Success      200      {object}  responses.APIResponse                     "email not registered"
-// @Failure      400      {object}  responses.APIResponse                     "invalid JSON"
-// @Failure      409      {object}  responses.APIResponse                     "email already registered"
+// @Success      200      {object}  responses.APIResponse                     "successful"
+// @Failure      400      {object}  responses.APIResponse                     "bad request"
+// @Failure      401      {object}  responses.APIResponse                     "unauthorized"
 // @Failure      500      {object}  responses.APIResponse                     "internal error"
 // @Security     ApiKeyAuth
 // @Router       /grcms/verify [post]
@@ -290,8 +292,9 @@ func VerifyGrCmsExistence(c *gin.Context) {
 // @Produce      json
 // @Param        reg_id   path      string                  true  "Registration ID"
 // @Success      200      {object}  responses.APIResponse{data=model.GrMember}  "successful"
-// @Failure      400      {object}  responses.APIResponse                    "missing reg_id"
-// @Failure      404      {object}  responses.APIResponse                    "not found or expired"
+// @Failure      400      {object}  responses.APIResponse                    "bad request"
+// @Failure      401      {object}  responses.APIResponse                    "unauthorized"
+// @Failure      500      {object}  responses.APIResponse                     "internal error"
 // @Security     ApiKeyAuth
 // @Router       /grcms/profile/{reg_id} [get]
 func GetCachedGrCmsProfile(c *gin.Context) {

@@ -21,9 +21,9 @@ import (
 // @Produce      json
 // @Param        request  body      requests.Login          true  "Login request payload"
 // @Success      200      {object}  responses.APIResponse{data=responses.LoginResponse}
-// @Failure      400      {object}  responses.APIResponse  "invalid JSON"
-// @Failure      404      {object}  responses.APIResponse  "email not found"
-// @Failure      500      {object}  responses.APIResponse  "internal error"
+// @Failure      400      {object}  responses.APIResponse   "bad request"
+// @Failure      401      {object}  responses.APIResponse	"unauthorized"
+// @Failure      500      {object}  responses.APIResponse   "internal error"
 // @Security     ApiKeyAuth
 // @Router       /user/login [post]
 func Login(c *gin.Context) {

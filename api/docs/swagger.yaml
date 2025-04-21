@@ -355,7 +355,10 @@ definitions:
 host: localhost:18080
 info:
   contact: {}
-  description: Endpoints for authentication, login and register
+  description: "Endpoints for authentication, login and register\n\n## \U0001F4CB
+    Codes\n| Code   | Description            |\n| ------ | ----------------------
+    |\n| 1001   | successful             |\n| 1002   | unsuccessful           |\n|
+    2001   | invalid app id         |\n| 2002   | invalid signature      |"
   title: LBE API
   version: "1.0"
 paths:
@@ -417,11 +420,15 @@ paths:
       - application/json
       responses:
         "200":
-          description: email registered
+          description: successful
           schema:
             $ref: '#/definitions/responses.APIResponse'
         "400":
-          description: invalid JSON
+          description: bad request
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "401":
+          description: unauthorized
           schema:
             $ref: '#/definitions/responses.APIResponse'
         "500":
@@ -457,11 +464,15 @@ paths:
                   $ref: '#/definitions/model.GrMember'
               type: object
         "400":
-          description: missing reg_id
+          description: bad request
           schema:
             $ref: '#/definitions/responses.APIResponse'
-        "404":
-          description: not found or expired
+        "401":
+          description: unauthorized
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "500":
+          description: internal error
           schema:
             $ref: '#/definitions/responses.APIResponse'
       security:
@@ -486,15 +497,15 @@ paths:
       - application/json
       responses:
         "200":
-          description: email not registered
+          description: successful
           schema:
             $ref: '#/definitions/responses.APIResponse'
         "400":
-          description: invalid JSON
+          description: bad request
           schema:
             $ref: '#/definitions/responses.APIResponse'
-        "409":
-          description: email already registered
+        "401":
+          description: unauthorized
           schema:
             $ref: '#/definitions/responses.APIResponse'
         "500":
@@ -521,8 +532,8 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: profile found
+        "200":
+          description: OK
           schema:
             allOf:
             - $ref: '#/definitions/responses.APIResponse'
@@ -531,11 +542,11 @@ paths:
                   $ref: '#/definitions/model.User'
               type: object
         "400":
-          description: missing or invalid external_id
+          description: bad request
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
-        "404":
-          description: member not found
+        "401":
+          description: unauthorized
           schema:
             $ref: '#/definitions/responses.APIResponse'
         "500":
@@ -577,11 +588,11 @@ paths:
                   $ref: '#/definitions/model.User'
               type: object
         "400":
-          description: invalid input
+          description: bad request
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
-        "404":
-          description: member not found
+        "401":
+          description: unauthorized
           schema:
             $ref: '#/definitions/responses.APIResponse'
         "500":
@@ -613,7 +624,11 @@ paths:
           schema:
             $ref: '#/definitions/responses.APIResponse'
         "400":
-          description: invalid JSON or missing fields
+          description: bad request
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "401":
+          description: unauthorized
           schema:
             $ref: '#/definitions/responses.APIResponse'
         "500":
@@ -651,11 +666,11 @@ paths:
                   $ref: '#/definitions/responses.LoginResponse'
               type: object
         "400":
-          description: invalid JSON
+          description: bad request
           schema:
             $ref: '#/definitions/responses.APIResponse'
-        "404":
-          description: email not found
+        "401":
+          description: unauthorized
           schema:
             $ref: '#/definitions/responses.APIResponse'
         "500":
@@ -692,7 +707,11 @@ paths:
                   $ref: '#/definitions/model.User'
               type: object
         "400":
-          description: invalid JSON
+          description: bad request
+          schema:
+            $ref: '#/definitions/responses.APIResponse'
+        "401":
+          description: unauthorized
           schema:
             $ref: '#/definitions/responses.APIResponse'
         "500":
@@ -730,11 +749,11 @@ paths:
                   $ref: '#/definitions/model.Otp'
               type: object
         "400":
-          description: invalid JSON
+          description: bad request
           schema:
             $ref: '#/definitions/responses.APIResponse'
-        "409":
-          description: email already registered
+        "401":
+          description: unauthorized
           schema:
             $ref: '#/definitions/responses.APIResponse'
         "500":
