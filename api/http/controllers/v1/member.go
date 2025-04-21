@@ -38,7 +38,7 @@ func GetMemberProfile(c *gin.Context) {
 	}
 
 	//To DO - RLP : To be change to RLP view user. RLP - API, Temporary get from DB 1st
-	//memberResp, err := services.GetMember(external_id, nil)
+	//memberResp, err := services.Member(external_id, nil, "GET")
 
 	db := system.GetDb()
 	var user model.User
@@ -92,6 +92,8 @@ func UpdateMemberProfile(c *gin.Context) {
 	}
 
 	//To DO - RLP : To be change to RLP update user. RLP - API, Temporary update DB 1st
+	//memberResp, err := services.Member(external_id, nil, "PUT")
+
 	db := system.GetDb()
 	var user model.User
 	err := db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error

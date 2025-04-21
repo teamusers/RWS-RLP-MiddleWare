@@ -20,14 +20,14 @@ const (
 
 var ErrRecordNotFound = errors.New("record not found")
 
-func GetMember(external_id string, payload any) (*responses.GetRlpMemberUserResponse, error) {
+func Member(external_id string, payload any, operation string) (*responses.GetRlpMemberUserResponse, error) {
 	conf := config.GetConfig()
 	endpoint := memberProfileURL
 	endpoint = strings.ReplaceAll(endpoint, ":api_key", conf.Api.Rlp.AppID)
 	endpoint = strings.ReplaceAll(endpoint, ":external_id", external_id)
 	urlWithParams := fmt.Sprintf("%s%s", conf.Api.Rlp.Host, endpoint)
 
-	resp, err := buildHttpClient("GET", urlWithParams, payload)
+	resp, err := buildHttpClient(operation, urlWithParams, payload)
 	if err != nil {
 		return nil, err
 	}

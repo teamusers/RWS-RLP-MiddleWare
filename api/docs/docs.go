@@ -743,6 +743,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "home"
                 },
+                "preference_flags": {
+                    "type": "string",
+                    "example": "primary"
+                },
                 "verified_ownership": {
                     "type": "boolean",
                     "example": false

@@ -141,6 +141,7 @@ type PhoneNumber struct {
 	UserID            int64  `json:"-" gorm:"index"` // ← foreign key back to users.id
 	PhoneNumber       string `json:"phone_number" example:"1234123123"`
 	PhoneType         string `json:"phone_type" example:"home"`
+	PreferenceFlags   string `gorm:"column:preference_flags;size:50" json:"preference_flags" example:"primary"`
 	VerifiedOwnership bool   `json:"verified_ownership" example:"false"`
 }
 

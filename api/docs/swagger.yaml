@@ -59,6 +59,9 @@ definitions:
       phone_type:
         example: home
         type: string
+      preference_flags:
+        example: primary
+        type: string
       verified_ownership:
         example: false
         type: boolean
