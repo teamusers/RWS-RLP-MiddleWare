@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strconv"
 
 	"lbe/api/http/requests"
 	"lbe/api/http/responses"
 	"lbe/config"
+	"lbe/model"
 	"net/http"
 	"time"
 )
@@ -31,7 +33,8 @@ func GetAccessToken() (string, error) {
 	reqBody, err := GenerateSignature(AppID, secretKey)
 
 	if err != nil {
-		log.Fatalf("unable to generate auth signature: %v", err)
+		log.Printf("unable to generate auth signature: %v", err)
+		return "", err
 	}
 
 	// Encode the request body into JSON.
@@ -63,7 +66,7 @@ func GetAccessToken() (string, error) {
 	}
 
 	// Decode the response.
-	var authResp responses.MemberAuthResponse
+	var authResp responses.ApiResponse[responses.MemberAuthResponseData]
 	if err := json.NewDecoder(resp.Body).Decode(&authResp); err != nil {
 		return "", err
 	}
@@ -71,10 +74,10 @@ func GetAccessToken() (string, error) {
 	return authResp.Data.AccessToken, nil
 }
 
-// GetUserByEmail first gets an access token, then calls the users endpoint using the token
-// to query a user by email. It returns a Login session token or an error.
-func GetLoginUserByEmail(email string) (*responses.MemberLoginResponse, error) {
-	urlWithEmail := fmt.Sprintf("%s?updateSessionToken=true", BuildFullURL(userURL))
+// requests a check to verify member existence via email,
+// login session token is returned if updateSessionToken query param is true
+func VerifyMemberExistence(email string, updateSessionToken bool) (*responses.ApiResponse[model.LoginSessionToken], error) {
+	urlWithEmail := fmt.Sprintf("%s?updateSessionToken=%s", BuildFullURL(userURL), strconv.FormatBool(updateSessionToken))
 
 	payload := requests.CreateUser{
 		Email: email,
@@ -84,47 +87,60 @@ func GetLoginUserByEmail(email string) (*responses.MemberLoginResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-		var userResp responses.MemberLoginResponse
-		if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
-			return nil, err
-		}
-		return &userResp, nil
-	case 201:
-		return nil, ErrCondition
-	default:
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
-	}
-}
-
-func GetRegisterUserByEmail(email string) error {
-	urlWithParams := BuildFullURL(userURL)
-	payload := requests.CreateUser{
-		Email: email,
-	}
-
-	resp, err := buildHttpClient("POST", urlWithParams, payload)
-	if err != nil {
-		return err
+	var userResp responses.ApiResponse[model.LoginSessionToken]
+	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
+		return nil, err
 	}
 	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return ErrCondition
-	case 201:
-		return nil
-	default:
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
-	}
+	return &userResp, nil
 }
+
+// GetUserByEmail first gets an access token, then calls the users endpoint using the token
+// to query a user by email. It returns a Login session token or an error.
+// func GetLoginUserByEmail(email string) (*responses.ApiResponse[model.LoginSessionToken], error) {
+// 	urlWithEmail := fmt.Sprintf("%s?updateSessionToken=true", BuildFullURL(userURL))
+
+// 	payload := requests.CreateUser{
+// 		Email: email,
+// 	}
+
+// 	resp, err := buildHttpClient("POST", urlWithEmail, payload)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	var userResp responses.ApiResponse[model.LoginSessionToken]
+// 	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
+// 		return nil, err
+// 	}
+// 	defer resp.Body.Close()
+
+// 	return &userResp, nil
+// }
+
+// func GetRegisterUserByEmail(email string) error {
+// 	urlWithParams := BuildFullURL(userURL)
+// 	payload := requests.CreateUser{
+// 		Email: email,
+// 	}
+
+// 	resp, err := buildHttpClient("POST", urlWithParams, payload)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer resp.Body.Close()
+
+// 	if resp.StatusCode == 201 {
+// 		return nil
+// 	}
+// 	body, _ := io.ReadAll(resp.Body)
+// 	return fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
+// }
 
 // PostRegisterUser posts a JSON payload to register a user by combining email and signUpType in the URL.
+// TODO: update accordingly when member sevice endpoint updates
 func PostRegisterUser(payload interface{}) error {
 
 	// Build the full URL by combining the base URL, email, and signUpType.
