@@ -1,9 +1,6 @@
 package user
 
 import (
- 
-	"errors"
-	"fmt" 
 	"log"
 	"net/http"
 	"time"
@@ -27,10 +24,11 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        request  body      requests.Register true  "Registration request payload"
-// @Success      200      {object}  responses.APIResponse{data=model.Otp}    "email not registered, OTP sent"
-// @Failure      400      {object}  responses.APIResponse  					 "bad request"
-// @Failure      401      {object}  responses.APIResponse                    "unauthorized"
-// @Failure      500      {object}  responses.APIResponse                    "internal error"
+// @Success      200      {object}  responses.RegisterSuccessResponse "Email not registered; OTP sent"
+// @Failure      400      {object}  responses.ErrorResponse  "Invalid JSON request body"
+// @Failure      401      {object}  responses.ErrorResponse                       "Unauthorized – API key missing or invalid"
+// @Failure      409      {object}  responses.ErrorResponse                      "Email already registered"
+// @Failure      500      {object}  responses.ErrorResponse               "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /user/register/verify [post]
 func VerifyUserExistence(c *gin.Context) {
@@ -102,18 +100,18 @@ func VerifyUserExistence(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        user     body      model.User        true  "User create payload"
-// @Success      201      {object}  responses.APIResponse{data=model.User}  "user created"
-// @Failure      400      {object}  responses.APIResponse                   "bad request"
-// @Failure      401      {object}  responses.APIResponse                    "unauthorized"
-// @Failure      500      {object}  responses.APIResponse                   "internal error"
+// @Success      201      {object}  responses.CreateSuccessResponse  "User created successfully"
+// @Failure      400      {object}  responses.ErrorResponse  "Invalid JSON request body"
+// @Failure      401      {object}  responses.ErrorResponse                      "Unauthorized – API key missing or invalid"
+// @Failure      500      {object}  responses.ErrorResponse              "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /user/register [post]
 func CreateUser(c *gin.Context) {
 	db := system.GetDb()
 	var user model.User
 	// Bind the incoming JSON payload to the user struct.
-	if err := c.ShouldBindJSON(&user); err != nil { 
-		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse()) 
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
 		return
 	}
 
@@ -172,10 +170,10 @@ func CreateUser(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      requests.RegisterGr   true  "GR registration check payload"
-// @Success      200      {object}  responses.APIResponse                     "successful"
-// @Failure      400      {object}  responses.APIResponse                     "bad request"
-// @Failure      401      {object}  responses.APIResponse                    "unauthorized"
-// @Failure      500      {object}  responses.APIResponse                     "internal error"
+// @Success      200      {object}  responses.GrExistenceSuccessResponse  "GR member found"
+// @Failure      400      {object}  responses.ErrorResponse                     "Invalid JSON request body"
+// @Failure      401      {object}  responses.ErrorResponse                                       "Unauthorized – API key missing or invalid"
+// @Failure      500      {object}  responses.ErrorResponse                            "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /gr/verify [post]
 func VerifyGrExistence(c *gin.Context) {
@@ -211,10 +209,11 @@ func VerifyGrExistence(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      requests.RegisterGrCms  true  "GR CMS register payload"
-// @Success      200      {object}  responses.APIResponse                     "successful"
-// @Failure      400      {object}  responses.APIResponse                     "bad request"
-// @Failure      401      {object}  responses.APIResponse                     "unauthorized"
-// @Failure      500      {object}  responses.APIResponse                     "internal error"
+// @Success      200      {object}  responses.GrCmsExistenceSuccessResponse{}          "Email not found; profile cached"
+// @Failure      400      {object}  responses.ErrorResponse  "Invalid JSON request body"
+// @Failure      401      {object}  responses.ErrorResponse                      "Unauthorized – API key missing or invalid"
+// @Failure      409      {object}  responses.ErrorResponse                      "Email already registered"
+// @Failure      500      {object}  responses.ErrorResponse               "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /grcms/verify [post]
 func VerifyGrCmsExistence(c *gin.Context) {
@@ -268,10 +267,10 @@ func VerifyGrCmsExistence(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        reg_id   path      string                  true  "Registration ID"
-// @Success      200      {object}  responses.APIResponse{data=model.GrMember}  "successful"
-// @Failure      400      {object}  responses.APIResponse                    "bad request"
-// @Failure      401      {object}  responses.APIResponse                    "unauthorized"
-// @Failure      500      {object}  responses.APIResponse                     "internal error"
+// @Success      200      {object}  responses.CachedGrCmsSuccessResponse  "Cached profile found"
+// @Failure      400      {object}  responses.ErrorResponse  "Registration ID is required"
+// @Failure      409      {object}  responses.ErrorResponse                             "Cached profile not found"
+// @Failure      500      {object}  responses.ErrorResponse                   "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /grcms/profile/{reg_id} [get]
 func GetCachedGrCmsProfile(c *gin.Context) {

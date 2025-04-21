@@ -1,5 +1,7 @@
 package responses
 
+import "lbe/model"
+
 type MemberAuthResponseData struct {
 	AccessToken string `json:"access_token"`
 }

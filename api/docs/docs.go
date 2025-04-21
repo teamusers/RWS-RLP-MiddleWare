@@ -49,33 +49,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "JWT access token returned successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.APIResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/responses.AuthResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/responses.AuthSuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Malformed JSON in request body",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "HMAC signature mismatch",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Unexpected server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     }
                 }
@@ -112,27 +106,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful",
+                        "description": "GR member found",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.GrExistenceSuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "bad request",
+                        "description": "Invalid JSON request body",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "unauthorized",
+                        "description": "Unauthorized – API key missing or invalid",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "internal error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     }
                 }
@@ -167,39 +161,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful",
+                        "description": "Cached profile found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.APIResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.GrMember"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/responses.CachedGrCmsSuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "bad request",
+                        "description": "Registration ID is required",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
-                    "401": {
-                        "description": "unauthorized",
+                    "409": {
+                        "description": "Cached profile not found",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "internal error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     }
                 }
@@ -236,27 +218,33 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful",
+                        "description": "Email not found; profile cached",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.GrCmsExistenceSuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "bad request",
+                        "description": "Invalid JSON request body",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "unauthorized",
+                        "description": "Unauthorized – API key missing or invalid",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Email already registered",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "internal error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     }
                 }
@@ -293,27 +281,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "update successful",
+                        "description": "Update successful",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.UpdateMemberSuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "bad request",
+                        "description": "Invalid JSON request body",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "unauthorized",
+                        "description": "Unauthorized – API key missing or invalid",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "update unsuccessful",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     }
                 }
@@ -348,37 +336,31 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Member found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.APIResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.User"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/responses.GetMemberSuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "bad request",
+                        "description": "Invalid or missing external_id path parameter",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "unauthorized",
+                        "description": "Unauthorized – API key missing or invalid",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Member not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "internal error",
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse"
                         }
@@ -422,37 +404,31 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "update successful",
+                        "description": "Update successful",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.APIResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.User"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/responses.UpdateMemberSuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "bad request",
+                        "description": "Invalid JSON request body",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "unauthorized",
+                        "description": "Unauthorized – API key missing or invalid",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Member not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "internal error",
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse"
                         }
@@ -491,39 +467,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Email found; OTP generated and sent; login session token returned",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.APIResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/responses.LoginResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/responses.LoginSuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "bad request",
+                        "description": "Invalid JSON request body",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "unauthorized",
+                        "description": "Unauthorized – API key missing or invalid",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "internal error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     }
                 }
@@ -560,39 +524,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "user created",
+                        "description": "User created successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.APIResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.User"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/responses.CreateSuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "bad request",
+                        "description": "Invalid JSON request body",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "unauthorized",
+                        "description": "Unauthorized – API key missing or invalid",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "internal error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     }
                 }
@@ -629,39 +581,33 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "email not registered, OTP sent",
+                        "description": "Email not registered; OTP sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/responses.APIResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.Otp"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/responses.RegisterSuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "bad request",
+                        "description": "Invalid JSON request body",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "unauthorized",
+                        "description": "Unauthorized – API key missing or invalid",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Email already registered",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "internal error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/responses.APIResponse"
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     }
                 }
@@ -1018,20 +964,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.APIResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "description": "Data holds the response payload. Its type depends on the endpoint:\ne.g. AuthResponse for /auth, LoginResponse for /user/login, etc."
-                },
-                "message": {
-                    "description": "Message provides a human‑readable status or result description.\nExample: \"user created\", \"email found\"",
-                    "type": "string",
-                    "example": ""
-                }
-            }
-        },
-        "responses.AuthResponse": {
+        "responses.AuthResponseData": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -1041,17 +974,125 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.ErrorResponse": {
+        "responses.AuthSuccessResponse": {
             "type": "object",
             "properties": {
-                "error": {
-                    "description": "Error provides the error detail.\nExample: \"invalid json request body\"",
+                "code": {
+                    "description": "in: body",
+                    "type": "integer",
+                    "example": 1000
+                },
+                "data": {
+                    "$ref": "#/definitions/responses.AuthResponseData"
+                },
+                "message": {
                     "type": "string",
-                    "example": "invalid json request body"
+                    "example": "token successfully generated"
                 }
             }
         },
-        "responses.LoginResponse": {
+        "responses.CachedGrCmsSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "in: body",
+                    "type": "integer",
+                    "example": 1002
+                },
+                "data": {
+                    "$ref": "#/definitions/model.GrMember"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "cached profile found"
+                }
+            }
+        },
+        "responses.CreateSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "in: body",
+                    "type": "integer",
+                    "example": 1000
+                },
+                "data": {
+                    "$ref": "#/definitions/model.User"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "user created"
+                }
+            }
+        },
+        "responses.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Code is your internal API status code, e.g. 1002",
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Message is a human‑readable description, e.g. \"invalid json request body\"",
+                    "type": "string"
+                }
+            }
+        },
+        "responses.GetMemberSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "in: body",
+                    "type": "integer",
+                    "example": 1002
+                },
+                "data": {
+                    "$ref": "#/definitions/model.User"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "member found"
+                }
+            }
+        },
+        "responses.GrCmsExistenceSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "in: body",
+                    "type": "integer",
+                    "example": 1003
+                },
+                "data": {
+                    "$ref": "#/definitions/model.GrMember"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "email not found"
+                }
+            }
+        },
+        "responses.GrExistenceSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "in: body",
+                    "type": "integer",
+                    "example": 1000
+                },
+                "data": {
+                    "$ref": "#/definitions/model.GrMember"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "successful"
+                }
+            }
+        },
+        "responses.LoginResponseData": {
             "type": "object",
             "properties": {
                 "login_session_token": {
@@ -1073,6 +1114,57 @@ const docTemplate = `{
                     "description": "OtpExpiry is the Unix timestamp (seconds since epoch) when the OTP expires.\nexample: 1744176000",
                     "type": "integer",
                     "example": 1744176000
+                }
+            }
+        },
+        "responses.LoginSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "in: body",
+                    "type": "integer",
+                    "example": 1000
+                },
+                "data": {
+                    "$ref": "#/definitions/responses.LoginResponseData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "email found"
+                }
+            }
+        },
+        "responses.RegisterSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "in: body",
+                    "type": "integer",
+                    "example": 1000
+                },
+                "data": {
+                    "$ref": "#/definitions/model.Otp"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "email not found"
+                }
+            }
+        },
+        "responses.UpdateMemberSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "in: body",
+                    "type": "integer",
+                    "example": 1000
+                },
+                "data": {
+                    "$ref": "#/definitions/model.User"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "update successful"
                 }
             }
         }

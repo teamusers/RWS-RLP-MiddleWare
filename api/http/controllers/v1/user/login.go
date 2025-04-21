@@ -19,10 +19,10 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        request  body      requests.Login          true  "Login request payload"
-// @Success      200      {object}  responses.APIResponse{data=responses.LoginResponse}
-// @Failure      400      {object}  responses.APIResponse   "bad request"
-// @Failure      401      {object}  responses.APIResponse	"unauthorized"
-// @Failure      500      {object}  responses.APIResponse   "internal error"
+// @Success      200      {object}  responses.LoginSuccessResponse  "Email found; OTP generated and sent; login session token returned"
+// @Failure      400      {object}  responses.ErrorResponse            "Invalid JSON request body"
+// @Failure      401      {object}  responses.ErrorResponse                             "Unauthorized – API key missing or invalid"
+// @Failure      500      {object}  responses.ErrorResponse                     "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /user/login [post]
 func Login(c *gin.Context) {

@@ -21,10 +21,11 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        external_id  path      string                      true  "Member external ID"
-// @Success      200          {object}  responses.APIResponse{data=model.User}  "OK"
-// @Failure      400          {object}  responses.ErrorResponse              "bad request"
-// @Failure      401      	  {object}  responses.APIResponse			  "unauthorized"
-// @Failure      500          {object}  responses.ErrorResponse              "internal error"
+// @Success      200          {object}  responses.GetMemberSuccessResponse       "Member found"
+// @Failure      400          {object}  responses.ErrorResponse  "Invalid or missing external_id path parameter"
+// @Failure      401          {object}  responses.ErrorResponse                          "Unauthorized – API key missing or invalid"
+// @Failure      409          {object}  responses.ErrorResponse                       "Member not found"
+// @Failure      500          {object}  responses.ErrorResponse              "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /member/{external_id} [get]
 func GetMemberProfile(c *gin.Context) {
@@ -65,10 +66,11 @@ func GetMemberProfile(c *gin.Context) {
 // @Produce      json
 // @Param        external_id  path      string                      true  "Member external ID"
 // @Param        request      body      requests.User               true  "Profile fields to update"
-// @Success      200          {object}  responses.APIResponse{data=model.User}  "update successful"
-// @Failure      400          {object}  responses.ErrorResponse              "bad request"
-// @Failure      401      	  {object}  responses.APIResponse			  "unauthorized"
-// @Failure      500          {object}  responses.ErrorResponse              "internal error"
+// @Success      200          {object}  responses.UpdateMemberSuccessResponse      "Update successful"
+// @Failure      400          {object}  responses.ErrorResponse    "Invalid JSON request body"
+// @Failure      401          {object}  responses.ErrorResponse                         "Unauthorized – API key missing or invalid"
+// @Failure      409          {object}  responses.ErrorResponse                          "Member not found"
+// @Failure      500          {object}  responses.ErrorResponse                "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /member/{external_id} [put]
 func UpdateMemberProfile(c *gin.Context) {
@@ -132,10 +134,10 @@ func UpdateMemberProfile(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        request      body      requests.UpdateBurnPin  true  "Email + new burn PIN"
-// @Success      200          {object}  responses.APIResponse            "update successful"
-// @Failure      400          {object}  responses.APIResponse            "bad request"
-// @Failure      401      	  {object}  responses.APIResponse			  "unauthorized"
-// @Failure      500          {object}  responses.APIResponse            "update unsuccessful"
+// @Success      200          {object}  responses.UpdateMemberSuccessResponse                      "Update successful"
+// @Failure      400          {object}  responses.ErrorResponse    "Invalid JSON request body"
+// @Failure      401          {object}  responses.ErrorResponse                       "Unauthorized – API key missing or invalid"
+// @Failure      500          {object}  responses.ErrorResponse             "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /member/burn-pin [put]
 func UpdateBurnPin(c *gin.Context) {

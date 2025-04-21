@@ -297,20 +297,7 @@ definitions:
         example: eyJhbGciOiJIUzI1...
         type: string
     type: object
-  responses.APIResponse:
-    properties:
-      data:
-        description: |-
-          Data holds the response payload. Its type depends on the endpoint:
-          e.g. AuthResponse for /auth, LoginResponse for /user/login, etc.
-      message:
-        description: |-
-          Message provides a human‑readable status or result description.
-          Example: "user created", "email found"
-        example: ""
-        type: string
-    type: object
-  responses.AuthResponse:
+  responses.AuthResponseData:
     properties:
       access_token:
         description: |-
@@ -319,16 +306,91 @@ definitions:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         type: string
     type: object
-  responses.ErrorResponse:
+  responses.AuthSuccessResponse:
     properties:
-      error:
-        description: |-
-          Error provides the error detail.
-          Example: "invalid json request body"
-        example: invalid json request body
+      code:
+        description: 'in: body'
+        example: 1000
+        type: integer
+      data:
+        $ref: '#/definitions/responses.AuthResponseData'
+      message:
+        example: token successfully generated
         type: string
     type: object
-  responses.LoginResponse:
+  responses.CachedGrCmsSuccessResponse:
+    properties:
+      code:
+        description: 'in: body'
+        example: 1002
+        type: integer
+      data:
+        $ref: '#/definitions/model.GrMember'
+      message:
+        example: cached profile found
+        type: string
+    type: object
+  responses.CreateSuccessResponse:
+    properties:
+      code:
+        description: 'in: body'
+        example: 1000
+        type: integer
+      data:
+        $ref: '#/definitions/model.User'
+      message:
+        example: user created
+        type: string
+    type: object
+  responses.ErrorResponse:
+    properties:
+      code:
+        description: Code is your internal API status code, e.g. 1002
+        type: integer
+      data:
+        type: string
+      message:
+        description: Message is a human‑readable description, e.g. "invalid json request
+          body"
+        type: string
+    type: object
+  responses.GetMemberSuccessResponse:
+    properties:
+      code:
+        description: 'in: body'
+        example: 1002
+        type: integer
+      data:
+        $ref: '#/definitions/model.User'
+      message:
+        example: member found
+        type: string
+    type: object
+  responses.GrCmsExistenceSuccessResponse:
+    properties:
+      code:
+        description: 'in: body'
+        example: 1003
+        type: integer
+      data:
+        $ref: '#/definitions/model.GrMember'
+      message:
+        example: email not found
+        type: string
+    type: object
+  responses.GrExistenceSuccessResponse:
+    properties:
+      code:
+        description: 'in: body'
+        example: 1000
+        type: integer
+      data:
+        $ref: '#/definitions/model.GrMember'
+      message:
+        example: successful
+        type: string
+    type: object
+  responses.LoginResponseData:
     properties:
       login_session_token:
         description: |-
@@ -354,6 +416,42 @@ definitions:
           example: 1744176000
         example: 1744176000
         type: integer
+    type: object
+  responses.LoginSuccessResponse:
+    properties:
+      code:
+        description: 'in: body'
+        example: 1000
+        type: integer
+      data:
+        $ref: '#/definitions/responses.LoginResponseData'
+      message:
+        example: email found
+        type: string
+    type: object
+  responses.RegisterSuccessResponse:
+    properties:
+      code:
+        description: 'in: body'
+        example: 1000
+        type: integer
+      data:
+        $ref: '#/definitions/model.Otp'
+      message:
+        example: email not found
+        type: string
+    type: object
+  responses.UpdateMemberSuccessResponse:
+    properties:
+      code:
+        description: 'in: body'
+        example: 1000
+        type: integer
+      data:
+        $ref: '#/definitions/model.User'
+      message:
+        example: update successful
+        type: string
     type: object
 host: localhost:18080
 info:
@@ -388,22 +486,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: JWT access token returned successfully
           schema:
-            allOf:
-            - $ref: '#/definitions/responses.APIResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/responses.AuthResponse'
-              type: object
+            $ref: '#/definitions/responses.AuthSuccessResponse'
         "400":
-          description: Bad Request
+          description: Malformed JSON in request body
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: HMAC signature mismatch
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Unexpected server error
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
       summary: Generate authentication token
       tags:
       - auth
@@ -423,21 +520,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: successful
+          description: GR member found
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.GrExistenceSuccessResponse'
         "400":
-          description: bad request
+          description: Invalid JSON request body
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
-          description: unauthorized
+          description: Unauthorized – API key missing or invalid
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
-          description: internal error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Verify GR member existence
@@ -458,26 +555,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: successful
+          description: Cached profile found
           schema:
-            allOf:
-            - $ref: '#/definitions/responses.APIResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.GrMember'
-              type: object
+            $ref: '#/definitions/responses.CachedGrCmsSuccessResponse'
         "400":
-          description: bad request
+          description: Registration ID is required
           schema:
-            $ref: '#/definitions/responses.APIResponse'
-        "401":
-          description: unauthorized
+            $ref: '#/definitions/responses.ErrorResponse'
+        "409":
+          description: Cached profile not found
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
-          description: internal error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Get cached GR CMS profile
@@ -500,21 +592,25 @@ paths:
       - application/json
       responses:
         "200":
-          description: successful
+          description: Email not found; profile cached
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.GrCmsExistenceSuccessResponse'
         "400":
-          description: bad request
+          description: Invalid JSON request body
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
-          description: unauthorized
+          description: Unauthorized – API key missing or invalid
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
+        "409":
+          description: Email already registered
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
-          description: internal error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Verify and cache GR CMS member
@@ -536,24 +632,23 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Member found
           schema:
-            allOf:
-            - $ref: '#/definitions/responses.APIResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.User'
-              type: object
+            $ref: '#/definitions/responses.GetMemberSuccessResponse'
         "400":
-          description: bad request
+          description: Invalid or missing external_id path parameter
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
         "401":
-          description: unauthorized
+          description: Unauthorized – API key missing or invalid
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
+        "409":
+          description: Member not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
-          description: internal error
+          description: Internal server error
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
       security:
@@ -582,24 +677,23 @@ paths:
       - application/json
       responses:
         "200":
-          description: update successful
+          description: Update successful
           schema:
-            allOf:
-            - $ref: '#/definitions/responses.APIResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.User'
-              type: object
+            $ref: '#/definitions/responses.UpdateMemberSuccessResponse'
         "400":
-          description: bad request
+          description: Invalid JSON request body
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
         "401":
-          description: unauthorized
+          description: Unauthorized – API key missing or invalid
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
+        "409":
+          description: Member not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
-          description: internal error
+          description: Internal server error
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
       security:
@@ -623,21 +717,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: update successful
+          description: Update successful
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.UpdateMemberSuccessResponse'
         "400":
-          description: bad request
+          description: Invalid JSON request body
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
-          description: unauthorized
+          description: Unauthorized – API key missing or invalid
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
-          description: update unsuccessful
+          description: Internal server error
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Update user burn PIN
@@ -660,26 +754,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Email found; OTP generated and sent; login session token returned
           schema:
-            allOf:
-            - $ref: '#/definitions/responses.APIResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/responses.LoginResponse'
-              type: object
+            $ref: '#/definitions/responses.LoginSuccessResponse'
         "400":
-          description: bad request
+          description: Invalid JSON request body
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
-          description: unauthorized
+          description: Unauthorized – API key missing or invalid
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
-          description: internal error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Start login flow via email
@@ -701,26 +790,21 @@ paths:
       - application/json
       responses:
         "201":
-          description: user created
+          description: User created successfully
           schema:
-            allOf:
-            - $ref: '#/definitions/responses.APIResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.User'
-              type: object
+            $ref: '#/definitions/responses.CreateSuccessResponse'
         "400":
-          description: bad request
+          description: Invalid JSON request body
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
-          description: unauthorized
+          description: Unauthorized – API key missing or invalid
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
-          description: internal error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Create new user
@@ -743,26 +827,25 @@ paths:
       - application/json
       responses:
         "200":
-          description: email not registered, OTP sent
+          description: Email not registered; OTP sent
           schema:
-            allOf:
-            - $ref: '#/definitions/responses.APIResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.Otp'
-              type: object
+            $ref: '#/definitions/responses.RegisterSuccessResponse'
         "400":
-          description: bad request
+          description: Invalid JSON request body
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
-          description: unauthorized
+          description: Unauthorized – API key missing or invalid
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
+        "409":
+          description: Email already registered
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
-          description: internal error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/responses.APIResponse'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Verify email for registration

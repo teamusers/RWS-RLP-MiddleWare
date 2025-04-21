@@ -35,9 +35,12 @@ func getSecretKey(db *gorm.DB, appID string) (string, error) {
 // @Produce      json
 // @Param        AppID     header    string               true   "Client system AppID" default(app1234)
 // @Param        request   body      requests.AuthRequest true   "Authentication request payload"
-// @Success      200       {object}  responses.APIResponse{data=responses.AuthResponse}
-// @Failure      400       {object}  responses.APIResponse
-// @Failure      500       {object}  responses.APIResponse
+// @Success      200       {object}  responses.AuthSuccessResponse "JWT access token returned successfully"
+// @Failure      400       {object}  responses.ErrorResponse   "Malformed JSON in request body"
+// @Failure      401       {object}  responses.ErrorResponse          "AppID header is missing"
+// @Failure      401       {object}  responses.ErrorResponse          "AppID not recognized or unauthorized"
+// @Failure      401       {object}  responses.ErrorResponse      "HMAC signature mismatch"
+// @Failure      500       {object}  responses.ErrorResponse             "Unexpected server error"
 // @Router       /auth [post]
 func AuthHandler(c *gin.Context) {
 
