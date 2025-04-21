@@ -2,11 +2,16 @@ package requests
 
 import "lbe/model"
 
-// RegisterRequest is the payload to verify if an email is already registered.
+// VerifyUseExistenceRequest is the payload to verify if an email is already registered.
 // If not registered, an OTP will be sent to this email.
-type Register struct {
+type VerifyUserExistence struct {
 	// Email address to check for existing registration.
 	Email string `json:"email" binding:"required" example:"user@example.com"`
+}
+
+type RegisterUser struct {
+	Users      model.User `json:"users"`
+	SignUpType string     `json:"sign_up_type" example:"NEW"`
 }
 
 // RegisterGrRequest is the payload to verify if a GR member ID is already registered.
