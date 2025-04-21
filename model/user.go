@@ -71,41 +71,62 @@ func (d *Date) Scan(value interface{}) error {
 	return nil
 }
 
-// User represents a customer record in the users table.
-//
-// Example JSON:
-//
-//	{
-//	  "id": 42,
-//	  "external_id": "abc123",
-//	  "opted_in": true,
-//	  "external_id_type": "EMAIL",
-//	  "email": "user@example.com",
-//	  "dob": "2007-08-05",
-//	  "country": "SGP",
-//	  "first_name": "Brendan",
-//	  "last_name": "Test",
-//	  "burn_pin": 1234,
-//	  "created_at": "2025-04-19T10:00:00Z",
-//	  "updated_at": "2025-04-19T11:00:00Z",
-//	  "phone_numbers": [ … ]
-//	}
+// User represents a user account.
+// swagger:model User
 type User struct {
-	ID           uint64    `gorm:"column:id;primaryKey;autoIncrement" json:"id" example:"42"`
-	ExternalID   string    `gorm:"column:external_id;size:50" json:"external_id" example:"abc123"`
-	OptedIn      bool      `gorm:"column:opted_in" json:"opted_in" example:"true"`
-	ExternalTYPE string    `gorm:"column:external_id_type;size:50" json:"external_id_type" example:"EMAIL"`
-	Email        string    `gorm:"column:email;size:255" json:"email" example:"user@example.com"`
-	DOB          Date      `gorm:"column:dob" json:"dob" example:"2007-08-05"`
-	Country      string    `gorm:"column:country;size:3" json:"country" example:"SGP"`
-	FirstName    string    `gorm:"column:first_name;size:255" json:"first_name" example:"Brendan"`
-	LastName     string    `gorm:"column:last_name;size:255" json:"last_name" example:"Test"`
-	BurnPin      uint64    `gorm:"column:burn_pin;size:4" json:"burn_pin" example:"1234"`
-	CreatedAt    time.Time `gorm:"column:created_at" json:"created_at" example:"2025-04-19T10:00:00Z"`
-	UpdatedAt    time.Time `gorm:"column:updated_at" json:"updated_at" example:"2025-04-19T11:00:00Z"`
+	// ID is the auto-incrementing primary key.
+	// example: 1
+	ID int64 `json:"id" gorm:"primaryKey;autoIncrement"`
 
-	// PhoneNumbers holds zero or more phone numbers associated with this user.
-	PhoneNumbers []UserPhoneNumber `gorm:"foreignKey:UserID;references:ID" json:"phone_numbers"`
+	// AccountStatus indicates the user's account status.
+	// example: good
+	AccountStatus string `json:"account_status" example:"good"`
+
+	// CreatedAt is the timestamp when the user account was created.
+	// example: 2016-10-21T18:12:22Z
+	CreatedAt time.Time `json:"created_at" example:"2016-10-21T18:12:22Z"`
+
+	// DOB is the user's date of birth.
+	// example: 1980-01-01
+	DOB Date `json:"dob" example:"1980-01-01"`
+
+	// Email is the user's email address.
+	// example: john.smith@fake.email.addr
+	Email string `json:"email" example:"john.smith@fake.email.addr"`
+
+	// ExternalID is the user's external identifier.
+	// example: 654321
+	ExternalID string `json:"external_id" example:"654321"`
+
+	// OptedIn indicates whether the user has opted in.
+	// example: true
+	OptedIn bool `json:"opted_in" example:"true"`
+
+	// Gender of the user (m/f).
+	// example: m
+	Gender string `json:"gender" example:"m"`
+
+	// RegisteredAt is the timestamp when the user completed registration.
+	// example: 2016-10-21T18:12:22Z
+	RegisteredAt time.Time `json:"registered_at" example:"2016-10-21T18:12:22Z"`
+
+	// Suspended indicates whether the account is suspended.
+	// example: false
+	Suspended bool `json:"suspended" example:"false"`
+
+	// UpdatedAt is the timestamp of the last update.
+	// example: 2016-10-21T18:12:22Z
+	UpdatedAt time.Time `json:"updated_at" example:"2016-10-21T18:12:22Z"`
+
+	// ReferrerCode is the code used at sign‑up.
+	// example: JOHN-70A756
+	ReferrerCode string `json:"referrer_code" example:"JOHN-70A756"`
+
+	// PhoneNumbers associated with this user.
+	PhoneNumbers []PhoneNumber `json:"phone_numbers" gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+
+	// Identifiers from external systems.
+	Identifiers []Identifier `json:"identifiers" gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 // TableName explicitly sets the SQL table name for User.
@@ -113,30 +134,32 @@ func (User) TableName() string {
 	return "users"
 }
 
-// UserPhoneNumber represents a phone number linked to a user.
-//
-// Example JSON:
-//
-//	{
-//	  "id": 101,
-//	  "user_id": 42,
-//	  "phone_number": "+6598765432",
-//	  "phone_type": "mobile",
-//	  "preference_flags": "primary",
-//	  "created_at": "2025-04-19T10:05:00Z",
-//	  "updated_at": "2025-04-19T10:05:00Z"
-//	}
-type UserPhoneNumber struct {
-	ID              uint64    `gorm:"column:id;primaryKey;autoIncrement" json:"id" example:"101"`
-	UserID          uint64    `gorm:"column:user_id" json:"user_id" example:"42"`
-	PhoneNumber     string    `gorm:"column:phone_number;size:20" json:"phone_number" example:"+6598765432"`
-	PhoneType       string    `gorm:"column:phone_type;size:20" json:"phone_type" example:"mobile"`
-	PreferenceFlags string    `gorm:"column:preference_flags;size:50" json:"preference_flags" example:"primary"`
-	CreatedAt       time.Time `gorm:"column:created_at" json:"created_at" example:"2025-04-19T10:05:00Z"`
-	UpdatedAt       time.Time `gorm:"column:updated_at" json:"updated_at" example:"2025-04-19T10:05:00Z"`
+// PhoneNumber holds one of the user’s phone numbers.
+// swagger:model PhoneNumber
+type PhoneNumber struct {
+	ID                int64  `json:"-" gorm:"primaryKey;autoIncrement"`
+	UserID            int64  `json:"-" gorm:"index"` // ← foreign key back to users.id
+	PhoneNumber       string `json:"phone_number" example:"1234123123"`
+	PhoneType         string `json:"phone_type" example:"home"`
+	PreferenceFlags   string `gorm:"column:preference_flags;size:50" json:"preference_flags" example:"primary"`
+	VerifiedOwnership bool   `json:"verified_ownership" example:"false"`
 }
 
 // TableName sets the SQL table name for UserPhoneNumber.
-func (UserPhoneNumber) TableName() string {
+func (PhoneNumber) TableName() string {
 	return "users_phone_numbers"
+}
+
+// Identifier holds an external ID and its type.
+// swagger:model Identifier
+type Identifier struct {
+	ID             int64  `json:"-" gorm:"primaryKey;autoIncrement"`
+	UserID         int64  `json:"-" gorm:"index"`
+	ExternalID     string `json:"external_id" example:"1234abcd"`
+	ExternalIDType string `json:"external_id_type" example:"facebook"`
+}
+
+// TableName sets the SQL table name for UserPhoneNumber.
+func (Identifier) TableName() string {
+	return "users_identifiers"
 }

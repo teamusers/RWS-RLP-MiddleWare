@@ -1,11 +1,11 @@
 
 database:
   type: mssql
-  host: DESKTOP-QMALRMM
-  instance:   SQLEXPRESS # SQLEXPRESS
+  host: localhost
+  instance:    # SQLEXPRESS
   port: 1433
   user: sa
-  password: 2good2btrue
+  password: YourStrong!Passw0rd
   dbname: lbe
   sslmode: disable
   TimeZone: Asia/Shanghai
@@ -34,6 +34,10 @@ api:
     host : http://localhost:18081 
     appid : App123
     secret: mySuperSecretKey
+
+  rlp:
+    host : http://localhost:18083 
+    appid : App123 
 
 allStart: 1
 proxyEnable : true

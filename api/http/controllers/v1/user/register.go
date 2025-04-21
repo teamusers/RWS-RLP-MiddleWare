@@ -1,6 +1,9 @@
 package user
 
 import (
+ 
+	"errors"
+	"fmt" 
 	"log"
 	"net/http"
 	"time"
@@ -109,8 +112,8 @@ func CreateUser(c *gin.Context) {
 	db := system.GetDb()
 	var user model.User
 	// Bind the incoming JSON payload to the user struct.
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
+	if err := c.ShouldBindJSON(&user); err != nil { 
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse()) 
 		return
 	}
 
@@ -136,9 +139,9 @@ func CreateUser(c *gin.Context) {
 	//To DO - RLP | member service : get RLP information and link accordingly to member service
 	var req requests.CreateUser
 	req.User.ExternalID = user.ExternalID
-	req.User.ExternalTYPE = user.ExternalTYPE // Adjust if field names differ between the structs
+	//req.User.ExternalTYPE = user.ExternalTYPE // Adjust if field names differ between the structs
 	req.User.Email = user.Email
-	req.User.BurnPin = user.BurnPin
+	//req.User.BurnPin = user.BurnPin
 	req.User.GR_ID = "gr_id"                         // To be update by rlp.gr_id
 	req.User.RLP_ID = rlpId.String()                 // To be update by rlp.rlp_id
 	req.User.RWS_Membership_ID = "rws_membership_id" // To be update by rws_membership_id

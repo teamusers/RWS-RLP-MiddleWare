@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"lbe/api/http/requests"
-	"lbe/config"
 )
 
 func GenerateSignature(appID, secretKey string) (*requests.AuthRequest, error) {
@@ -59,12 +58,4 @@ func randomNonce(n int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
-}
-
-// BuildFullURL constructs the full endpoint URL using the host from the configuration
-// and appending the provided endpoint.
-func BuildFullURL(endpoint string) string {
-	conf := config.GetConfig() // Get the centralized configuration.
-	host := conf.API.Memberservice.Host
-	return fmt.Sprintf("%s%s", host, endpoint)
 }

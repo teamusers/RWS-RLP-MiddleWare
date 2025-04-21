@@ -704,6 +704,19 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Identifier": {
+            "type": "object",
+            "properties": {
+                "external_id": {
+                    "type": "string",
+                    "example": "1234abcd"
+                },
+                "external_id_type": {
+                    "type": "string",
+                    "example": "facebook"
+                }
+            }
+        },
         "model.Otp": {
             "type": "object",
             "properties": {
@@ -719,96 +732,102 @@ const docTemplate = `{
                 }
             }
         },
-        "model.User": {
+        "model.PhoneNumber": {
             "type": "object",
             "properties": {
-                "burn_pin": {
-                    "type": "integer",
-                    "example": 1234
-                },
-                "country": {
-                    "type": "string",
-                    "example": "SGP"
-                },
-                "created_at": {
-                    "type": "string",
-                    "example": "2025-04-19T10:00:00Z"
-                },
-                "dob": {
-                    "type": "string",
-                    "example": "2007-08-05"
-                },
-                "email": {
-                    "type": "string",
-                    "example": "user@example.com"
-                },
-                "external_id": {
-                    "type": "string",
-                    "example": "abc123"
-                },
-                "external_id_type": {
-                    "type": "string",
-                    "example": "EMAIL"
-                },
-                "first_name": {
-                    "type": "string",
-                    "example": "Brendan"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 42
-                },
-                "last_name": {
-                    "type": "string",
-                    "example": "Test"
-                },
-                "opted_in": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "phone_numbers": {
-                    "description": "PhoneNumbers holds zero or more phone numbers associated with this user.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.UserPhoneNumber"
-                    }
-                },
-                "updated_at": {
-                    "type": "string",
-                    "example": "2025-04-19T11:00:00Z"
-                }
-            }
-        },
-        "model.UserPhoneNumber": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string",
-                    "example": "2025-04-19T10:05:00Z"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 101
-                },
                 "phone_number": {
                     "type": "string",
-                    "example": "+6598765432"
+                    "example": "1234123123"
                 },
                 "phone_type": {
                     "type": "string",
-                    "example": "mobile"
+                    "example": "home"
                 },
                 "preference_flags": {
                     "type": "string",
                     "example": "primary"
                 },
-                "updated_at": {
+                "verified_ownership": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "model.User": {
+            "type": "object",
+            "properties": {
+                "account_status": {
+                    "description": "AccountStatus indicates the user's account status.\nexample: good",
                     "type": "string",
-                    "example": "2025-04-19T10:05:00Z"
+                    "example": "good"
                 },
-                "user_id": {
-                    "type": "integer",
-                    "example": 42
+                "created_at": {
+                    "description": "CreatedAt is the timestamp when the user account was created.\nexample: 2016-10-21T18:12:22Z",
+                    "type": "string",
+                    "example": "2016-10-21T18:12:22Z"
+                },
+                "dob": {
+                    "description": "DOB is the user's date of birth.\nexample: 1980-01-01",
+                    "type": "string",
+                    "example": "1980-01-01"
+                },
+                "email": {
+                    "description": "Email is the user's email address.\nexample: john.smith@fake.email.addr",
+                    "type": "string",
+                    "example": "john.smith@fake.email.addr"
+                },
+                "external_id": {
+                    "description": "ExternalID is the user's external identifier.\nexample: 654321",
+                    "type": "string",
+                    "example": "654321"
+                },
+                "gender": {
+                    "description": "Gender of the user (m/f).\nexample: m",
+                    "type": "string",
+                    "example": "m"
+                },
+                "id": {
+                    "description": "ID is the auto-incrementing primary key.\nexample: 1",
+                    "type": "integer"
+                },
+                "identifiers": {
+                    "description": "Identifiers from external systems.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Identifier"
+                    }
+                },
+                "opted_in": {
+                    "description": "OptedIn indicates whether the user has opted in.\nexample: true",
+                    "type": "boolean",
+                    "example": true
+                },
+                "phone_numbers": {
+                    "description": "PhoneNumbers associated with this user.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.PhoneNumber"
+                    }
+                },
+                "referrer_code": {
+                    "description": "ReferrerCode is the code used at sign‑up.\nexample: JOHN-70A756",
+                    "type": "string",
+                    "example": "JOHN-70A756"
+                },
+                "registered_at": {
+                    "description": "RegisteredAt is the timestamp when the user completed registration.\nexample: 2016-10-21T18:12:22Z",
+                    "type": "string",
+                    "example": "2016-10-21T18:12:22Z"
+                },
+                "suspended": {
+                    "description": "Suspended indicates whether the account is suspended.\nexample: false",
+                    "type": "boolean",
+                    "example": false
+                },
+                "updated_at": {
+                    "description": "UpdatedAt is the timestamp of the last update.\nexample: 2016-10-21T18:12:22Z",
+                    "type": "string",
+                    "example": "2016-10-21T18:12:22Z"
                 }
             }
         },
