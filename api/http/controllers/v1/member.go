@@ -30,10 +30,7 @@ import (
 func GetMemberProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 	if external_id == "" {
-		resp := responses.ErrorResponse{
-			Error: "Valid external_id is required as query parameter",
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
 		return
 	}
 
@@ -45,26 +42,19 @@ func GetMemberProfile(c *gin.Context) {
 	err := db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-
-			resp := responses.APIResponse{
-				Message: "member not found",
-				Data:    nil,
-			}
-			c.JSON(codes.CODE_EMAIL_NOTFOUND, resp)
+			c.JSON(http.StatusConflict, responses.DefaultResponse(codes.NOT_FOUND, "member not found"))
 			return
 		}
-		resp := responses.ErrorResponse{
-			Error: err.Error(),
-		}
-		c.JSON(http.StatusInternalServerError, resp)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
-	resp := responses.APIResponse{
-		Message: "successful",
+	resp := responses.ApiResponse[model.User]{
+		Code:    codes.FOUND,
+		Message: "member found",
 		Data:    user,
 	}
-	c.JSON(http.StatusCreated, resp)
+	c.JSON(http.StatusOK, resp)
 }
 
 // UpdateMemberProfile godoc
@@ -84,10 +74,7 @@ func GetMemberProfile(c *gin.Context) {
 func UpdateMemberProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 	if external_id == "" {
-		resp := responses.ErrorResponse{
-			Error: "Valid external_id is required as query parameter",
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
 		return
 	}
 
@@ -99,17 +86,10 @@ func UpdateMemberProfile(c *gin.Context) {
 	err := db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			resp := responses.APIResponse{
-				Message: "member not found",
-				Data:    nil,
-			}
-			c.JSON(codes.CODE_EMAIL_NOTFOUND, resp)
+			c.JSON(http.StatusConflict, responses.DefaultResponse(codes.NOT_FOUND, "member not found"))
 			return
 		}
-		resp := responses.ErrorResponse{
-			Error: err.Error(),
-		}
-		c.JSON(http.StatusInternalServerError, resp)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
@@ -118,10 +98,7 @@ func UpdateMemberProfile(c *gin.Context) {
 	// Here we're reusing model.User for simplicity.
 	var updateData model.User
 	if err := c.ShouldBindJSON(&updateData); err != nil {
-		resp := responses.ErrorResponse{
-			Error: "Invalid input: " + err.Error(),
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
 		return
 	}
 
@@ -129,25 +106,20 @@ func UpdateMemberProfile(c *gin.Context) {
 	// The Updates method will perform a non-zero update on the provided fields.
 	err = db.Model(&user).Updates(updateData).Error
 	if err != nil {
-		resp := responses.ErrorResponse{
-			Error: err.Error(),
-		}
-		c.JSON(http.StatusInternalServerError, resp)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
 	// Optional: Reload the user record with the associated phone numbers.
 	err = db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error
 	if err != nil {
-		resp := responses.ErrorResponse{
-			Error: err.Error(),
-		}
-		c.JSON(http.StatusInternalServerError, resp)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
-	resp := responses.APIResponse{
-		Message: "update successfully",
+	resp := responses.ApiResponse[model.User]{
+		Code:    codes.SUCCESSFUL,
+		Message: "update successful",
 		Data:    user,
 	}
 	c.JSON(http.StatusOK, resp)
@@ -171,25 +143,16 @@ func UpdateBurnPin(c *gin.Context) {
 
 	// Bind the incoming JSON payload to the req struct.
 	if err := c.ShouldBindJSON(&req); err != nil {
-		resp := responses.APIResponse{
-			Message: "invalid json request body",
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
 		return
 	}
 
 	err := services.UpdateBurnPin(req)
 	if err != nil {
 		log.Printf("error encountered updating burn pin: %v", err)
-		resp := responses.APIResponse{
-			Message: "update unsuccessful",
-		}
-		c.JSON(http.StatusCreated, resp)
+		c.JSON(http.StatusCreated, responses.InternalErrorResponse())
 		return
 	}
 
-	resp := responses.APIResponse{
-		Message: "update successful",
-	}
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, responses.DefaultResponse(codes.SUCCESSFUL, "update successful"))
 }

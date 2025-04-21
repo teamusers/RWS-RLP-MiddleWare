@@ -44,22 +44,14 @@ func AuthHandler(c *gin.Context) {
 	// Retrieve the AppID from header.
 	appID := c.GetHeader("AppID")
 	if appID == "" {
-		resp := responses.APIResponse{
-			Message: "missing appid",
-			Data:    responses.AuthResponse{},
-		}
-		c.JSON(codes.CODE_INVALID_APPID, resp)
+		c.JSON(http.StatusUnauthorized, responses.MissingAppIdErrorResponse())
 		return
 	}
 
 	// Decode the JSON body.
 	var req requests.AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		resp := responses.APIResponse{
-			Message: "invalid json request body",
-			Data:    responses.AuthResponse{},
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
 		return
 	}
 
@@ -68,11 +60,7 @@ func AuthHandler(c *gin.Context) {
 	secretKey, err := getSecretKey(db, appID)
 
 	if err != nil || secretKey == "" {
-		resp := responses.APIResponse{
-			Message: "invalid appid",
-			Data:    responses.AuthResponse{},
-		}
-		c.JSON(codes.CODE_INVALID_APPID, resp)
+		c.JSON(http.StatusUnauthorized, responses.InvalidAppIdErrorResponse())
 		return
 	}
 
@@ -80,21 +68,13 @@ func AuthHandler(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("error encountered generating auth signature: %v", err)
-		resp := responses.APIResponse{
-			Message: "internal error",
-			Data:    responses.AuthResponse{},
-		}
-		c.JSON(http.StatusInternalServerError, resp)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
 	// Compare the computed signature with the provided signature.
 	if !hmac.Equal([]byte(authReq.Signature), []byte(req.Signature)) {
-		resp := responses.APIResponse{
-			Message: "invalid signature",
-			Data:    responses.AuthResponse{},
-		}
-		c.JSON(codes.CODE_INVALID_SIGNATURE, resp)
+		c.JSON(http.StatusUnauthorized, responses.InvalidSignatureErrorResponse())
 		return
 	}
 
@@ -102,17 +82,14 @@ func AuthHandler(c *gin.Context) {
 	token, err := interceptor.GenerateToken(appID)
 	if err != nil {
 		log.Printf("error encountered generating token: %v", err)
-		resp := responses.APIResponse{
-			Message: "internal error",
-			Data:    responses.AuthResponse{},
-		}
-		c.JSON(http.StatusInternalServerError, resp)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
-	resp := responses.APIResponse{
+	resp := responses.ApiResponse[responses.AuthResponseData]{
+		Code:    codes.SUCCESSFUL,
 		Message: "token successfully generated",
-		Data: responses.AuthResponse{
+		Data: responses.AuthResponseData{
 			AccessToken: token,
 		},
 	}

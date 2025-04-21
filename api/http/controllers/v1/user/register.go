@@ -1,8 +1,9 @@
 package user
 
 import (
+ 
 	"errors"
-	"fmt"
+	"fmt" 
 	"log"
 	"net/http"
 	"time"
@@ -37,69 +38,60 @@ func VerifyUserExistence(c *gin.Context) {
 
 	// Bind the incoming JSON payload.
 	if err := c.ShouldBindJSON(&req); err != nil {
-		resp := responses.APIResponse{
-			Message: "invalid json request body",
-			Data:    model.Otp{},
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
 		return
 	}
 
-	err := services.GetRegisterUserByEmail(req.Email)
+	respData, err := services.VerifyMemberExistence(req.Email, false)
 	if err != nil {
-		if errors.Is(err, services.ErrCondition) {
-			resp := responses.APIResponse{
-				Message: "email registered",
-				Data:    model.Otp{},
-			}
-			c.JSON(codes.CODE_EMAIL_REGISTERED, resp)
+		log.Printf("error encountered verifying user existence: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
+
+	switch respData.Code {
+	case codes.NOT_FOUND:
+		otpService := services.NewOTPService()
+		otpResp, err := otpService.GenerateOTP(c, req.Email)
+		if err != nil {
+			log.Printf("error encountered generating otp: %v", err)
+			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 			return
 		}
+
+		//Call send email services
+		emailData := services.EmailOtpTemplateData{
+			Email: req.Email,
+			OTP:   *otpResp.Otp,
+		}
+
+		cfg := config.GetConfig()
+		emailService := services.NewEmailService(&cfg.Smtp)
+		if err := emailService.SendOtpEmail(req.Email, emailData); err != nil {
+			log.Printf("failed to send email otp: %v", err)
+			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+			return
+		}
+
+		resp := responses.ApiResponse[model.Otp]{
+			Code:    codes.NOT_FOUND,
+			Message: "email not found",
+			Data: model.Otp{
+				Otp: otpResp.Otp,
+			},
+		}
+		c.JSON(http.StatusOK, resp)
+		return
+
+	case codes.FOUND:
+		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.FOUND, "email found"))
+		return
+
+	default:
 		log.Printf("error encountered getting registered user: %v", err)
-		resp := responses.APIResponse{
-			Message: "internal error",
-			Data:    model.Otp{},
-		}
-		c.JSON(http.StatusInternalServerError, resp)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
-
-	// Generate OTP using the service.
-	otpService := services.NewOTPService()
-	otpResp, err := otpService.GenerateOTP(c, req.Email)
-	if err != nil {
-		log.Printf("error encountered generating otp: %v", err)
-		resp := responses.APIResponse{
-			Message: "internal error",
-			Data:    model.Otp{},
-		}
-		c.JSON(http.StatusInternalServerError, resp)
-		return
-	}
-
-	//Call send email services
-	emailData := services.EmailOtpTemplateData{
-		Email: req.Email,
-		OTP:   *otpResp.Otp,
-	}
-
-	cfg := config.GetConfig()
-	emailService := services.NewEmailService(&cfg.Smtp)
-	if err := emailService.SendOtpEmail(req.Email, emailData); err != nil {
-		log.Printf("failed to send email otp: %v", err)
-		resp := responses.APIResponse{
-			Message: "internal error",
-			Data:    model.User{},
-		}
-		c.JSON(http.StatusInternalServerError, resp)
-		return
-	}
-
-	resp := responses.APIResponse{
-		Message: "email not registered",
-		Data:    otpResp,
-	}
-	c.JSON(http.StatusOK, resp)
 
 }
 
@@ -120,15 +112,8 @@ func CreateUser(c *gin.Context) {
 	db := system.GetDb()
 	var user model.User
 	// Bind the incoming JSON payload to the user struct.
-	if err := c.ShouldBindJSON(&user); err != nil {
-		// Log the *actual* bind error so we can see what’s wrong
-		log.Printf("BindJSON error: %v", err)
-
-		resp := responses.APIResponse{
-			Message: fmt.Sprintf("invalid json request body: %v", err),
-			Data:    model.User{},
-		}
-		c.JSON(http.StatusBadRequest, resp)
+	if err := c.ShouldBindJSON(&user); err != nil { 
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse()) 
 		return
 	}
 
@@ -145,15 +130,11 @@ func CreateUser(c *gin.Context) {
 
 	//To DO - RLP : To be change to RLP create user. RLP - API, Temporary Store into DB 1st
 	if err := db.Create(&user).Error; err != nil {
-		resp := responses.APIResponse{
-			Message: "internal server error",
-			Data:    model.User{},
-		}
-		c.JSON(http.StatusInternalServerError, resp)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
-	//TO DO - If sign_up_type = GR or TM: Request user tier update (redundant?)
+	//TO DO - (If member tier > basic && sign_up_type = GR) or (sign_up_type == TM)L request user tier update (TM = tier M)
 
 	//To DO - RLP | member service : get RLP information and link accordingly to member service
 	var req requests.CreateUser
@@ -172,15 +153,12 @@ func CreateUser(c *gin.Context) {
 	if err != nil {
 		// Log the error
 		log.Printf("Post Register User failed: %v", err)
-		resp := responses.APIResponse{
-			Message: "internal server error",
-			Data:    model.User{},
-		}
-		c.JSON(http.StatusInternalServerError, resp)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
-	resp := responses.APIResponse{
+	resp := responses.ApiResponse[model.User]{
+		Code:    codes.SUCCESSFUL,
 		Message: "user created",
 		Data:    user,
 	}
@@ -205,20 +183,18 @@ func VerifyGrExistence(c *gin.Context) {
 
 	// Bind the incoming JSON payload.
 	if err := c.ShouldBindJSON(&req); err != nil {
-		resp := responses.APIResponse{
-			Message: "invalid json request body",
-			Data:    responses.GetGrMemberResponse{},
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
 		return
 	}
 
 	// TO DO - CMS: Request GR member info
 
 	// return response from CMS
-	resp := responses.APIResponse{
+	// TODO: Fix
+	resp := responses.ApiResponse[responses.GetGrMemberResponseData]{
+		Code:    codes.SUCCESSFUL,
 		Message: "successful",
-		Data: responses.GetGrMemberResponse{
+		Data: responses.GetGrMemberResponseData{
 			GrMember: model.GrMember{
 				GrId: &req.GrId,
 			},
@@ -246,42 +222,43 @@ func VerifyGrCmsExistence(c *gin.Context) {
 
 	// Bind the incoming JSON payload.
 	if err := c.ShouldBindJSON(&req); err != nil {
-		resp := responses.APIResponse{
-			Message: "invalid json request body",
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
 		return
 	}
 
-	err := services.GetRegisterUserByEmail(*req.GrMember.Email)
+	respData, err := services.VerifyMemberExistence(*req.GrMember.Email, false)
 	if err != nil {
-		if errors.Is(err, services.ErrCondition) { //TO DO - Fix and standardize error
-			resp := responses.APIResponse{
-				Message: "email registered",
-			}
-			c.JSON(codes.CODE_EMAIL_REGISTERED, resp)
-			return
-		}
-		log.Printf("error encountered getting registered user: %v", err)
-		resp := responses.APIResponse{
-			Message: "internal error",
-		}
-		c.JSON(http.StatusInternalServerError, resp)
+		log.Printf("error encountered verifying user existence: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
-	// TO DO - cache gr member info within expiry timestamp and generate reg_id
-	regId := uuid.New()
-	system.ObjectSet(regId.String(), req.GrMember, 30*time.Minute)
+	switch respData.Code {
+	case codes.NOT_FOUND:
+		// TO DO - cache gr member info within expiry timestamp and generate reg_id
+		regId := uuid.New()
+		system.ObjectSet(regId.String(), req.GrMember, 30*time.Minute)
 
-	// TO DO - send registration email with url and reg_id
+		// TO DO - send registration email with url and reg_id
 
-	// return email existence status
-	resp := responses.APIResponse{
-		Message: "email not registered",
+		// return email existence status
+		resp := responses.ApiResponse[any]{
+			Code:    codes.NOT_FOUND,
+			Message: "email not found",
+			Data:    nil,
+		}
+		c.JSON(http.StatusOK, resp)
+		return
+
+	case codes.FOUND:
+		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.FOUND, "email found"))
+		return
+
+	default:
+		log.Printf("error encountered getting registered user: %v", respData.Message)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
 	}
-	c.JSON(http.StatusOK, resp)
-
 }
 
 // GetCachedGrCmsProfile godoc
@@ -301,29 +278,26 @@ func GetCachedGrCmsProfile(c *gin.Context) {
 
 	regId := c.Param("reg_id")
 	if regId == "" {
-		resp := responses.APIResponse{
-			Message: "missing reg_id query parameter",
-			Data:    model.GrMember{},
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
 		return
 	}
 
 	cachedGrCmsProfile, err := system.ObjectGet(regId, &model.GrMember{})
 	if err != nil {
 		log.Printf("error getting cache value: %v", err)
-		resp := responses.APIResponse{
-			Message: "unsuccessful",
-			Data:    model.GrMember{},
+		resp := responses.ApiResponse[any]{
+			Code:    codes.NOT_FOUND,
+			Message: "cached profile not found",
 		}
-		c.JSON(http.StatusCreated, resp)
+		c.JSON(http.StatusConflict, resp)
 		return
 	}
 
 	// return cached profile
-	resp := responses.APIResponse{
-		Message: "successful",
-		Data:    cachedGrCmsProfile,
+	resp := responses.ApiResponse[model.GrMember]{
+		Code:    codes.FOUND,
+		Message: "cached profile found",
+		Data:    *cachedGrCmsProfile,
 	}
 	c.JSON(http.StatusOK, resp)
 
