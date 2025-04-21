@@ -34,12 +34,16 @@ type Config struct {
 	ProxyEnable bool           `yaml:"proxyEnable"`
 	Smtp        SmtpConfig     `yaml:"smtp"`
 	// other fields you already have...
-	API struct {
+	Api struct {
 		Memberservice struct {
 			Host   string `yaml:"host"`
 			AppID  string `yaml:"appid"`
 			Secret string `yaml:"secret"`
 		} `yaml:"memberservice"`
+		Rlp struct {
+			Host  string `yaml:"host"`
+			AppID string `yaml:"appid"`
+		} `yaml:"rlp"`
 	} `yaml:"api"`
 }
 

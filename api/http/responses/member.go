@@ -75,3 +75,12 @@ type UpdateBurnPin struct {
 	// example: "update successful"
 	Message string `json:"message" example:"update successful"`
 }
+
+type GetRlpMemberUserResponse struct {
+	// Message provides a human‑readable status.
+	// example: "successful"
+	Message string `json:"message" example:"successful"`
+
+	// Data contains the detailed user profile.
+	Data model.User `json:"data"`
+}

@@ -26,8 +26,8 @@ const (
 var ErrCondition = errors.New("condition not match")
 
 func GetAccessToken() (string, error) {
-	AppID := config.GetConfig().API.Memberservice.AppID
-	secretKey := config.GetConfig().API.Memberservice.Secret
+	AppID := config.GetConfig().Api.Memberservice.AppID
+	secretKey := config.GetConfig().Api.Memberservice.Secret
 	reqBody, err := GenerateSignature(AppID, secretKey)
 
 	if err != nil {
@@ -80,7 +80,7 @@ func GetLoginUserByEmail(email string) (*responses.MemberLoginResponse, error) {
 		Email: email,
 	}
 
-	resp, err := buildHttpClient("POST", urlWithEmail, payload)
+	resp, err := buildMemberHttpClient("POST", urlWithEmail, payload)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func GetRegisterUserByEmail(email string) error {
 		Email: email,
 	}
 
-	resp, err := buildHttpClient("POST", urlWithParams, payload)
+	resp, err := buildMemberHttpClient("POST", urlWithParams, payload)
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func PostRegisterUser(payload interface{}) error {
 	// Build the full URL by combining the base URL, email, and signUpType.
 	urlWithParams := BuildFullURL(userURL)
 
-	resp, err := buildHttpClient("POST", urlWithParams, payload)
+	resp, err := buildMemberHttpClient("POST", urlWithParams, payload)
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func UpdateBurnPin(payload interface{}) error {
 	// Build the full URL by combining the base URL, email, and signUpType.
 	urlWithParams := BuildFullURL(updateBurnPinURL)
 
-	resp, err := buildHttpClient("PUT", urlWithParams, payload)
+	resp, err := buildMemberHttpClient("PUT", urlWithParams, payload)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func UpdateBurnPin(payload interface{}) error {
 	return nil
 }
 
-func buildHttpClient(httpMethod string, url string, payload any) (*http.Response, error) {
+func buildMemberHttpClient(httpMethod string, url string, payload any) (*http.Response, error) {
 	// Get the access token.
 	token, err := GetAccessToken()
 	if err != nil {
@@ -195,7 +195,7 @@ func buildHttpClient(httpMethod string, url string, payload any) (*http.Response
 	// Set the required headers.
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("AppID", config.GetConfig().API.Memberservice.AppID)
+	req.Header.Set("AppID", config.GetConfig().Api.Memberservice.AppID)
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {

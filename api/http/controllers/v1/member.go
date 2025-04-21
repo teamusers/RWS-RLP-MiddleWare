@@ -38,6 +38,8 @@ func GetMemberProfile(c *gin.Context) {
 	}
 
 	//To DO - RLP : To be change to RLP view user. RLP - API, Temporary get from DB 1st
+	//memberResp, err := services.GetMember(external_id, nil)
+
 	db := system.GetDb()
 	var user model.User
 	err := db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error

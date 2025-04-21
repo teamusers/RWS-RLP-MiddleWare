@@ -35,6 +35,10 @@ api:
     appid : App123
     secret: mySuperSecretKey
 
+  rlp:
+    host : http://localhost:18083 
+    appid : App123 
+
 allStart: 1
 proxyEnable : true
  

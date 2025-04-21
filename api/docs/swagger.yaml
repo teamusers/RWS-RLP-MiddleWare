@@ -27,6 +27,15 @@ definitions:
         example: "98765432"
         type: string
     type: object
+  model.Identifier:
+    properties:
+      external_id:
+        example: 1234abcd
+        type: string
+      external_id_type:
+        example: facebook
+        type: string
+    type: object
   model.Otp:
     properties:
       otp:
@@ -42,74 +51,101 @@ definitions:
         example: 1744176000
         type: integer
     type: object
+  model.PhoneNumber:
+    properties:
+      phone_number:
+        example: "1234123123"
+        type: string
+      phone_type:
+        example: home
+        type: string
+      verified_ownership:
+        example: false
+        type: boolean
+    type: object
   model.User:
     properties:
-      burn_pin:
-        example: 1234
-        type: integer
-      country:
-        example: SGP
+      account_status:
+        description: |-
+          AccountStatus indicates the user's account status.
+          example: good
+        example: good
         type: string
       created_at:
-        example: "2025-04-19T10:00:00Z"
+        description: |-
+          CreatedAt is the timestamp when the user account was created.
+          example: 2016-10-21T18:12:22Z
+        example: "2016-10-21T18:12:22Z"
         type: string
       dob:
-        example: "2007-08-05"
+        description: |-
+          DOB is the user's date of birth.
+          example: 1980-01-01
+        example: "1980-01-01"
         type: string
       email:
-        example: user@example.com
+        description: |-
+          Email is the user's email address.
+          example: john.smith@fake.email.addr
+        example: john.smith@fake.email.addr
         type: string
       external_id:
-        example: abc123
+        description: |-
+          ExternalID is the user's external identifier.
+          example: 654321
+        example: "654321"
         type: string
-      external_id_type:
-        example: EMAIL
-        type: string
-      first_name:
-        example: Brendan
+      gender:
+        description: |-
+          Gender of the user (m/f).
+          example: m
+        example: m
         type: string
       id:
-        example: 42
+        description: |-
+          ID is the auto-incrementing primary key.
+          example: 1
         type: integer
-      last_name:
-        example: Test
-        type: string
+      identifiers:
+        description: Identifiers from external systems.
+        items:
+          $ref: '#/definitions/model.Identifier'
+        type: array
       opted_in:
+        description: |-
+          OptedIn indicates whether the user has opted in.
+          example: true
         example: true
         type: boolean
       phone_numbers:
-        description: PhoneNumbers holds zero or more phone numbers associated with
-          this user.
+        description: PhoneNumbers associated with this user.
         items:
-          $ref: '#/definitions/model.UserPhoneNumber'
+          $ref: '#/definitions/model.PhoneNumber'
         type: array
+      referrer_code:
+        description: |-
+          ReferrerCode is the code used at sign‑up.
+          example: JOHN-70A756
+        example: JOHN-70A756
+        type: string
+      registered_at:
+        description: |-
+          RegisteredAt is the timestamp when the user completed registration.
+          example: 2016-10-21T18:12:22Z
+        example: "2016-10-21T18:12:22Z"
+        type: string
+      suspended:
+        description: |-
+          Suspended indicates whether the account is suspended.
+          example: false
+        example: false
+        type: boolean
       updated_at:
-        example: "2025-04-19T11:00:00Z"
+        description: |-
+          UpdatedAt is the timestamp of the last update.
+          example: 2016-10-21T18:12:22Z
+        example: "2016-10-21T18:12:22Z"
         type: string
-    type: object
-  model.UserPhoneNumber:
-    properties:
-      created_at:
-        example: "2025-04-19T10:05:00Z"
-        type: string
-      id:
-        example: 101
-        type: integer
-      phone_number:
-        example: "+6598765432"
-        type: string
-      phone_type:
-        example: mobile
-        type: string
-      preference_flags:
-        example: primary
-        type: string
-      updated_at:
-        example: "2025-04-19T10:05:00Z"
-        type: string
-      user_id:
-        example: 42
-        type: integer
     type: object
   requests.AuthRequest:
     properties:
