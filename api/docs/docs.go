@@ -1187,7 +1187,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "LBE API",
-	Description:      "Endpoints for authentication, login and register\n\n## 📋 Codes\n| Code   | Description            |\n| ------ | ---------------------- |\n| 1000   | successful             |\n| 1001   | unsuccessful           |\n| 1002   | found         |\n| 1003   | not found      |\n| 4000   | internal error             |\n| 4001   | invalid request body           |\n| 4002   | invalid authentication token         |\n| 4003   | missing authentication token      |\n| 4004   | invalid signature             |\n| 4005   | missing signature           |\n| 4006   | invalid appid         |\n| 4007   | missing appid      |\n| 4008   | invalid query parameters         |",
+	Description:      "Endpoints for authentication, login and register\n\n<details open>\n<summary><a href=\"javascript:void(0)\" style=\"cursor: pointer !important;\">📋\u00a0Message Codes</a></summary>\n\n| Code   | Description                   |\n| ------ | ------------------------------|\n| 1000   | successful                    |\n| 1001   | unsuccessful                  |\n| 1002   | found                         |\n| 1003   | not found                     |\n| 4000   | internal error                |\n| 4001   | invalid request body          |\n| 4002   | invalid authentication token  |\n| 4003   | missing authentication token  |\n| 4004   | invalid signature             |\n| 4005   | missing signature             |\n| 4006   | invalid appid                 |\n| 4007   | missing appid                 |\n| 4008   | invalid query parameters      |\n\n</details>",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
