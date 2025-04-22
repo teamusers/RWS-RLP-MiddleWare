@@ -51,14 +51,14 @@ type CachedGrCmsSuccessResponse struct {
 	Data    model.GrMember `json:"data"`
 }
 
-type GetMemberSuccessResponse struct {
+type GetUserSuccessResponse struct {
 	// in: body
 	Code    int64      `json:"code" example:"1002"`
-	Message string     `json:"message" example:"member found"`
+	Message string     `json:"message" example:"user found"`
 	Data    model.User `json:"data"`
 }
 
-type UpdateMemberSuccessResponse struct {
+type UpdateUserSuccessResponse struct {
 	// in: body
 	Code    int64      `json:"code" example:"1000"`
 	Message string     `json:"message" example:"update successful"`

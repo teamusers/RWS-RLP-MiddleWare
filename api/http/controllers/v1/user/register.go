@@ -32,7 +32,7 @@ import (
 // @Security     ApiKeyAuth
 // @Router       /user/register/verify [post]
 func VerifyUserExistence(c *gin.Context) {
-	var req requests.Register
+	var req requests.VerifyUserExistence
 
 	// Bind the incoming JSON payload.
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -108,7 +108,7 @@ func VerifyUserExistence(c *gin.Context) {
 // @Router       /user/register [post]
 func CreateUser(c *gin.Context) {
 	db := system.GetDb()
-	var user model.User
+	var user requests.RegisterUser
 	// Bind the incoming JSON payload to the user struct.
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
@@ -116,8 +116,8 @@ func CreateUser(c *gin.Context) {
 	}
 
 	now := time.Now()
-	user.CreatedAt = now
-	user.UpdatedAt = now
+	user.Users.CreatedAt = now
+	user.Users.UpdatedAt = now
 
 	//TO DO - If sign_up_type = TM: request TM info and validate
 
@@ -136,15 +136,15 @@ func CreateUser(c *gin.Context) {
 
 	//To DO - RLP | member service : get RLP information and link accordingly to member service
 	var req requests.CreateUser
-	req.User.ExternalID = user.ExternalID
+	req.User.ExternalID = user.Users.ExternalID
 	//req.User.ExternalTYPE = user.ExternalTYPE // Adjust if field names differ between the structs
-	req.User.Email = user.Email
+	req.User.Email = user.Users.Email
 	//req.User.BurnPin = user.BurnPin
 	req.User.GR_ID = "gr_id"                         // To be update by rlp.gr_id
 	req.User.RLP_ID = rlpId.String()                 // To be update by rlp.rlp_id
 	req.User.RWS_Membership_ID = "rws_membership_id" // To be update by rws_membership_id
 	req.User.RWS_Membership_Number = 123456          // To be update by RWS_Membership_Number
-	req.Email = user.Email                           // To be update by RWS_Membership_Number
+	req.Email = user.Users.Email                     // To be update by RWS_Membership_Number
 
 	//TO DO - Request member service update - different based on sign_up_type
 	err := services.PostRegisterUser(req)
@@ -158,7 +158,7 @@ func CreateUser(c *gin.Context) {
 	resp := responses.ApiResponse[model.User]{
 		Code:    codes.SUCCESSFUL,
 		Message: "user created",
-		Data:    user,
+		Data:    user.Users,
 	}
 	c.JSON(http.StatusCreated, resp)
 }
@@ -175,7 +175,7 @@ func CreateUser(c *gin.Context) {
 // @Failure      401      {object}  responses.ErrorResponse                                       "Unauthorized – API key missing or invalid"
 // @Failure      500      {object}  responses.ErrorResponse                            "Internal server error"
 // @Security     ApiKeyAuth
-// @Router       /gr/verify [post]
+// @Router       /gr [post]
 func VerifyGrExistence(c *gin.Context) {
 	var req requests.RegisterGr
 
@@ -184,6 +184,8 @@ func VerifyGrExistence(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
 		return
 	}
+
+	// TO DO - verifyMemberExistence by gr_id and return error if found
 
 	// TO DO - CMS: Request GR member info
 
@@ -215,7 +217,7 @@ func VerifyGrExistence(c *gin.Context) {
 // @Failure      409      {object}  responses.ErrorResponse                      "Email already registered"
 // @Failure      500      {object}  responses.ErrorResponse               "Internal server error"
 // @Security     ApiKeyAuth
-// @Router       /grcms/verify [post]
+// @Router       /gr-cms/verify [post]
 func VerifyGrCmsExistence(c *gin.Context) {
 	var req requests.RegisterGrCms
 
@@ -234,6 +236,8 @@ func VerifyGrCmsExistence(c *gin.Context) {
 
 	switch respData.Code {
 	case codes.NOT_FOUND:
+		// TO DO - verifyMemberExistence by gr_id and return error if found
+
 		// TO DO - cache gr member info within expiry timestamp and generate reg_id
 		regId := uuid.New()
 		system.ObjectSet(regId.String(), req.GrMember, 30*time.Minute)
@@ -272,7 +276,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 // @Failure      409      {object}  responses.ErrorResponse                             "Cached profile not found"
 // @Failure      500      {object}  responses.ErrorResponse                   "Internal server error"
 // @Security     ApiKeyAuth
-// @Router       /grcms/profile/{reg_id} [get]
+// @Router       /gr-cms/{reg_id} [get]
 func GetCachedGrCmsProfile(c *gin.Context) {
 
 	regId := c.Param("reg_id")

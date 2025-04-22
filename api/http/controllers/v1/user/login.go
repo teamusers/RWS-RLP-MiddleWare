@@ -68,7 +68,7 @@ func Login(c *gin.Context) {
 
 		resp := responses.ApiResponse[responses.LoginResponseData]{
 			Code:    codes.SUCCESSFUL,
-			Message: "email found",
+			Message: "login successful",
 			Data: responses.LoginResponseData{
 				Otp:               otpResp,
 				LoginSessionToken: respData.Data,
@@ -78,7 +78,7 @@ func Login(c *gin.Context) {
 		return
 
 	case codes.NOT_FOUND:
-		c.JSON(http.StatusOK, responses.DefaultResponse(codes.NOT_FOUND, "email not found"))
+		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.NOT_FOUND, "email not found"))
 		return
 
 	default:

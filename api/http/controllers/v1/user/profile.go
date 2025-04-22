@@ -1,4 +1,4 @@
-package v1
+package user
 
 import (
 	"lbe/api/http/requests"
@@ -14,21 +14,21 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetMemberProfile godoc
-// @Summary      Get member profile
-// @Description  Retrieves the profile (including phone numbers) for a given member by external_id.
-// @Tags         member
+// GetUserProfile godoc
+// @Summary      Get user profile
+// @Description  Retrieves the profile (including phone numbers) for a given user by external_id.
+// @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        external_id  path      string                      true  "Member external ID"
-// @Success      200          {object}  responses.GetMemberSuccessResponse       "Member found"
+// @Param        external_id  path      string                      true  "user external ID"
+// @Success      200          {object}  responses.GetUserSuccessResponse       "user found"
 // @Failure      400          {object}  responses.ErrorResponse  "Invalid or missing external_id path parameter"
 // @Failure      401          {object}  responses.ErrorResponse                          "Unauthorized – API key missing or invalid"
-// @Failure      409          {object}  responses.ErrorResponse                       "Member not found"
+// @Failure      409          {object}  responses.ErrorResponse                       "user not found"
 // @Failure      500          {object}  responses.ErrorResponse              "Internal server error"
 // @Security     ApiKeyAuth
-// @Router       /member/{external_id} [get]
-func GetMemberProfile(c *gin.Context) {
+// @Router       /user/{external_id} [get]
+func GetUserProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 	if external_id == "" {
 		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
@@ -43,7 +43,7 @@ func GetMemberProfile(c *gin.Context) {
 	err := db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusConflict, responses.DefaultResponse(codes.NOT_FOUND, "member not found"))
+			c.JSON(http.StatusConflict, responses.DefaultResponse(codes.NOT_FOUND, "user not found"))
 			return
 		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
@@ -52,28 +52,28 @@ func GetMemberProfile(c *gin.Context) {
 
 	resp := responses.ApiResponse[model.User]{
 		Code:    codes.FOUND,
-		Message: "member found",
+		Message: "user found",
 		Data:    user,
 	}
 	c.JSON(http.StatusOK, resp)
 }
 
-// UpdateMemberProfile godoc
-// @Summary      Update member profile
-// @Description  Updates a member’s profile fields (non‐zero values in the JSON body).
-// @Tags         member
+// UpdateUserProfile godoc
+// @Summary      Update user profile
+// @Description  Updates a user's profile fields (non‐zero values in the JSON body).
+// @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        external_id  path      string                      true  "Member external ID"
+// @Param        external_id  path      string                      true  "user external ID"
 // @Param        request      body      requests.User               true  "Profile fields to update"
-// @Success      200          {object}  responses.UpdateMemberSuccessResponse      "Update successful"
+// @Success      200          {object}  responses.UpdateUserSuccessResponse      "Update successful"
 // @Failure      400          {object}  responses.ErrorResponse    "Invalid JSON request body"
 // @Failure      401          {object}  responses.ErrorResponse                         "Unauthorized – API key missing or invalid"
-// @Failure      409          {object}  responses.ErrorResponse                          "Member not found"
+// @Failure      409          {object}  responses.ErrorResponse                          "user not found"
 // @Failure      500          {object}  responses.ErrorResponse                "Internal server error"
 // @Security     ApiKeyAuth
-// @Router       /member/{external_id} [put]
-func UpdateMemberProfile(c *gin.Context) {
+// @Router       /user/{external_id} [put]
+func UpdateUserProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 	if external_id == "" {
 		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
@@ -88,7 +88,7 @@ func UpdateMemberProfile(c *gin.Context) {
 	err := db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusConflict, responses.DefaultResponse(codes.NOT_FOUND, "member not found"))
+			c.JSON(http.StatusConflict, responses.DefaultResponse(codes.NOT_FOUND, "user not found"))
 			return
 		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
@@ -130,16 +130,16 @@ func UpdateMemberProfile(c *gin.Context) {
 // UpdateBurnPin godoc
 // @Summary      Update user burn PIN
 // @Description  Updates the burn PIN for a given email address.
-// @Tags         member
+// @Tags         user
 // @Accept       json
 // @Produce      json
 // @Param        request      body      requests.UpdateBurnPin  true  "Email + new burn PIN"
-// @Success      200          {object}  responses.UpdateMemberSuccessResponse                      "Update successful"
+// @Success      200          {object}  responses.UpdateUserSuccessResponse                      "update successful"
 // @Failure      400          {object}  responses.ErrorResponse    "Invalid JSON request body"
 // @Failure      401          {object}  responses.ErrorResponse                       "Unauthorized – API key missing or invalid"
 // @Failure      500          {object}  responses.ErrorResponse             "Internal server error"
 // @Security     ApiKeyAuth
-// @Router       /member/burn-pin [put]
+// @Router       /user/pin [put]
 func UpdateBurnPin(c *gin.Context) {
 	var req requests.UpdateBurnPin
 
@@ -152,7 +152,7 @@ func UpdateBurnPin(c *gin.Context) {
 	err := services.UpdateBurnPin(req)
 	if err != nil {
 		log.Printf("error encountered updating burn pin: %v", err)
-		c.JSON(http.StatusCreated, responses.InternalErrorResponse())
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
