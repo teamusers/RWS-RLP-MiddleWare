@@ -22,6 +22,7 @@ import (
 // @Success      200      {object}  responses.LoginSuccessResponse  "Email found; OTP generated and sent; login session token returned"
 // @Failure      400      {object}  responses.ErrorResponse            "Invalid JSON request body"
 // @Failure      401      {object}  responses.ErrorResponse                             "Unauthorized – API key missing or invalid"
+// @Failure      409      {object}  responses.ErrorResponse                             "existing user not found"
 // @Failure      500      {object}  responses.ErrorResponse                     "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /user/login [post]
@@ -43,7 +44,7 @@ func Login(c *gin.Context) {
 	}
 
 	switch respData.Code {
-	case codes.SUCCESSFUL:
+	case codes.FOUND:
 		otpService := services.NewOTPService()
 		otpResp, err := otpService.GenerateOTP(c, req.Email)
 		if err != nil {
@@ -78,7 +79,7 @@ func Login(c *gin.Context) {
 		return
 
 	case codes.NOT_FOUND:
-		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.NOT_FOUND, "email not found"))
+		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_NOT_FOUND, "existing user not found"))
 		return
 
 	default:

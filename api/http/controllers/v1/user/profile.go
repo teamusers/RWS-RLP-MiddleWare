@@ -24,7 +24,7 @@ import (
 // @Success      200          {object}  responses.GetUserSuccessResponse       "user found"
 // @Failure      400          {object}  responses.ErrorResponse  "Invalid or missing external_id path parameter"
 // @Failure      401          {object}  responses.ErrorResponse                          "Unauthorized – API key missing or invalid"
-// @Failure      409          {object}  responses.ErrorResponse                       "user not found"
+// @Failure      409          {object}  responses.ErrorResponse                       "existing user not found"
 // @Failure      500          {object}  responses.ErrorResponse              "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /user/{external_id} [get]
@@ -43,7 +43,7 @@ func GetUserProfile(c *gin.Context) {
 	err := db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusConflict, responses.DefaultResponse(codes.NOT_FOUND, "user not found"))
+			c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_NOT_FOUND, "existing user not found"))
 			return
 		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
@@ -51,7 +51,7 @@ func GetUserProfile(c *gin.Context) {
 	}
 
 	resp := responses.ApiResponse[model.User]{
-		Code:    codes.FOUND,
+		Code:    codes.SUCCESSFUL,
 		Message: "user found",
 		Data:    user,
 	}
@@ -69,7 +69,7 @@ func GetUserProfile(c *gin.Context) {
 // @Success      200          {object}  responses.UpdateUserSuccessResponse      "Update successful"
 // @Failure      400          {object}  responses.ErrorResponse    "Invalid JSON request body"
 // @Failure      401          {object}  responses.ErrorResponse                         "Unauthorized – API key missing or invalid"
-// @Failure      409          {object}  responses.ErrorResponse                          "user not found"
+// @Failure      409          {object}  responses.ErrorResponse                          "existing user not found"
 // @Failure      500          {object}  responses.ErrorResponse                "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /user/{external_id} [put]
@@ -88,7 +88,7 @@ func UpdateUserProfile(c *gin.Context) {
 	err := db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusConflict, responses.DefaultResponse(codes.NOT_FOUND, "user not found"))
+			c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_NOT_FOUND, "existing user not found"))
 			return
 		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
