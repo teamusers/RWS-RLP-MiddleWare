@@ -2,10 +2,14 @@ package router
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	general "lbe/api/http"
+	"lbe/api/http/middleware"
 	"lbe/config"
+	"lbe/model"
+	"lbe/system"
 
 	"github.com/gin-gonic/gin"
 
@@ -27,9 +31,17 @@ func Include(opts ...Option) {
 func Init() *gin.Engine {
 	Include(general.Routers)
 
+	// 0) run audit-table migration
+	db := system.GetDb()
+	if err := model.MigrateAuditLog(db); err != nil {
+		log.Fatalf("audit log migration: %v", err)
+	}
+
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+
+	r.Use(middleware.AuditLogger(db))
 
 	// mount your API routes
 	apiGroup := r.Group("/api")

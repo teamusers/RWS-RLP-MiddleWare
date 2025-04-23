@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -23,7 +24,7 @@ import (
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        request  body      requests.Register true  "Registration request payload"
+// @Param        request  body      requests.VerifyUserExistence true  "Registration request payload"
 // @Success      200      {object}  responses.RegisterSuccessResponse "Email not registered; OTP sent"
 // @Failure      400      {object}  responses.ErrorResponse  "Invalid JSON request body"
 // @Failure      401      {object}  responses.ErrorResponse                       "Unauthorized – API key missing or invalid"
@@ -99,7 +100,7 @@ func VerifyUserExistence(c *gin.Context) {
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        user     body      model.User        true  "User create payload"
+// @Param        user     body      requests.RegisterUser        true  "User create payload"
 // @Success      201      {object}  responses.CreateSuccessResponse  "User created successfully"
 // @Failure      400      {object}  responses.ErrorResponse  "Invalid JSON request body"
 // @Failure      401      {object}  responses.ErrorResponse                      "Unauthorized – API key missing or invalid"
@@ -111,6 +112,7 @@ func CreateUser(c *gin.Context) {
 	var user requests.RegisterUser
 	// Bind the incoming JSON payload to the user struct.
 	if err := c.ShouldBindJSON(&user); err != nil {
+		fmt.Println("BindJSON error:", err)
 		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
 		return
 	}

@@ -50,6 +50,9 @@ func HttpInterceptor() gin.HandlerFunc {
 		if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
 			// Optionally, store the claims in the context for use by subsequent handlers.
 			c.Set("claims", claims)
+			// stash app_id for your audit middleware or handlers
+			c.Set("app_id", claims.AppID)
+
 			c.Next()
 		} else {
 			c.JSON(http.StatusUnauthorized, responses.InvalidAuthTokenErrorResponse())

@@ -181,15 +181,6 @@ definitions:
     required:
     - email
     type: object
-  requests.Register:
-    properties:
-      email:
-        description: Email address to check for existing registration.
-        example: user@example.com
-        type: string
-    required:
-    - email
-    type: object
   requests.RegisterGr:
     properties:
       gr_id:
@@ -236,6 +227,14 @@ definitions:
         type: string
     required:
     - url
+    type: object
+  requests.RegisterUser:
+    properties:
+      sign_up_type:
+        example: NEW
+        type: string
+      users:
+        $ref: '#/definitions/model.User'
     type: object
   requests.UpdateBurnPin:
     properties:
@@ -297,6 +296,15 @@ definitions:
         example: eyJhbGciOiJIUzI1...
         type: string
     type: object
+  requests.VerifyUserExistence:
+    properties:
+      email:
+        description: Email address to check for existing registration.
+        example: user@example.com
+        type: string
+    required:
+    - email
+    type: object
   responses.AuthResponseData:
     properties:
       access_token:
@@ -355,7 +363,7 @@ definitions:
           body"
         type: string
     type: object
-  responses.GetMemberSuccessResponse:
+  responses.GetUserSuccessResponse:
     properties:
       code:
         description: 'in: body'
@@ -364,7 +372,7 @@ definitions:
       data:
         $ref: '#/definitions/model.User'
       message:
-        example: member found
+        example: user found
         type: string
     type: object
   responses.GrCmsExistenceSuccessResponse:
@@ -427,7 +435,7 @@ definitions:
       data:
         $ref: '#/definitions/responses.LoginResponseData'
       message:
-        example: email found
+        example: login successful
         type: string
     type: object
   responses.RegisterSuccessResponse:
@@ -442,7 +450,7 @@ definitions:
         example: email not found
         type: string
     type: object
-  responses.UpdateMemberSuccessResponse:
+  responses.UpdateUserSuccessResponse:
     properties:
       code:
         description: 'in: body'
@@ -512,7 +520,7 @@ paths:
       summary: Generate authentication token
       tags:
       - auth
-  /gr/verify:
+  /gr:
     post:
       consumes:
       - application/json
@@ -548,7 +556,7 @@ paths:
       summary: Verify GR member existence
       tags:
       - gr
-  /grcms/profile/{reg_id}:
+  /gr-cms/{reg_id}:
     get:
       consumes:
       - application/json
@@ -583,7 +591,7 @@ paths:
       summary: Get cached GR CMS profile
       tags:
       - grcms
-  /grcms/verify:
+  /gr-cms/verify:
     post:
       consumes:
       - application/json
@@ -624,14 +632,14 @@ paths:
       summary: Verify and cache GR CMS member
       tags:
       - grcms
-  /member/{external_id}:
+  /user/{external_id}:
     get:
       consumes:
       - application/json
-      description: Retrieves the profile (including phone numbers) for a given member
+      description: Retrieves the profile (including phone numbers) for a given user
         by external_id.
       parameters:
-      - description: Member external ID
+      - description: user external ID
         in: path
         name: external_id
         required: true
@@ -640,9 +648,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: Member found
+          description: user found
           schema:
-            $ref: '#/definitions/responses.GetMemberSuccessResponse'
+            $ref: '#/definitions/responses.GetUserSuccessResponse'
         "400":
           description: Invalid or missing external_id path parameter
           schema:
@@ -652,7 +660,7 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
         "409":
-          description: Member not found
+          description: user not found
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
         "500":
@@ -661,16 +669,15 @@ paths:
             $ref: '#/definitions/responses.ErrorResponse'
       security:
       - ApiKeyAuth: []
-      summary: Get member profile
+      summary: Get user profile
       tags:
-      - member
+      - user
     put:
       consumes:
       - application/json
-      description: Updates a member’s profile fields (non‐zero values in the JSON
-        body).
+      description: Updates a user's profile fields (non‐zero values in the JSON body).
       parameters:
-      - description: Member external ID
+      - description: user external ID
         in: path
         name: external_id
         required: true
@@ -687,7 +694,7 @@ paths:
         "200":
           description: Update successful
           schema:
-            $ref: '#/definitions/responses.UpdateMemberSuccessResponse'
+            $ref: '#/definitions/responses.UpdateUserSuccessResponse'
         "400":
           description: Invalid JSON request body
           schema:
@@ -697,7 +704,7 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
         "409":
-          description: Member not found
+          description: user not found
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
         "500":
@@ -706,45 +713,9 @@ paths:
             $ref: '#/definitions/responses.ErrorResponse'
       security:
       - ApiKeyAuth: []
-      summary: Update member profile
+      summary: Update user profile
       tags:
-      - member
-  /member/burn-pin:
-    put:
-      consumes:
-      - application/json
-      description: Updates the burn PIN for a given email address.
-      parameters:
-      - description: Email + new burn PIN
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/requests.UpdateBurnPin'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Update successful
-          schema:
-            $ref: '#/definitions/responses.UpdateMemberSuccessResponse'
-        "400":
-          description: Invalid JSON request body
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "401":
-          description: Unauthorized – API key missing or invalid
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Update user burn PIN
-      tags:
-      - member
+      - user
   /user/login:
     post:
       consumes:
@@ -782,6 +753,42 @@ paths:
       summary: Start login flow via email
       tags:
       - user
+  /user/pin:
+    put:
+      consumes:
+      - application/json
+      description: Updates the burn PIN for a given email address.
+      parameters:
+      - description: Email + new burn PIN
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdateBurnPin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: update successful
+          schema:
+            $ref: '#/definitions/responses.UpdateUserSuccessResponse'
+        "400":
+          description: Invalid JSON request body
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized – API key missing or invalid
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update user burn PIN
+      tags:
+      - user
   /user/register:
     post:
       consumes:
@@ -793,7 +800,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/model.User'
+          $ref: '#/definitions/requests.RegisterUser'
       produces:
       - application/json
       responses:
@@ -830,7 +837,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/requests.Register'
+          $ref: '#/definitions/requests.VerifyUserExistence'
       produces:
       - application/json
       responses:

@@ -75,7 +75,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/gr/verify": {
+        "/gr": {
             "post": {
                 "security": [
                     {
@@ -132,62 +132,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/grcms/profile/{reg_id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Retrieves a temporarily cached GR CMS profile by registration ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "grcms"
-                ],
-                "summary": "Get cached GR CMS profile",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Registration ID",
-                        "name": "reg_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Cached profile found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.CachedGrCmsSuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Registration ID is required",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    },
-                    "409": {
-                        "description": "Cached profile not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/grcms/verify": {
+        "/gr-cms/verify": {
             "post": {
                 "security": [
                     {
@@ -250,71 +195,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/member/burn-pin": {
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Updates the burn PIN for a given email address.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "member"
-                ],
-                "summary": "Update user burn PIN",
-                "parameters": [
-                    {
-                        "description": "Email + new burn PIN",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.UpdateBurnPin"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Update successful",
-                        "schema": {
-                            "$ref": "#/definitions/responses.UpdateMemberSuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid JSON request body",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized – API key missing or invalid",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/member/{external_id}": {
+        "/gr-cms/{reg_id}": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Retrieves the profile (including phone numbers) for a given member by external_id.",
+                "description": "Retrieves a temporarily cached GR CMS profile by registration ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -322,107 +210,33 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "member"
+                    "grcms"
                 ],
-                "summary": "Get member profile",
+                "summary": "Get cached GR CMS profile",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Member external ID",
-                        "name": "external_id",
+                        "description": "Registration ID",
+                        "name": "reg_id",
                         "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Member found",
+                        "description": "Cached profile found",
                         "schema": {
-                            "$ref": "#/definitions/responses.GetMemberSuccessResponse"
+                            "$ref": "#/definitions/responses.CachedGrCmsSuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid or missing external_id path parameter",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized – API key missing or invalid",
+                        "description": "Registration ID is required",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "409": {
-                        "description": "Member not found",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Updates a member’s profile fields (non‐zero values in the JSON body).",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "member"
-                ],
-                "summary": "Update member profile",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Member external ID",
-                        "name": "external_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Profile fields to update",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.User"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Update successful",
-                        "schema": {
-                            "$ref": "#/definitions/responses.UpdateMemberSuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid JSON request body",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized – API key missing or invalid",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    },
-                    "409": {
-                        "description": "Member not found",
+                        "description": "Cached profile not found",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse"
                         }
@@ -493,6 +307,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/pin": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Updates the burn PIN for a given email address.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Update user burn PIN",
+                "parameters": [
+                    {
+                        "description": "Email + new burn PIN",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UpdateBurnPin"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "update successful",
+                        "schema": {
+                            "$ref": "#/definitions/responses.UpdateUserSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON request body",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized – API key missing or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/register": {
             "post": {
                 "security": [
@@ -518,7 +389,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.User"
+                            "$ref": "#/definitions/requests.RegisterUser"
                         }
                     }
                 ],
@@ -575,7 +446,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.Register"
+                            "$ref": "#/definitions/requests.VerifyUserExistence"
                         }
                     }
                 ],
@@ -600,6 +471,135 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Email already registered",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/{external_id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves the profile (including phone numbers) for a given user by external_id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get user profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user external ID",
+                        "name": "external_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "user found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.GetUserSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or missing external_id path parameter",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized – API key missing or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "user not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Updates a user's profile fields (non‐zero values in the JSON body).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Update user profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user external ID",
+                        "name": "external_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Profile fields to update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Update successful",
+                        "schema": {
+                            "$ref": "#/definitions/responses.UpdateUserSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON request body",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized – API key missing or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "user not found",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse"
                         }
@@ -815,19 +815,6 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.Register": {
-            "type": "object",
-            "required": [
-                "email"
-            ],
-            "properties": {
-                "email": {
-                    "description": "Email address to check for existing registration.",
-                    "type": "string",
-                    "example": "user@example.com"
-                }
-            }
-        },
         "requests.RegisterGr": {
             "type": "object",
             "required": [
@@ -887,6 +874,18 @@ const docTemplate = `{
                     "description": "URL to send the registration confirmation link to.",
                     "type": "string",
                     "example": "https://example.com/confirm?reg_id=abc123"
+                }
+            }
+        },
+        "requests.RegisterUser": {
+            "type": "object",
+            "properties": {
+                "sign_up_type": {
+                    "type": "string",
+                    "example": "NEW"
+                },
+                "users": {
+                    "$ref": "#/definitions/model.User"
                 }
             }
         },
@@ -961,6 +960,19 @@ const docTemplate = `{
                     "description": "SessionToken is the login session token issued to the user.",
                     "type": "string",
                     "example": "eyJhbGciOiJIUzI1..."
+                }
+            }
+        },
+        "requests.VerifyUserExistence": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "description": "Email address to check for existing registration.",
+                    "type": "string",
+                    "example": "user@example.com"
                 }
             }
         },
@@ -1042,7 +1054,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.GetMemberSuccessResponse": {
+        "responses.GetUserSuccessResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -1055,7 +1067,7 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string",
-                    "example": "member found"
+                    "example": "user found"
                 }
             }
         },
@@ -1131,7 +1143,7 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string",
-                    "example": "email found"
+                    "example": "login successful"
                 }
             }
         },
@@ -1152,7 +1164,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.UpdateMemberSuccessResponse": {
+        "responses.UpdateUserSuccessResponse": {
             "type": "object",
             "properties": {
                 "code": {

@@ -12,7 +12,7 @@ type AuthSuccessResponse struct {
 type LoginSuccessResponse struct {
 	// in: body
 	Code    int64             `json:"code" example:"1000"`
-	Message string            `json:"message" example:"email found"`
+	Message string            `json:"message" example:"login successful"`
 	Data    LoginResponseData `json:"data"`
 }
 
