@@ -43,7 +43,7 @@ func GetUserProfile(c *gin.Context) {
 	err := db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_NOT_FOUND, "existing user not found"))
+			c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
 			return
 		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
@@ -88,7 +88,7 @@ func UpdateUserProfile(c *gin.Context) {
 	err := db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_NOT_FOUND, "existing user not found"))
+			c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
 			return
 		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())

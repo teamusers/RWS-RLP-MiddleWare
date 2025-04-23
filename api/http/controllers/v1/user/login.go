@@ -79,7 +79,7 @@ func Login(c *gin.Context) {
 		return
 
 	case codes.NOT_FOUND:
-		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_NOT_FOUND, "existing user not found"))
+		c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
 		return
 
 	default:

@@ -83,7 +83,7 @@ func VerifyUserExistence(c *gin.Context) {
 		return
 
 	case codes.FOUND:
-		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_NOT_FOUND, "existing user found"))
+		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_FOUND, "existing user found"))
 		return
 
 	default:
@@ -195,7 +195,7 @@ func VerifyGrExistence(c *gin.Context) {
 	// TODO: Fix
 	resp := responses.ApiResponse[responses.GetGrMemberResponseData]{
 		Code:    codes.SUCCESSFUL,
-		Message: "successful",
+		Message: "gr profile found",
 		Data: responses.GetGrMemberResponseData{
 			GrMember: model.GrMember{
 				GrId: &req.GrId,
@@ -251,7 +251,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 		return
 
 	case codes.FOUND:
-		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_FOUND, "existing user found"))
+		c.JSON(http.StatusConflict, responses.ExistingUserFoundErrorResponse())
 		return
 
 	default:
