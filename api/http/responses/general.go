@@ -53,3 +53,11 @@ func InvalidAuthTokenErrorResponse() ApiResponse[any] {
 func InvalidSignatureErrorResponse() ApiResponse[any] {
 	return DefaultResponse(codes.INVALID_SIGNATURE, "invalid signature")
 }
+
+func ExistingUserFoundErrorResponse() ApiResponse[any] {
+	return DefaultResponse(codes.EXISTING_USER_FOUND, "existing user found")
+}
+
+func ExistingUserNotFoundErrorResponse() ApiResponse[any] {
+	return DefaultResponse(codes.EXISTING_USER_NOT_FOUND, "existing user not found")
+}

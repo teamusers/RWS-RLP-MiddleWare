@@ -73,8 +73,8 @@ func VerifyUserExistence(c *gin.Context) {
 		}
 
 		resp := responses.ApiResponse[model.Otp]{
-			Code:    codes.NOT_FOUND,
-			Message: "email not found",
+			Code:    codes.SUCCESSFUL,
+			Message: "existing user not found",
 			Data: model.Otp{
 				Otp: otpResp.Otp,
 			},
@@ -83,7 +83,7 @@ func VerifyUserExistence(c *gin.Context) {
 		return
 
 	case codes.FOUND:
-		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.FOUND, "email found"))
+		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_FOUND, "existing user found"))
 		return
 
 	default:
@@ -187,7 +187,7 @@ func VerifyGrExistence(c *gin.Context) {
 		return
 	}
 
-	// TO DO - verifyMemberExistence by gr_id and return error if found
+	// TO DO - verifyMemberExistence by gr_id and return error if found (GR_MEMBER_LINKED)
 
 	// TO DO - CMS: Request GR member info
 
@@ -195,7 +195,7 @@ func VerifyGrExistence(c *gin.Context) {
 	// TODO: Fix
 	resp := responses.ApiResponse[responses.GetGrMemberResponseData]{
 		Code:    codes.SUCCESSFUL,
-		Message: "successful",
+		Message: "gr profile found",
 		Data: responses.GetGrMemberResponseData{
 			GrMember: model.GrMember{
 				GrId: &req.GrId,
@@ -238,7 +238,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 
 	switch respData.Code {
 	case codes.NOT_FOUND:
-		// TO DO - verifyMemberExistence by gr_id and return error if found
+		// TO DO - verifyMemberExistence by gr_id and return error if found (GR_MEMBER_LINKED)
 
 		// TO DO - cache gr member info within expiry timestamp and generate reg_id
 		regId := uuid.New()
@@ -247,16 +247,11 @@ func VerifyGrCmsExistence(c *gin.Context) {
 		// TO DO - send registration email with url and reg_id
 
 		// return email existence status
-		resp := responses.ApiResponse[any]{
-			Code:    codes.NOT_FOUND,
-			Message: "email not found",
-			Data:    nil,
-		}
-		c.JSON(http.StatusOK, resp)
+		c.JSON(http.StatusOK, responses.DefaultResponse(codes.SUCCESSFUL, "existing user not found"))
 		return
 
 	case codes.FOUND:
-		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.FOUND, "email found"))
+		c.JSON(http.StatusConflict, responses.ExistingUserFoundErrorResponse())
 		return
 
 	default:
@@ -291,7 +286,7 @@ func GetCachedGrCmsProfile(c *gin.Context) {
 	if err != nil {
 		log.Printf("error getting cache value: %v", err)
 		resp := responses.ApiResponse[any]{
-			Code:    codes.NOT_FOUND,
+			Code:    codes.CACHED_PROFILE_NOT_FOUND,
 			Message: "cached profile not found",
 		}
 		c.JSON(http.StatusConflict, resp)
@@ -300,7 +295,7 @@ func GetCachedGrCmsProfile(c *gin.Context) {
 
 	// return cached profile
 	resp := responses.ApiResponse[model.GrMember]{
-		Code:    codes.FOUND,
+		Code:    codes.SUCCESSFUL,
 		Message: "cached profile found",
 		Data:    *cachedGrCmsProfile,
 	}
