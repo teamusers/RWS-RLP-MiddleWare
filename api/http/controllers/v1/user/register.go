@@ -129,7 +129,7 @@ func CreateUser(c *gin.Context) {
 	//TO DO - Add member tier matching logic
 
 	//To DO - RLP : To be change to RLP create user. RLP - API, Temporary Store into DB 1st
-	if err := db.Create(&user).Error; err != nil {
+	if err := db.Create(&user.Users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
@@ -146,7 +146,6 @@ func CreateUser(c *gin.Context) {
 	req.User.RLP_ID = rlpId.String()                 // To be update by rlp.rlp_id
 	req.User.RWS_Membership_ID = "rws_membership_id" // To be update by rws_membership_id
 	req.User.RWS_Membership_Number = 123456          // To be update by RWS_Membership_Number
-	req.Email = user.Users.Email                     // To be update by RWS_Membership_Number
 
 	//TO DO - Request member service update - different based on sign_up_type
 	err := services.PostRegisterUser(req)

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"strconv"
 
 	"lbe/api/http/requests"
 	"lbe/api/http/responses"
@@ -20,9 +19,12 @@ import (
 
 // Endpoints
 const (
-	authURL          = "/api/v1/auth"
-	userURL          = "/api/v1/user"
-	updateBurnPinURL = "/api/v1/user/pin"
+	authURL                = "/api/v1/auth"
+	userURL                = "/api/v1/user"
+	verifyUserExistenceURL = "/api/v1/user/verify"
+	registerURL            = "/api/v1/user/register"
+	loginURL               = "/api/v1/user/login"
+	updateBurnPinURL       = "/api/v1/user/pin"
 )
 
 var ErrCondition = errors.New("condition not match")
@@ -77,22 +79,27 @@ func GetAccessToken() (string, error) {
 // requests a check to verify member existence via email,
 // login session token is returned if updateSessionToken query param is true
 func VerifyMemberExistence(email string, updateSessionToken bool) (*responses.ApiResponse[model.LoginSessionToken], error) {
-	urlWithEmail := fmt.Sprintf("%s?updateSessionToken=%s", BuildFullURL(userURL), strconv.FormatBool(updateSessionToken))
-
-	payload := requests.CreateUser{
+	payload := requests.VerifyUser{
 		Email: email,
 	}
 
-	resp, err := buildMemberHttpClient("POST", urlWithEmail, payload)
+	var targetURL string
+	if updateSessionToken {
+		targetURL = loginURL
+	} else {
+		targetURL = verifyUserExistenceURL
+	}
+
+	resp, err := buildMemberHttpClient("POST", BuildFullURL(targetURL), payload)
 	if err != nil {
 		return nil, err
 	}
- 
+	defer resp.Body.Close()
+
 	var userResp responses.ApiResponse[model.LoginSessionToken]
 	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
-		return nil, err 
+		return nil, err
 	}
-	defer resp.Body.Close()
 
 	return &userResp, nil
 }
@@ -141,26 +148,13 @@ func VerifyMemberExistence(email string, updateSessionToken bool) (*responses.Ap
 
 // PostRegisterUser posts a JSON payload to register a user by combining email and signUpType in the URL.
 // TODO: update accordingly when member sevice endpoint updates
-func PostRegisterUser(payload interface{}) error {
+func PostRegisterUser(payload requests.CreateUser) error {
 
-	// Build the full URL by combining the base URL, email, and signUpType.
-	urlWithParams := BuildFullURL(userURL)
-
-	resp, err := buildMemberHttpClient("POST", urlWithParams, payload)
+	_, err := buildMemberHttpClient("POST", BuildFullURL(registerURL), payload)
 	if err != nil {
 		return err
 	}
-
-	// Check for a non-OK status.
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return ErrCondition
-	case 201:
-		return nil
-	default:
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
-	}
+	return nil
 
 }
 
