@@ -49,6 +49,8 @@ type CreateUser struct {
 	// User contains the fields to create in the new user record.
 	User User `json:"user"`
 
+}
+type VerifyUser struct {
 	// Email is the user’s email address for verification and lookup.
 	Email string `json:"email" example:"user@example.com"`
 }
