@@ -15,14 +15,16 @@ import (
 
 // Endpoints
 const (
-	memberProfileURL = "/priv/v1/apps/:api_key/external/users/:external_id"
+	MemberProfileURL    = "/priv/v1/apps/:api_key/external/users/:external_id"
+	NewMemberURL        = "/priv/v1/apps/:api_key/users"
+	TierUpdate          = "/priv/v1/apps/:api_key/external/users/:external_id/events"
+	UpdateMemberProfile = "/priv/v1/apps/:api_key/external/users/:external_id"
 )
 
 var ErrRecordNotFound = errors.New("record not found")
 
-func Member(external_id string, payload any, operation string) (*responses.GetRlpMemberUserResponse, error) {
+func Member(external_id string, payload any, operation string, endpoint string) (*responses.GetRlpMemberUserResponse, error) {
 	conf := config.GetConfig()
-	endpoint := memberProfileURL
 	endpoint = strings.ReplaceAll(endpoint, ":api_key", conf.Api.Rlp.AppID)
 	endpoint = strings.ReplaceAll(endpoint, ":external_id", external_id)
 	urlWithParams := fmt.Sprintf("%s%s", conf.Api.Rlp.Host, endpoint)

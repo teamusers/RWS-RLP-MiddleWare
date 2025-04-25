@@ -11,26 +11,26 @@ import (
 )
 
 func buildHttpClient(httpMethod string, url string, payload any) (*http.Response, error) {
+	var req *http.Request
+	var err error
 
-	// Marshal the passed payload into JSON.
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling payload: %w", err)
-	}
-
-	// Create a new POST request with the JSON payload.
-	req, err := http.NewRequest(httpMethod, url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
+
+	if payload != nil {
+		jsonData, err := json.Marshal(payload)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling payload: %w", err)
+		}
+		req, _ = http.NewRequest(httpMethod, url, bytes.NewBuffer(jsonData))
+		req.Header.Set("Content-Type", "application/json")
+	} else {
+		req, err = http.NewRequest(httpMethod, url, nil)
+	}
 	if err != nil {
 		return nil, err
 	}
 
+	resp, err := client.Do(req)
 	return resp, err
 }
 
