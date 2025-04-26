@@ -10,8 +10,8 @@ type VerifyUserExistence struct {
 }
 
 type RegisterUser struct {
-	Users      model.User `json:"users"`
-	SignUpType string     `json:"sign_up_type" example:"NEW"`
+	Users      UserRequest `json:"users"`
+	SignUpType string      `json:"sign_up_type" example:"NEW"`
 }
 
 // RegisterGrRequest is the payload to verify if a GR member ID is already registered.

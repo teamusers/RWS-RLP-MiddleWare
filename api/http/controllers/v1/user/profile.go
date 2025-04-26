@@ -1,17 +1,15 @@
 package user
 
 import (
+	"fmt"
 	"lbe/api/http/requests"
 	"lbe/api/http/responses"
 	"lbe/api/http/services"
 	"lbe/codes"
-	"lbe/model"
-	"lbe/system"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 // GetUserProfile godoc
@@ -35,25 +33,19 @@ func GetUserProfile(c *gin.Context) {
 		return
 	}
 
-	//To DO - RLP : To be change to RLP view user. RLP - API, Temporary get from DB 1st
-	//memberResp, err := services.Member(external_id, nil, "GET")
-
-	db := system.GetDb()
-	var user model.User
-	err := db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error
+	//To DO - RLP : Test Actual RLP End Points
+	profileResp, err := services.Profile(external_id, nil, "GET", services.ProfileURL)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
-			return
-		}
+		// Log the error
+		log.Printf("GET User Profile failed: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
-	resp := responses.ApiResponse[model.User]{
+	resp := responses.ApiResponse[*responses.GetUserResponse]{
 		Code:    codes.SUCCESSFUL,
 		Message: "user found",
-		Data:    user,
+		Data:    profileResp,
 	}
 	c.JSON(http.StatusOK, resp)
 }
@@ -65,15 +57,24 @@ func GetUserProfile(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        external_id  path      string                      true  "user external ID"
-// @Param        request      body      requests.User               true  "Profile fields to update"
+// @Param        request      body      requests.UserRequest               true  "Profile fields to update"
 // @Success      200          {object}  responses.UpdateUserSuccessResponse      "Update successful"
 // @Failure      400          {object}  responses.ErrorResponse    "Invalid JSON request body"
 // @Failure      401          {object}  responses.ErrorResponse                         "Unauthorized – API key missing or invalid"
 // @Failure      409          {object}  responses.ErrorResponse                          "existing user not found"
 // @Failure      500          {object}  responses.ErrorResponse                "Internal server error"
 // @Security     ApiKeyAuth
-// @Router       /user/{external_id} [put]
+// @Router       /user/update/{external_id} [put]
 func UpdateUserProfile(c *gin.Context) {
+
+	var user requests.UserRequest
+	// Bind the incoming JSON payload to the user struct.
+	if err := c.ShouldBindJSON(&user); err != nil {
+		fmt.Println("BindJSON error:", err)
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
+		return
+	}
+
 	external_id := c.Param("external_id")
 	if external_id == "" {
 		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
@@ -82,49 +83,22 @@ func UpdateUserProfile(c *gin.Context) {
 
 	//To DO - RLP : To be change to RLP update user. RLP - API, Temporary update DB 1st
 	//memberResp, err := services.Member(external_id, nil, "PUT")
-
-	db := system.GetDb()
-	var user model.User
-	err := db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error
+	//To DO - RLP : Test Actual RLP End Points
+	profileResp, err := services.Profile(external_id, user, "PUT", services.ProfileURL)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
-			return
-		}
+		// Log the error
+		log.Printf("Update User Profile failed: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
-	// Bind the update input from the JSON body.
-	// You could use a dedicated struct for the allowed update fields.
-	// Here we're reusing model.User for simplicity.
-	var updateData model.User
-	if err := c.ShouldBindJSON(&updateData); err != nil {
-		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
-		return
-	}
-
-	// Update the user's profile using the received values.
-	// The Updates method will perform a non-zero update on the provided fields.
-	err = db.Model(&user).Updates(updateData).Error
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
-		return
-	}
-
-	// Optional: Reload the user record with the associated phone numbers.
-	err = db.Preload("PhoneNumbers").Where("external_id = ?", external_id).First(&user).Error
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
-		return
-	}
-
-	resp := responses.ApiResponse[model.User]{
+	resp := responses.ApiResponse[*responses.GetUserResponse]{
 		Code:    codes.SUCCESSFUL,
 		Message: "update successful",
-		Data:    user,
+		Data:    profileResp,
 	}
 	c.JSON(http.StatusOK, resp)
+
 }
 
 // UpdateBurnPin godoc

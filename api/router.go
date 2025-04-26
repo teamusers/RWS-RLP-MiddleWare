@@ -64,7 +64,14 @@ func Init() *gin.Engine {
 
 	// wire up the swagger UI, telling it to fetch /docs/swagger.json
 	url := ginSwagger.URL("/docs/swagger.json")
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(
+		swaggerFiles.Handler,
+		url,
+		// ⟵ hides the Models section
+		ginSwagger.DefaultModelsExpandDepth(-1),
+	))
+	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
 	// redirect root to swagger
 	r.GET("/", func(c *gin.Context) {

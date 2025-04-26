@@ -27,15 +27,6 @@ definitions:
         example: "98765432"
         type: string
     type: object
-  model.Identifier:
-    properties:
-      external_id:
-        example: 1234abcd
-        type: string
-      external_id_type:
-        example: facebook
-        type: string
-    type: object
   model.Otp:
     properties:
       otp:
@@ -50,105 +41,6 @@ definitions:
           example: 1744176000
         example: 1744176000
         type: integer
-    type: object
-  model.PhoneNumber:
-    properties:
-      phone_number:
-        example: "1234123123"
-        type: string
-      phone_type:
-        example: home
-        type: string
-      preference_flags:
-        example: primary
-        type: string
-      verified_ownership:
-        example: false
-        type: boolean
-    type: object
-  model.User:
-    properties:
-      account_status:
-        description: |-
-          AccountStatus indicates the user's account status.
-          example: good
-        example: good
-        type: string
-      created_at:
-        description: |-
-          CreatedAt is the timestamp when the user account was created.
-          example: 2016-10-21T18:12:22Z
-        example: "2016-10-21T18:12:22Z"
-        type: string
-      dob:
-        description: |-
-          DOB is the user's date of birth.
-          example: 1980-01-01
-        example: "1980-01-01"
-        type: string
-      email:
-        description: |-
-          Email is the user's email address.
-          example: john.smith@fake.email.addr
-        example: john.smith@fake.email.addr
-        type: string
-      external_id:
-        description: |-
-          ExternalID is the user's external identifier.
-          example: 654321
-        example: "654321"
-        type: string
-      gender:
-        description: |-
-          Gender of the user (m/f).
-          example: m
-        example: m
-        type: string
-      id:
-        description: |-
-          ID is the auto-incrementing primary key.
-          example: 1
-        type: integer
-      identifiers:
-        description: Identifiers from external systems.
-        items:
-          $ref: '#/definitions/model.Identifier'
-        type: array
-      opted_in:
-        description: |-
-          OptedIn indicates whether the user has opted in.
-          example: true
-        example: true
-        type: boolean
-      phone_numbers:
-        description: PhoneNumbers associated with this user.
-        items:
-          $ref: '#/definitions/model.PhoneNumber'
-        type: array
-      referrer_code:
-        description: |-
-          ReferrerCode is the code used at sign‑up.
-          example: JOHN-70A756
-        example: JOHN-70A756
-        type: string
-      registered_at:
-        description: |-
-          RegisteredAt is the timestamp when the user completed registration.
-          example: 2016-10-21T18:12:22Z
-        example: "2016-10-21T18:12:22Z"
-        type: string
-      suspended:
-        description: |-
-          Suspended indicates whether the account is suspended.
-          example: false
-        example: false
-        type: boolean
-      updated_at:
-        description: |-
-          UpdatedAt is the timestamp of the last update.
-          example: 2016-10-21T18:12:22Z
-        example: "2016-10-21T18:12:22Z"
-        type: string
     type: object
   requests.AuthRequest:
     properties:
@@ -180,6 +72,31 @@ definitions:
         type: string
     required:
     - email
+    type: object
+  requests.PhoneNumber:
+    properties:
+      phone_number:
+        description: Phone number (digits only)
+        example: "1234123123"
+        type: string
+      phone_type:
+        description: 'Type of phone number: mobile, office, home, fax, other'
+        example: home
+        type: string
+      preference_flags:
+        description: Flags like "primary"
+        example:
+        - '["primary"]'
+        items:
+          type: string
+        type: array
+    type: object
+  requests.Referral:
+    properties:
+      referral_code:
+        description: Code of the referring customer
+        example: JOHN-70A756
+        type: string
     type: object
   requests.RegisterGr:
     properties:
@@ -234,7 +151,7 @@ definitions:
         example: NEW
         type: string
       users:
-        $ref: '#/definitions/model.User'
+        $ref: '#/definitions/requests.UserRequest'
     type: object
   requests.UpdateBurnPin:
     properties:
@@ -250,50 +167,84 @@ definitions:
     - burn_pin
     - email
     type: object
-  requests.User:
+  requests.UserRequest:
     properties:
-      burn_pin:
-        description: BurnPin is the numeric PIN used for burn operations.
-        example: 1234
-        type: integer
+      address:
+        description: Address line 1
+        example: 7 Tremont Street
+        type: string
+      address2:
+        description: Address line 2
+        example: 8 Tremont Street
+        type: string
+      city:
+        description: City of residence
+        example: Boston
+        type: string
+      country:
+        description: 3-letter ISO-3166-1 country code
+        example: USA
+        type: string
+      dob:
+        description: Date of birth, YYYY-MM-DD
+        example: "1980-01-01"
+        type: string
       email:
-        description: Email is the user’s email address.
-        example: user@example.com
+        description: Customer’s email (encrypted at rest). Required if ExternalID
+          is not specified.
+        example: john.smith@test.com
         type: string
       external_id:
-        description: ExternalID is the client system’s unique identifier for this
-          user.
-        example: abc123
+        description: |-
+          Identifier for customer in external system.
+          Required if Email is not specified.
+        example: "1284111"
         type: string
       external_id_type:
-        description: ExternalTYPE describes the type or source of the external ID.
-        example: EMAIL
+        description: Type associated with external identifier.
+        example: facebook
         type: string
-      gr_id:
-        description: GR_ID is the group or partner system identifier for the user.
-        example: GR12345
+      first_name:
+        description: First name
+        example: John
         type: string
-      rlp_id:
-        description: RLP_ID is the RLP system identifier for the user.
-        example: RLP67890
+      gender:
+        description: 'Gender of customer: m or f'
+        example: m
         type: string
-      rws_membership_id:
-        description: RWS_Membership_ID is the RWS membership ID assigned to this user.
-        example: RWS54321
+      ip:
+        description: Customer’s IP at registration.
+        example: 203.0.113.42
         type: string
-      rws_membership_number:
-        description: RWS_Membership_Number is the numeric membership number in the
-          RWS system.
-        example: 987654
-        type: integer
-      session_expiry:
-        description: SessionExpiry is the Unix timestamp (seconds since epoch) when
-          the session token expires.
-        example: 1712345678
-        type: integer
-      session_token:
-        description: SessionToken is the login session token issued to the user.
-        example: eyJhbGciOiJIUzI1...
+      last_name:
+        description: Last name (surname)
+        example: Smith
+        type: string
+      locale:
+        description: Preferred locale, e.g. en-US
+        example: en-US
+        type: string
+      opted_in:
+        description: Indicates opt-in to loyalty program (defaults to true if not
+          set).
+        example: true
+        type: boolean
+      phone_numbers:
+        description: Phone numbers associated with customer
+        items:
+          $ref: '#/definitions/requests.PhoneNumber'
+        type: array
+      referral:
+        allOf:
+        - $ref: '#/definitions/requests.Referral'
+        description: Referral info when signing up with a referrer code
+      state:
+        description: State/province/region
+        example: MA
+        type: string
+      zip:
+        description: Zip or postal code
+        example: "02021"
         type: string
     type: object
   requests.VerifyUserExistence:
@@ -345,7 +296,7 @@ definitions:
         example: 1000
         type: integer
       data:
-        $ref: '#/definitions/model.User'
+        $ref: '#/definitions/responses.User'
       message:
         example: user created
         type: string
@@ -370,7 +321,7 @@ definitions:
         example: 1002
         type: integer
       data:
-        $ref: '#/definitions/model.User'
+        $ref: '#/definitions/responses.User'
       message:
         example: user found
         type: string
@@ -397,6 +348,13 @@ definitions:
         $ref: '#/definitions/model.GrMember'
       message:
         example: successful
+        type: string
+    type: object
+  responses.Identifier:
+    properties:
+      external_id:
+        type: string
+      external_id_type:
         type: string
     type: object
   responses.LoginResponseData:
@@ -438,6 +396,19 @@ definitions:
         example: login successful
         type: string
     type: object
+  responses.PhoneNumber:
+    properties:
+      phone_number:
+        type: string
+      phone_type:
+        type: string
+      preference_flags:
+        items:
+          type: string
+        type: array
+      verified_ownership:
+        type: boolean
+    type: object
   responses.RegisterSuccessResponse:
     properties:
       code:
@@ -457,9 +428,74 @@ definitions:
         example: 1000
         type: integer
       data:
-        $ref: '#/definitions/model.User'
+        $ref: '#/definitions/responses.User'
       message:
         example: update successful
+        type: string
+    type: object
+  responses.User:
+    properties:
+      account_status:
+        type: string
+      address:
+        type: string
+      address2:
+        type: string
+      auth_token:
+        type: string
+      available_points:
+        type: integer
+      city:
+        type: string
+      country:
+        type: string
+      created_at:
+        description: 'format: "2006-01-02 15:04:05"'
+        type: string
+      dob:
+        description: 'format: "2006-01-02"'
+        type: string
+      email:
+        type: string
+      external_id:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      id:
+        type: string
+      identifiers:
+        items:
+          $ref: '#/definitions/responses.Identifier'
+        type: array
+      last_name:
+        type: string
+      opted_in:
+        type: boolean
+      phone_numbers:
+        items:
+          $ref: '#/definitions/responses.PhoneNumber'
+        type: array
+      proxy_ids:
+        items:
+          type: string
+        type: array
+      referrer_code:
+        type: string
+      registered_at:
+        description: same format as CreatedAt
+        type: string
+      state:
+        type: string
+      suspended:
+        type: boolean
+      tier:
+        type: string
+      updated_at:
+        description: same format as CreatedAt
+        type: string
+      zip:
         type: string
     type: object
 host: localhost:18080
@@ -520,7 +556,47 @@ paths:
       summary: Generate authentication token
       tags:
       - auth
-  /gr:
+  /user/{external_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the profile (including phone numbers) for a given user
+        by external_id.
+      parameters:
+      - description: user external ID
+        in: path
+        name: external_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user found
+          schema:
+            $ref: '#/definitions/responses.GetUserSuccessResponse'
+        "400":
+          description: Invalid or missing external_id path parameter
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized – API key missing or invalid
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "409":
+          description: existing user not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user profile
+      tags:
+      - user
+  /user/gr:
     post:
       consumes:
       - application/json
@@ -555,43 +631,8 @@ paths:
       - ApiKeyAuth: []
       summary: Verify GR member existence
       tags:
-      - gr
-  /gr-cms/{reg_id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a temporarily cached GR CMS profile by registration ID.
-      parameters:
-      - description: Registration ID
-        in: path
-        name: reg_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Cached profile found
-          schema:
-            $ref: '#/definitions/responses.CachedGrCmsSuccessResponse'
-        "400":
-          description: Registration ID is required
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "409":
-          description: Cached profile not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Get cached GR CMS profile
-      tags:
-      - grcms
-  /gr-cms/verify:
+      - user
+  /user/gr-cms:
     post:
       consumes:
       - application/json
@@ -631,36 +672,31 @@ paths:
       - ApiKeyAuth: []
       summary: Verify and cache GR CMS member
       tags:
-      - grcms
-  /user/{external_id}:
+      - user
+  /user/gr-reg/{reg_id}:
     get:
       consumes:
       - application/json
-      description: Retrieves the profile (including phone numbers) for a given user
-        by external_id.
+      description: Retrieves a temporarily cached GR CMS profile by registration ID.
       parameters:
-      - description: user external ID
+      - description: Registration ID
         in: path
-        name: external_id
+        name: reg_id
         required: true
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: user found
+          description: Cached profile found
           schema:
-            $ref: '#/definitions/responses.GetUserSuccessResponse'
+            $ref: '#/definitions/responses.CachedGrCmsSuccessResponse'
         "400":
-          description: Invalid or missing external_id path parameter
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "401":
-          description: Unauthorized – API key missing or invalid
+          description: Registration ID is required
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
         "409":
-          description: user not found
+          description: Cached profile not found
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
         "500":
@@ -669,51 +705,7 @@ paths:
             $ref: '#/definitions/responses.ErrorResponse'
       security:
       - ApiKeyAuth: []
-      summary: Get user profile
-      tags:
-      - user
-    put:
-      consumes:
-      - application/json
-      description: Updates a user's profile fields (non‐zero values in the JSON body).
-      parameters:
-      - description: user external ID
-        in: path
-        name: external_id
-        required: true
-        type: string
-      - description: Profile fields to update
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/requests.User'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Update successful
-          schema:
-            $ref: '#/definitions/responses.UpdateUserSuccessResponse'
-        "400":
-          description: Invalid JSON request body
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "401":
-          description: Unauthorized – API key missing or invalid
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "409":
-          description: user not found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Update user profile
+      summary: Get cached GR CMS profile
       tags:
       - user
   /user/login:
@@ -742,6 +734,10 @@ paths:
             $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized – API key missing or invalid
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "409":
+          description: existing user not found
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
         "500":
@@ -864,6 +860,51 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Verify email for registration
+      tags:
+      - user
+  /user/update/{external_id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates a user's profile fields (non‐zero values in the JSON body).
+      parameters:
+      - description: user external ID
+        in: path
+        name: external_id
+        required: true
+        type: string
+      - description: Profile fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Update successful
+          schema:
+            $ref: '#/definitions/responses.UpdateUserSuccessResponse'
+        "400":
+          description: Invalid JSON request body
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized – API key missing or invalid
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "409":
+          description: existing user not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update user profile
       tags:
       - user
 securityDefinitions:

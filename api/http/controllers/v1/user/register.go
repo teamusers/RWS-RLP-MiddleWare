@@ -108,7 +108,6 @@ func VerifyUserExistence(c *gin.Context) {
 // @Security     ApiKeyAuth
 // @Router       /user/register [post]
 func CreateUser(c *gin.Context) {
-	db := system.GetDb()
 	var user requests.RegisterUser
 	// Bind the incoming JSON payload to the user struct.
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -117,10 +116,6 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	now := time.Now()
-	user.Users.CreatedAt = now
-	user.Users.UpdatedAt = now
-
 	//TO DO - If sign_up_type = TM: request TM info and validate
 
 	//TO DO - Update RLP_ID generation logic - yyyymmdd 0000-9999
@@ -128,12 +123,14 @@ func CreateUser(c *gin.Context) {
 
 	//TO DO - Add member tier matching logic
 
-	//To DO - RLP : To be change to RLP create user. RLP - API, Temporary Store into DB 1st
-	if err := db.Create(&user.Users).Error; err != nil {
+	//To DO - RLP : Test Actual RLP End Points
+	profileResp, err := services.Profile("", user, "POST", services.UpdateProfileURL)
+	if err != nil {
+		// Log the error
+		log.Printf("Post Register User failed: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
-
 	//TO DO - (If member tier > basic && sign_up_type = GR) or (sign_up_type == TM)L request user tier update (TM = tier M)
 
 	//To DO - RLP | member service : get RLP information and link accordingly to member service
@@ -148,18 +145,18 @@ func CreateUser(c *gin.Context) {
 	req.User.RWS_Membership_Number = 123456          // To be update by RWS_Membership_Number
 
 	//TO DO - Request member service update - different based on sign_up_type
-	err := services.PostRegisterUser(req)
-	if err != nil {
+	errRegister := services.PostRegisterUser(req)
+	if errRegister != nil {
 		// Log the error
 		log.Printf("Post Register User failed: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
-	resp := responses.ApiResponse[model.User]{
+	resp := responses.ApiResponse[*responses.GetUserResponse]{
 		Code:    codes.SUCCESSFUL,
 		Message: "user created",
-		Data:    user.Users,
+		Data:    profileResp,
 	}
 	c.JSON(http.StatusCreated, resp)
 }
@@ -167,7 +164,7 @@ func CreateUser(c *gin.Context) {
 // VerifyGrExistence godoc
 // @Summary      Verify GR member existence
 // @Description  Checks if a GR member ID is already registered.
-// @Tags         gr
+// @Tags         user
 // @Accept       json
 // @Produce      json
 // @Param        request  body      requests.RegisterGr   true  "GR registration check payload"
@@ -176,7 +173,7 @@ func CreateUser(c *gin.Context) {
 // @Failure      401      {object}  responses.ErrorResponse                                       "Unauthorized – API key missing or invalid"
 // @Failure      500      {object}  responses.ErrorResponse                            "Internal server error"
 // @Security     ApiKeyAuth
-// @Router       /gr [post]
+// @Router       /user/gr [post]
 func VerifyGrExistence(c *gin.Context) {
 	var req requests.RegisterGr
 
@@ -208,7 +205,7 @@ func VerifyGrExistence(c *gin.Context) {
 // VerifyGrCmsExistence godoc
 // @Summary      Verify and cache GR CMS member
 // @Description  Checks if a GR CMS member email is in the system and caches their profile for follow‑up.
-// @Tags         grcms
+// @Tags         user
 // @Accept       json
 // @Produce      json
 // @Param        request  body      requests.RegisterGrCms  true  "GR CMS register payload"
@@ -218,7 +215,7 @@ func VerifyGrExistence(c *gin.Context) {
 // @Failure      409      {object}  responses.ErrorResponse                      "Email already registered"
 // @Failure      500      {object}  responses.ErrorResponse               "Internal server error"
 // @Security     ApiKeyAuth
-// @Router       /gr-cms/verify [post]
+// @Router       /user/gr-cms [post]
 func VerifyGrCmsExistence(c *gin.Context) {
 	var req requests.RegisterGrCms
 
@@ -263,7 +260,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 // GetCachedGrCmsProfile godoc
 // @Summary      Get cached GR CMS profile
 // @Description  Retrieves a temporarily cached GR CMS profile by registration ID.
-// @Tags         grcms
+// @Tags         user
 // @Accept       json
 // @Produce      json
 // @Param        reg_id   path      string                  true  "Registration ID"
@@ -272,7 +269,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 // @Failure      409      {object}  responses.ErrorResponse                             "Cached profile not found"
 // @Failure      500      {object}  responses.ErrorResponse                   "Internal server error"
 // @Security     ApiKeyAuth
-// @Router       /gr-cms/{reg_id} [get]
+// @Router       /user/gr-reg/{reg_id} [get]
 func GetCachedGrCmsProfile(c *gin.Context) {
 
 	regId := c.Param("reg_id")

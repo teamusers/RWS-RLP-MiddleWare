@@ -27,8 +27,6 @@ const (
 	updateBurnPinURL       = "/api/v1/user/pin"
 )
 
-var ErrCondition = errors.New("condition not match")
-
 func GetAccessToken() (string, error) {
 	AppID := config.GetConfig().Api.Memberservice.AppID
 	secretKey := config.GetConfig().Api.Memberservice.Secret
@@ -104,49 +102,6 @@ func VerifyMemberExistence(email string, updateSessionToken bool) (*responses.Ap
 	return &userResp, nil
 }
 
-// GetUserByEmail first gets an access token, then calls the users endpoint using the token
-// to query a user by email. It returns a Login session token or an error.
-// func GetLoginUserByEmail(email string) (*responses.ApiResponse[model.LoginSessionToken], error) {
-// 	urlWithEmail := fmt.Sprintf("%s?updateSessionToken=true", BuildFullURL(userURL))
-
-// 	payload := requests.CreateUser{
-// 		Email: email,
-// 	}
-
-// 	resp, err := buildHttpClient("POST", urlWithEmail, payload)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	var userResp responses.ApiResponse[model.LoginSessionToken]
-// 	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
-// 		return nil, err
-// 	}
-// 	defer resp.Body.Close()
-
-// 	return &userResp, nil
-// }
-
-// func GetRegisterUserByEmail(email string) error {
-// 	urlWithParams := BuildFullURL(userURL)
-// 	payload := requests.CreateUser{
-// 		Email: email,
-// 	}
-
-// 	resp, err := buildHttpClient("POST", urlWithParams, payload)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer resp.Body.Close()
-
-// 	if resp.StatusCode == 201 {
-// 		return nil
-// 	}
-// 	body, _ := io.ReadAll(resp.Body)
-// 	return fmt.Errorf("error calling member services: status %d, response: %s", resp.StatusCode, string(body))
-// }
-
-// PostRegisterUser posts a JSON payload to register a user by combining email and signUpType in the URL.
 // TODO: update accordingly when member sevice endpoint updates
 func PostRegisterUser(payload requests.CreateUser) error {
 

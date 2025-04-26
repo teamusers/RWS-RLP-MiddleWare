@@ -2,8 +2,8 @@
 package services
 
 import (
+	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -15,15 +15,13 @@ import (
 
 // Endpoints
 const (
-	memberProfileURL = "/priv/v1/apps/:api_key/external/users/:external_id"
+	UpdateProfileURL = "/priv/v1/apps/:api_key/users"
+	ProfileURL       = "/priv/v1/apps/:api_key/external/users/:external_id"
 )
 
-var ErrRecordNotFound = errors.New("record not found")
-
-func Member(external_id string, payload any, operation string) (*responses.GetRlpMemberUserResponse, error) {
+func Profile(external_id string, payload any, operation string, endpoint string) (*responses.GetUserResponse, error) {
 	conf := config.GetConfig()
-	endpoint := memberProfileURL
-	endpoint = strings.ReplaceAll(endpoint, ":api_key", conf.Api.Rlp.AppID)
+	endpoint = strings.ReplaceAll(endpoint, ":api_key", conf.Api.Rlp.ApiKey)
 	endpoint = strings.ReplaceAll(endpoint, ":external_id", external_id)
 	urlWithParams := fmt.Sprintf("%s%s", conf.Api.Rlp.Host, endpoint)
 
@@ -44,11 +42,23 @@ func Member(external_id string, payload any, operation string) (*responses.GetRl
 		return nil, fmt.Errorf("error calling RLP services: received status code %d and response: %s", resp.StatusCode, string(body))
 	}
 
-	// Decode the response.
-	var Resp responses.GetRlpMemberUserResponse
-	if err := json.NewDecoder(resp.Body).Decode(&Resp); err != nil {
-		return nil, err
+	// on 200 OK, read & clean the body
+	raw, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	return &Resp, nil
+	// 1) strip UTF-8 BOM if present
+	raw = bytes.TrimPrefix(raw, []byte("\xef\xbb\xbf"))
+	// 2) replace any non-breaking space (U+00A0) with a normal space
+	raw = []byte(strings.ReplaceAll(string(raw), "\u00A0", " "))
+
+	// now unmarshal into your struct
+	var result responses.GetUserResponse
+	if err := json.Unmarshal(raw, &result); err != nil {
+		return nil, fmt.Errorf("failed to decode JSON: %w; cleaned body: %q", err, raw)
+	}
+
+	return &result, nil
 }

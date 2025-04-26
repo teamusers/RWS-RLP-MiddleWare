@@ -25,9 +25,9 @@ type RegisterSuccessResponse struct {
 
 type CreateSuccessResponse struct {
 	// in: body
-	Code    int64      `json:"code" example:"1000"`
-	Message string     `json:"message" example:"user created"`
-	Data    model.User `json:"data"`
+	Code    int64  `json:"code" example:"1000"`
+	Message string `json:"message" example:"user created"`
+	Data    User   `json:"data"`
 }
 
 type GrExistenceSuccessResponse struct {
@@ -53,16 +53,16 @@ type CachedGrCmsSuccessResponse struct {
 
 type GetUserSuccessResponse struct {
 	// in: body
-	Code    int64      `json:"code" example:"1002"`
-	Message string     `json:"message" example:"user found"`
-	Data    model.User `json:"data"`
+	Code    int64  `json:"code" example:"1002"`
+	Message string `json:"message" example:"user found"`
+	Data    User   `json:"data"`
 }
 
 type UpdateUserSuccessResponse struct {
 	// in: body
-	Code    int64      `json:"code" example:"1000"`
-	Message string     `json:"message" example:"update successful"`
-	Data    model.User `json:"data"`
+	Code    int64  `json:"code" example:"1000"`
+	Message string `json:"message" example:"update successful"`
+	Data    User   `json:"data"`
 }
 
 // ErrorResponse is the standard envelope for error responses.
