@@ -26,6 +26,11 @@ import (
 // @description | 4006   | invalid appid                 |
 // @description | 4007   | missing appid                 |
 // @description | 4008   | invalid query parameters      |
+// @description | 4009   | existing user not found       |
+// @description | 4010   | existing user found           |
+// @description | 4011   | cached profile not found      |
+// @description | 4012   | gr member linked              |
+// @description | 4013   | gr member not found           |
 // @description
 // @description </details>
 // @host            localhost:18080
