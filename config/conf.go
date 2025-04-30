@@ -240,6 +240,4 @@ func init() {
 	system.InitLogger(systemConfig.Log.Path)
 
 	_ = godotenv.Load()
-
-	system.Infof("initing default %s chain config", "Solana")
 }
