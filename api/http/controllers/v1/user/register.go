@@ -136,14 +136,14 @@ func CreateUser(c *gin.Context) {
 
 	//To DO - RLP | member service : get RLP information and link accordingly to member service
 	var req requests.CreateUser
-	req.User.ExternalID = user.Users.ExternalID
+	//req.User.ExternalID = user.Users.ExternalID
 	//req.User.ExternalTYPE = user.ExternalTYPE // Adjust if field names differ between the structs
 	req.User.Email = user.Users.Email
 	//req.User.BurnPin = user.BurnPin
 	req.User.GR_ID = "gr_id"         // To be update by rlp.gr_id
 	req.User.RLP_ID = rlpId.String() // To be update by RLP_ID
 	//req.User.RWS_Membership_ID = "rws_membership_id" // To be update by RLP_ID
-	req.User.RWS_Membership_Number = 123456 // To be rename & update by RLP_NO
+	req.User.RLP_NO = "70000000001" // To be rename & update by RLP_NO
 
 	//TO DO - Request member service update - different based on sign_up_type
 	errRegister := services.PostRegisterUser(req)

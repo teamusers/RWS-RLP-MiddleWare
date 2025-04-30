@@ -3,12 +3,6 @@ package requests
 // User represents the profile fields for creating or updating a user.
 // All fields are optional when updating—only non‑zero values will be applied.
 type User struct {
-	// ExternalID is the client system’s unique identifier for this user.
-	ExternalID string `json:"external_id" example:"abc123"`
-
-	// ExternalTYPE describes the type or source of the external ID.
-	ExternalTYPE string `json:"external_id_type" example:"EMAIL"`
-
 	// Email is the user’s email address.
 	Email string `json:"email" example:"user@example.com"`
 
@@ -25,13 +19,10 @@ type User struct {
 	GR_ID string `json:"gr_id" example:"GR12345"`
 
 	// RLP_ID is the RLP system identifier for the user.
-	RLP_ID string `json:"rlp_id" example:"RLP67890"`
+	RLP_ID string `json:"rlp_id" example:"20250430000001"`
 
 	// RWS_Membership_ID is the RWS membership ID assigned to this user.
-	RWS_Membership_ID string `json:"rws_membership_id" example:"RWS54321"`
-
-	// RWS_Membership_Number is the numeric membership number in the RWS system.
-	RWS_Membership_Number uint64 `json:"rws_membership_number" example:"987654"`
+	RLP_NO string `json:"rlp_no" example:"70000000001"`
 }
 
 // UpdateBurnPinRequest is the payload for updating a user’s burn PIN.
