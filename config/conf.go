@@ -44,6 +44,11 @@ type Config struct {
 			Host   string `yaml:"host"`
 			ApiKey string `yaml:"apikey"`
 		} `yaml:"rlp"`
+		Cms struct {
+			Host     string `yaml:"host"`
+			ApiKey   string `yaml:"apikey"`
+			SystemID string `yaml:"SystemID"`
+		} `yaml:"cms"`
 	} `yaml:"api"`
 }
 
