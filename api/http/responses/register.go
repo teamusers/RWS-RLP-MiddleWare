@@ -1,6 +1,8 @@
 package responses
 
-import "lbe/model"
+import (
+	"lbe/model"
+)
 
 // GetGrMemberResponse is returned after verifying a GR member’s existence and issuing an OTP.
 //
@@ -18,8 +20,8 @@ import "lbe/model"
 //	}
 type GetGrMemberResponseData struct {
 	// GrMember contains the GR profile fields.
-	model.GrMember
 
+	User *GRProfilePayload `json:"user"`
 	// Otp contains the one‑time password details.
 	model.Otp
 }

@@ -185,21 +185,22 @@ func VerifyGrExistence(c *gin.Context) {
 
 	// TO DO - verifyMemberExistence by gr_id and return error if found (GR_MEMBER_LINKED)
 
-	// TO DO - CMS: Request GR member info
+	cmsMember, err := services.GRMemberProfile(req.GrId, nil, "GET", services.GetMemberURL)
+	if err != nil {
+		// Log the error
+		log.Printf("Error while getting GR Member: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
 
 	// return response from CMS
 	// TODO: Fix
 	resp := responses.ApiResponse[responses.GetGrMemberResponseData]{
 		Code:    codes.SUCCESSFUL,
 		Message: "gr profile found",
-		Data: responses.GetGrMemberResponseData{
-			GrMember: model.GrMember{
-				GrId: &req.GrId,
-			},
-		},
+		Data:    responses.GetGrMemberResponseData{User: cmsMember, Otp: model.Otp{}},
 	}
 	c.JSON(http.StatusOK, resp)
-
 }
 
 // VerifyGrCmsExistence godoc

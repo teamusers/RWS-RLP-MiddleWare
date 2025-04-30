@@ -38,6 +38,10 @@ api:
   rlp:
     host : https://b4eb309d-db93-4378-a3ac-fee2470deb4a.mock.pstmn.io
     apikey : App123 
+  cms:
+    host : https://3d104014-8ed4-4199-9c6e-84af7f38ae27.mock.pstmn.io
+    apikey : App123 
+    SystemID: 1234
 
 allStart: 1
 proxyEnable : true
