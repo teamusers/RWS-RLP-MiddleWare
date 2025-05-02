@@ -52,3 +52,7 @@ smtp:
   user: rws.developer.user@gmail.com
   password: xezy owzk xrdu kjhe # Welc0me123$!
   from: rws.developer.user@gmail.com
+application:
+  rlpNumberingFormat:
+    maxAttempts: 5
+    rlpNoDefault: "70000000001"

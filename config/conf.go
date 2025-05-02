@@ -50,6 +50,12 @@ type Config struct {
 			SystemID string `yaml:"SystemID"`
 		} `yaml:"cms"`
 	} `yaml:"api"`
+	Application struct {
+		RLPNumberingFormat struct {
+			MaxAttempts  int    `yaml:"maxAttempts"`
+			RLPNODefault string `yaml:"rlpNoDefault"`
+		} `yaml:"rlpNumberingFormat"`
+	} `yaml:"application"`
 }
 
 // DatabaseConfig holds the database connection parameters.
