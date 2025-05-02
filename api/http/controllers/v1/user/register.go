@@ -13,6 +13,7 @@ import (
 	"lbe/config"
 	"lbe/model"
 	"lbe/system"
+	"lbe/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -118,9 +119,14 @@ func CreateUser(c *gin.Context) {
 
 	//TO DO - If sign_up_type = TM: request TM info and validate
 
-	//TO DO - Update RLP_ID generation logic - yymmdd0000001 - 13 Digit
-	//To Do - Update RLP_No generation logic - 70000000001 - 11 Digit
-	rlpId := uuid.New() // To to remove
+	newRlpNumbering, newRlpNumberingErr := utils.GenerateNextRLPUserNumberingWithRetry()
+	if newRlpNumberingErr != nil {
+		log.Printf("Post Register User failed: %v", newRlpNumberingErr)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
+
+	fmt.Println(newRlpNumbering)
 
 	//TO DO - Add member tier matching logic
 
@@ -140,10 +146,9 @@ func CreateUser(c *gin.Context) {
 	//req.User.ExternalTYPE = user.ExternalTYPE // Adjust if field names differ between the structs
 	req.User.Email = user.Users.Email
 	//req.User.BurnPin = user.BurnPin
-	req.User.GR_ID = "gr_id"         // To be update by rlp.gr_id
-	req.User.RLP_ID = rlpId.String() // To be update by RLP_ID
-	//req.User.RWS_Membership_ID = "rws_membership_id" // To be update by RLP_ID
-	req.User.RLP_NO = "70000000001" // To be rename & update by RLP_NO
+	req.User.GR_ID = "gr_id"                 // To be update by rlp.gr_id
+	req.User.RLP_ID = newRlpNumbering.RLP_ID // To be update by RLP_ID
+	req.User.RLP_NO = newRlpNumbering.RLP_NO // To be rename & update by RLP_NO
 
 	//TO DO - Request member service update - different based on sign_up_type
 	errRegister := services.PostRegisterUser(req)
