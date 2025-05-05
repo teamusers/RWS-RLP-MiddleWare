@@ -370,14 +370,17 @@ func GrTierMatching(grClass string) (string, error) {
 
 	classLevel, _ := strconv.Atoi(parts[1])
 
-	if classLevel == 2 {
+	if classLevel < 1 {
+		return "", fmt.Errorf("invalid gr class format")
+	}
+
+	if classLevel == 1 {
+		return "", nil // if class level 1, return empty for Tier A
+	} else if classLevel == 2 {
 		return "Tier B", nil
 	} else if classLevel >= 3 && classLevel <= 5 {
 		return "Tier C", nil
-	} else if classLevel >= 6 && classLevel <= 7 {
+	} else {
 		return "Tier D", nil
 	}
-
-	// if class level 1, return empty for Tier A
-	return "", nil
 }
