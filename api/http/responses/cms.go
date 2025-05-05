@@ -1,6 +1,7 @@
 package responses
 
 import (
+	"lbe/model"
 	"time"
 )
 
@@ -38,4 +39,16 @@ type GRProfilePayload struct {
 	BusinessNatureCategoryID             int64     `json:"BusinessNatureCategoryID"`
 	BusinessNatureDetails                string    `json:"BusinessNatureDetails"`
 	AnnualIncomeRangeCategoryID          int64     `json:"AnnualIncomeRangeCategoryID"`
+}
+
+func (g *GRProfilePayload) MapCmsToLbeGrProfile() model.GrProfile {
+	return model.GrProfile{
+		Id:          g.MemberNo,
+		Class:       g.MemberClassCode,
+		FirstName:   g.FirstName,
+		LastName:    g.LastName,
+		Email:       g.EmailAddress,
+		DateOfBirth: model.Date(g.DateOfBirth),
+		//TODO: Add mobile code and number
+	}
 }

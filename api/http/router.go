@@ -16,10 +16,14 @@ func Routers(e *gin.RouterGroup) {
 	usersGroup := v1Group.Group("/user", interceptor.HttpInterceptor())
 	{
 		// The endpoints below will all require a valid access token.
+		//POST - LBE-2 - api/v1/user/login - user login
 		usersGroup.POST("/login", user.Login)
+		//POST - LBE-3 - api/v1/user/register/verify - verify if user email is new and unregistered
 		usersGroup.POST("/register/verify", user.VerifyUserExistence)
+		//POST - LBE-4 - api/v1/user/register - register user based on provided fields
 		usersGroup.POST("/register", user.CreateUser)
 
+		//GET - LBE-9 - api/v1/user/:external_id - get user profile from rlp
 		usersGroup.GET("/:external_id", user.GetUserProfile)
 		usersGroup.PUT("/pin", user.UpdateBurnPin)
 		usersGroup.PUT("/update/:external_id", user.UpdateUserProfile)

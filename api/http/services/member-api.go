@@ -103,7 +103,7 @@ func VerifyMemberExistence(email string, updateSessionToken bool) (*responses.Ap
 }
 
 // TODO: update accordingly when member sevice endpoint updates
-func PostRegisterUser(payload requests.CreateUser) error {
+func PostRegisterUser(payload requests.CreateMemberUser) error {
 
 	_, err := buildMemberHttpClient("POST", BuildFullURL(registerURL), payload)
 	if err != nil {

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"lbe/api/http/requests"
@@ -109,49 +111,83 @@ func VerifyUserExistence(c *gin.Context) {
 // @Security     ApiKeyAuth
 // @Router       /user/register [post]
 func CreateUser(c *gin.Context) {
-	var user requests.RegisterUser
+	var req requests.RegisterUser
 	// Bind the incoming JSON payload to the user struct.
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		fmt.Println("BindJSON error:", err)
 		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
 		return
 	}
 
-	//TO DO - If sign_up_type = TM: request TM info and validate
+	switch req.SignUpType {
+	case "NEW": // No action for now
+	case "GR-CMS":
+		cachedProfile, err := system.ObjectGet(strconv.Itoa(req.RegId), &model.GrProfile{})
+		if err != nil {
+			log.Printf("error getting cache value: %v", err)
+			c.JSON(http.StatusConflict, responses.ApiResponse[any]{
+				Code:    codes.CACHED_PROFILE_NOT_FOUND,
+				Message: "cached profile not found",
+			})
+			return
+		}
+
+		req.User = cachedProfile.MapGrProfileToLbeUser()
+
+		// match tier (assuming "Class X" format)
+		assignTier(&req.User, cachedProfile.Class, c)
+
+	case "GR":
+		req.User = req.GrProfile.MapGrProfileToLbeUser()
+
+		// match tier (assuming "Class X" format)
+		assignTier(&req.User, req.GrProfile.Class, c)
+
+	case "TM":
+		// TODO: Request and Validate TM info
+
+		// match tier
+		req.User.Tier = "Tier M"
+
+	default:
+		c.JSON(http.StatusBadRequest, responses.ApiResponse[any]{
+			Code:    codes.INVALID_REQUEST_BODY,
+			Message: "invalid sign_up_type",
+		})
+		return
+	}
 
 	newRlpNumbering, newRlpNumberingErr := utils.GenerateNextRLPUserNumberingWithRetry()
 	if newRlpNumberingErr != nil {
-		log.Printf("Post Register User failed: %v", newRlpNumberingErr)
+		log.Printf("Generate RLP User Number failed: %v", newRlpNumberingErr)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
-	fmt.Println(newRlpNumbering)
-
-	//TO DO - Add member tier matching logic
+	log.Printf("RLP User Number generated: %v", newRlpNumbering)
 
 	//To DO - RLP : Test Actual RLP End Points
-	profileResp, err := services.Profile("", user, "POST", services.UpdateProfileURL)
+	profileResp, err := services.Profile("", req.User.MapLbeToRlpUser(newRlpNumbering.RLP_ID), "PUT", services.ProfileURL)
 	if err != nil {
 		// Log the error
-		log.Printf("Post Register User failed: %v", err)
+		log.Printf("RLP Register User failed: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
-	//TO DO - (If member tier > basic && sign_up_type = GR) or (sign_up_type == TM)L request user tier update (TM = tier M)
 
-	//To DO - RLP | member service : get RLP information and link accordingly to member service
-	var req requests.CreateUser
-	//req.User.ExternalID = user.Users.ExternalID
-	//req.User.ExternalTYPE = user.ExternalTYPE // Adjust if field names differ between the structs
-	req.User.Email = user.Users.Email
-	//req.User.BurnPin = user.BurnPin
-	req.User.GR_ID = "gr_id"                 // To be update by rlp.gr_id
-	req.User.RLP_ID = newRlpNumbering.RLP_ID // To be update by RLP_ID
-	req.User.RLP_NO = newRlpNumbering.RLP_NO // To be rename & update by RLP_NO
+	//TO DO - RLP: Request User Tier update
+	if req.User.Tier != "" {
+		// call rlp
+	}
 
-	//TO DO - Request member service update - different based on sign_up_type
-	errRegister := services.PostRegisterUser(req)
+	// Request member service update
+	var memberReq requests.CreateMemberUser
+	memberReq.User.Email = req.User.Email
+	memberReq.User.RLP_ID = newRlpNumbering.RLP_ID
+	memberReq.User.RLP_NO = newRlpNumbering.RLP_NO
+	memberReq.User.GR_ID = req.GrProfile.Id
+
+	errRegister := services.PostRegisterUser(memberReq)
 	if errRegister != nil {
 		// Log the error
 		log.Printf("Post Register User failed: %v", err)
@@ -159,12 +195,19 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	resp := responses.ApiResponse[*responses.GetUserResponse]{
+	resp := responses.ApiResponse[responses.CreateUserResponseData]{
 		Code:    codes.SUCCESSFUL,
 		Message: "user created",
-		Data:    profileResp,
+		Data: responses.CreateUserResponseData{
+			User: profileResp.User.MapRlpToLbeUser(),
+		},
 	}
 	c.JSON(http.StatusCreated, resp)
+
+	// purge regId cache if used
+	if req.SignUpType == "GR-CMS" { //TODO: Make into enum
+		system.ObjectDelete(strconv.Itoa(req.RegId))
+	}
 }
 
 // VerifyGrExistence godoc
@@ -173,7 +216,7 @@ func CreateUser(c *gin.Context) {
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        request  body      requests.RegisterGr   true  "GR registration check payload"
+// @Param        request  body      requests.VerifyGrUser   true  "GR registration check payload"
 // @Success      200      {object}  responses.GrExistenceSuccessResponse  "GR member found"
 // @Failure      400      {object}  responses.ErrorResponse                     "Invalid JSON request body"
 // @Failure      401      {object}  responses.ErrorResponse                                       "Unauthorized – API key missing or invalid"
@@ -181,7 +224,7 @@ func CreateUser(c *gin.Context) {
 // @Security     ApiKeyAuth
 // @Router       /user/gr [post]
 func VerifyGrExistence(c *gin.Context) {
-	var req requests.RegisterGr
+	var req requests.VerifyGrUser
 
 	// Bind the incoming JSON payload.
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -191,7 +234,7 @@ func VerifyGrExistence(c *gin.Context) {
 
 	// TO DO - verifyMemberExistence by gr_id and return error if found (GR_MEMBER_LINKED)
 
-	cmsMember, err := services.GRMemberProfile(req.GrId, nil, "GET", services.GetMemberURL)
+	cmsMember, err := services.GRMemberProfile(req.GrProfile.Id, nil, "GET", services.GetMemberURL)
 	if err != nil {
 		// Log the error
 		log.Printf("Error while getting GR Member: %v", err)
@@ -200,11 +243,10 @@ func VerifyGrExistence(c *gin.Context) {
 	}
 
 	// return response from CMS
-	// TODO: Fix
-	resp := responses.ApiResponse[responses.GetGrMemberResponseData]{
+	resp := responses.ApiResponse[responses.VerifyGrUserResponseData]{
 		Code:    codes.SUCCESSFUL,
 		Message: "gr profile found",
-		Data:    responses.GetGrMemberResponseData{User: cmsMember, Otp: model.Otp{}},
+		Data:    responses.VerifyGrUserResponseData{GrProfile: cmsMember.MapCmsToLbeGrProfile(), Otp: model.Otp{}},
 	}
 	c.JSON(http.StatusOK, resp)
 }
@@ -215,7 +257,7 @@ func VerifyGrExistence(c *gin.Context) {
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        request  body      requests.RegisterGrCms  true  "GR CMS register payload"
+// @Param        request  body      requests.VerifyGrCmsUser  true  "GR CMS register payload"
 // @Success      200      {object}  responses.GrCmsExistenceSuccessResponse{}          "Email not found; profile cached"
 // @Failure      400      {object}  responses.ErrorResponse  "Invalid JSON request body"
 // @Failure      401      {object}  responses.ErrorResponse                      "Unauthorized – API key missing or invalid"
@@ -224,7 +266,7 @@ func VerifyGrExistence(c *gin.Context) {
 // @Security     ApiKeyAuth
 // @Router       /user/gr-cms [post]
 func VerifyGrCmsExistence(c *gin.Context) {
-	var req requests.RegisterGrCms
+	var req requests.VerifyGrCmsUser
 
 	// Bind the incoming JSON payload.
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -232,7 +274,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 		return
 	}
 
-	respData, err := services.VerifyMemberExistence(*req.GrMember.Email, false)
+	respData, err := services.VerifyMemberExistence(req.GrProfile.Email, false)
 	if err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
@@ -245,7 +287,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 
 		// TO DO - cache gr member info within expiry timestamp and generate reg_id
 		regId := uuid.New()
-		system.ObjectSet(regId.String(), req.GrMember, 30*time.Minute)
+		system.ObjectSet(regId.String(), req.GrProfile, 30*time.Minute)
 
 		// TO DO - send registration email with url and reg_id
 
@@ -285,7 +327,7 @@ func GetCachedGrCmsProfile(c *gin.Context) {
 		return
 	}
 
-	cachedGrCmsProfile, err := system.ObjectGet(regId, &model.GrMember{})
+	cachedGrCmsProfile, err := system.ObjectGet(regId, &model.GrProfile{})
 	if err != nil {
 		log.Printf("error getting cache value: %v", err)
 		resp := responses.ApiResponse[any]{
@@ -296,14 +338,46 @@ func GetCachedGrCmsProfile(c *gin.Context) {
 		return
 	}
 
-	// return cached profile
-	resp := responses.ApiResponse[model.GrMember]{
+	// return dob from cached profile
+	resp := responses.ApiResponse[responses.VerifyGrCmsUserResponseData]{
 		Code:    codes.SUCCESSFUL,
 		Message: "cached profile found",
-		Data:    *cachedGrCmsProfile,
+		Data: responses.VerifyGrCmsUserResponseData{
+			RegId: regId,
+			GrProfile: model.GrProfile{
+				DateOfBirth: cachedGrCmsProfile.DateOfBirth,
+			},
+		},
 	}
 	c.JSON(http.StatusOK, resp)
+}
 
-	// delete cached data since value found
-	system.ObjectDelete(regId)
+func assignTier(user *model.User, class string, c *gin.Context) {
+	tier, err := GrTierMatching(class)
+	if err != nil {
+		log.Printf("error matching gr class to member tier: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
+	user.Tier = tier
+}
+
+func GrTierMatching(grClass string) (string, error) {
+	parts := strings.Fields(grClass) // splits by whitespace
+	if len(parts) != 2 {
+		return "", fmt.Errorf("invalid gr class format")
+	}
+
+	classLevel, _ := strconv.Atoi(parts[1])
+
+	if classLevel == 2 {
+		return "Tier B", nil
+	} else if classLevel >= 3 && classLevel <= 5 {
+		return "Tier C", nil
+	} else if classLevel >= 6 && classLevel <= 7 {
+		return "Tier D", nil
+	}
+
+	// if class level 1, return empty for Tier A
+	return "", nil
 }

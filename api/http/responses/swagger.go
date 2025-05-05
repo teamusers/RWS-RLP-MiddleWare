@@ -25,44 +25,44 @@ type RegisterSuccessResponse struct {
 
 type CreateSuccessResponse struct {
 	// in: body
-	Code    int64  `json:"code" example:"1000"`
-	Message string `json:"message" example:"user created"`
-	Data    User   `json:"data"`
+	Code    int64      `json:"code" example:"1000"`
+	Message string     `json:"message" example:"user created"`
+	Data    model.User `json:"data"`
 }
 
 type GrExistenceSuccessResponse struct {
 	// in: body
-	Code    int64          `json:"code" example:"1000"`
-	Message string         `json:"message" example:"successful"`
-	Data    model.GrMember `json:"data"`
+	Code    int64           `json:"code" example:"1000"`
+	Message string          `json:"message" example:"successful"`
+	Data    model.GrProfile `json:"data"`
 }
 
 type GrCmsExistenceSuccessResponse struct {
 	// in: body
-	Code    int64          `json:"code" example:"1003"`
-	Message string         `json:"message" example:"email not found"`
-	Data    model.GrMember `json:"data"`
+	Code    int64           `json:"code" example:"1003"`
+	Message string          `json:"message" example:"email not found"`
+	Data    model.GrProfile `json:"data"`
 }
 
 type CachedGrCmsSuccessResponse struct {
 	// in: body
-	Code    int64          `json:"code" example:"1002"`
-	Message string         `json:"message" example:"cached profile found"`
-	Data    model.GrMember `json:"data"`
+	Code    int64           `json:"code" example:"1002"`
+	Message string          `json:"message" example:"cached profile found"`
+	Data    model.GrProfile `json:"data"`
 }
 
 type GetUserSuccessResponse struct {
 	// in: body
-	Code    int64  `json:"code" example:"1002"`
-	Message string `json:"message" example:"user found"`
-	Data    User   `json:"data"`
+	Code    int64      `json:"code" example:"1002"`
+	Message string     `json:"message" example:"user found"`
+	Data    model.User `json:"data"`
 }
 
 type UpdateUserSuccessResponse struct {
 	// in: body
-	Code    int64  `json:"code" example:"1000"`
-	Message string `json:"message" example:"update successful"`
-	Data    User   `json:"data"`
+	Code    int64      `json:"code" example:"1000"`
+	Message string     `json:"message" example:"update successful"`
+	Data    model.User `json:"data"`
 }
 
 // ErrorResponse is the standard envelope for error responses.

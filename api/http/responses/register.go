@@ -18,10 +18,18 @@ import (
 //	  "otp": "654321",
 //	  "otp_expiry": 1744176000
 //	}
-type GetGrMemberResponseData struct {
-	// GrMember contains the GR profile fields.
-
-	User *GRProfilePayload `json:"user"`
+type VerifyGrUserResponseData struct {
+	// GrProfile contains the GR profile fields.
+	GrProfile model.GrProfile `json:"gr_profile"`
 	// Otp contains the one‑time password details.
 	model.Otp
+}
+
+type VerifyGrCmsUserResponseData struct {
+	RegId string `json:"reg_id"`
+	model.GrProfile
+}
+
+type CreateUserResponseData struct {
+	User model.User `json:"user"`
 }
