@@ -100,7 +100,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.RegisterGr"
+                            "$ref": "#/definitions/requests.VerifyGrUser"
                         }
                     }
                 ],
@@ -157,7 +157,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.RegisterGrCms"
+                            "$ref": "#/definitions/requests.VerifyGrCmsUser"
                         }
                     }
                 ],
@@ -522,7 +522,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.UserRequest"
+                            "$ref": "#/definitions/model.User"
                         }
                     }
                 ],
@@ -623,38 +623,68 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "model.GrMember": {
+        "model.GrProfile": {
             "type": "object",
             "properties": {
-                "dob": {
-                    "description": "Dob is the date of birth in YYYY-MM-DD format.",
+                "class": {
+                    "description": "User’s membership class\nexample: premium",
                     "type": "string",
-                    "example": "1985-04-12"
+                    "example": "premium"
+                },
+                "dob": {
+                    "description": "Date of birth (YYYY-MM-DD)\nexample: 1985-07-20",
+                    "type": "string",
+                    "example": "1985-07-20"
                 },
                 "email": {
-                    "description": "Email is the member's email address.",
+                    "description": "User’s email address\nexample: alice.smith@example.com",
                     "type": "string",
-                    "example": "jane.doe@example.com"
+                    "example": "alice.smith@example.com"
                 },
-                "f_name": {
-                    "description": "FirstName is the given name of the GR member.",
+                "first_name": {
+                    "description": "User’s first name\nexample: Alice",
                     "type": "string",
-                    "example": "Jane"
+                    "example": "Alice"
                 },
-                "gr_id": {
-                    "description": "GrId is the unique GR member identifier.",
+                "id": {
+                    "description": "Unique identifier for the profile\nexample: 123e4567-e89b-12d3-a456-426614174000",
                     "type": "string",
-                    "example": "GR12345"
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
                 },
-                "l_name": {
-                    "description": "LastName is the family name of the GR member.",
+                "last_name": {
+                    "description": "User’s last name\nexample: Smith",
                     "type": "string",
-                    "example": "Doe"
+                    "example": "Smith"
                 },
-                "mobile": {
-                    "description": "Mobile is the contact phone number.",
+                "mobile_code": {
+                    "description": "Country dialing code\nexample: 65",
+                    "type": "integer",
+                    "example": 65
+                },
+                "mobile_number": {
+                    "description": "Local mobile number\nexample: 91234567",
+                    "type": "integer",
+                    "example": 91234567
+                },
+                "pin": {
+                    "description": "Four-digit PIN for quick auth\nexample: 1234",
                     "type": "string",
-                    "example": "98765432"
+                    "example": "1234"
+                }
+            }
+        },
+        "model.Identifier": {
+            "type": "object",
+            "properties": {
+                "external_id": {
+                    "description": "The external identifier value\nexample: ABC123",
+                    "type": "string",
+                    "example": "ABC123"
+                },
+                "external_id_type": {
+                    "description": "Type of the external identifier\nexample: loyalty",
+                    "type": "string",
+                    "example": "loyalty"
                 }
             }
         },
@@ -670,6 +700,126 @@ const docTemplate = `{
                     "description": "OtpExpiry is the Unix timestamp (seconds since epoch) when the OTP expires.\nexample: 1744176000",
                     "type": "integer",
                     "example": 1744176000
+                }
+            }
+        },
+        "model.User": {
+            "type": "object",
+            "properties": {
+                "available_points": {
+                    "description": "Loyalty points available\nexample: 1200",
+                    "type": "integer",
+                    "example": 1200
+                },
+                "country": {
+                    "description": "ISO 3166-1 alpha-2 country code\nexample: SG",
+                    "type": "string",
+                    "example": "SG"
+                },
+                "created_at": {
+                    "description": "Timestamp when the record was created (RFC3339)\nexample: 2025-04-01T08:30:00Z",
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "dob": {
+                    "description": "Date of birth in YYYY-MM-DD\nexample: 1990-05-15",
+                    "type": "string",
+                    "example": "1990-05-15"
+                },
+                "email": {
+                    "description": "Email address of the user\nexample: john.doe@example.com",
+                    "type": "string",
+                    "example": "john.doe@example.com"
+                },
+                "first_name": {
+                    "description": "User's first name\nexample: John",
+                    "type": "string",
+                    "example": "John"
+                },
+                "identifiers": {
+                    "description": "List of external identifiers for the user\nexample: [{\"external_id\":\"ABC123\",\"external_id_type\":\"loyalty\"}]",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Identifier"
+                    }
+                },
+                "last_name": {
+                    "description": "User's last name\nexample: Doe",
+                    "type": "string",
+                    "example": "Doe"
+                },
+                "mobile_code": {
+                    "description": "Country dialing code\nexample: 1",
+                    "type": "integer",
+                    "example": 1
+                },
+                "mobile_number": {
+                    "description": "Mobile phone number\nexample: 98765432",
+                    "type": "integer",
+                    "example": 98765432
+                },
+                "registered_at": {
+                    "description": "Timestamp when the user registered\nexample: 2025-04-01T08:30:00Z",
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "suspended": {
+                    "description": "Whether the account is suspended\nexample: false",
+                    "type": "boolean",
+                    "example": false
+                },
+                "tier": {
+                    "description": "Loyalty tier name\nexample: gold",
+                    "type": "string",
+                    "example": "gold"
+                },
+                "updated_at": {
+                    "description": "Timestamp of last update\nexample: 2025-05-05T14:00:00Z",
+                    "type": "string",
+                    "example": "2006-01-02 15:04:05"
+                },
+                "user_profile": {
+                    "description": "Additional profile details",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.UserProfile"
+                        }
+                    ]
+                }
+            }
+        },
+        "model.UserProfile": {
+            "type": "object",
+            "properties": {
+                "active_status": {
+                    "description": "Active status code (e.g., 1=active, 0=inactive)\nexample: 1",
+                    "type": "integer",
+                    "example": 1
+                },
+                "language": {
+                    "description": "Preferred language (ISO 639-1)\nexample: en",
+                    "type": "string",
+                    "example": "en"
+                },
+                "market_pref_email": {
+                    "description": "Whether the user opts in to email marketing\nexample: false",
+                    "type": "boolean",
+                    "example": false
+                },
+                "market_pref_mobile": {
+                    "description": "Whether the user opts in to SMS/mobile marketing\nexample: true",
+                    "type": "boolean",
+                    "example": true
+                },
+                "market_pref_push": {
+                    "description": "Whether the user opts in to push notifications\nexample: true",
+                    "type": "boolean",
+                    "example": true
+                },
+                "previous_email": {
+                    "description": "Previously used email\nexample: john.old@example.com",
+                    "type": "string",
+                    "example": "john.old@example.com"
                 }
             }
         },
@@ -711,112 +861,22 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.PhoneNumber": {
-            "type": "object",
-            "properties": {
-                "phone_number": {
-                    "description": "Phone number (digits only)",
-                    "type": "string",
-                    "example": "1234123123"
-                },
-                "phone_type": {
-                    "description": "Type of phone number: mobile, office, home, fax, other",
-                    "type": "string",
-                    "example": "home"
-                },
-                "preference_flags": {
-                    "description": "Flags like \"primary\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "[\"primary\"]"
-                    ]
-                }
-            }
-        },
-        "requests.Referral": {
-            "type": "object",
-            "properties": {
-                "referral_code": {
-                    "description": "Code of the referring customer",
-                    "type": "string",
-                    "example": "JOHN-70A756"
-                }
-            }
-        },
-        "requests.RegisterGr": {
-            "type": "object",
-            "required": [
-                "gr_id",
-                "gr_pin"
-            ],
-            "properties": {
-                "gr_id": {
-                    "description": "GR system identifier for the member.",
-                    "type": "string",
-                    "example": "GR12345"
-                },
-                "gr_pin": {
-                    "description": "PIN code associated with the GR member.",
-                    "type": "string",
-                    "example": "9876"
-                }
-            }
-        },
-        "requests.RegisterGrCms": {
-            "type": "object",
-            "required": [
-                "url"
-            ],
-            "properties": {
-                "dob": {
-                    "description": "Dob is the date of birth in YYYY-MM-DD format.",
-                    "type": "string",
-                    "example": "1985-04-12"
-                },
-                "email": {
-                    "description": "Email is the member's email address.",
-                    "type": "string",
-                    "example": "jane.doe@example.com"
-                },
-                "f_name": {
-                    "description": "FirstName is the given name of the GR member.",
-                    "type": "string",
-                    "example": "Jane"
-                },
-                "gr_id": {
-                    "description": "GrId is the unique GR member identifier.",
-                    "type": "string",
-                    "example": "GR12345"
-                },
-                "l_name": {
-                    "description": "LastName is the family name of the GR member.",
-                    "type": "string",
-                    "example": "Doe"
-                },
-                "mobile": {
-                    "description": "Mobile is the contact phone number.",
-                    "type": "string",
-                    "example": "98765432"
-                },
-                "url": {
-                    "description": "URL to send the registration confirmation link to.",
-                    "type": "string",
-                    "example": "https://example.com/confirm?reg_id=abc123"
-                }
-            }
-        },
         "requests.RegisterUser": {
             "type": "object",
             "properties": {
+                "gr_profile": {
+                    "$ref": "#/definitions/model.GrProfile"
+                },
+                "reg_id": {
+                    "type": "integer",
+                    "example": 123456
+                },
                 "sign_up_type": {
                     "type": "string",
                     "example": "NEW"
                 },
-                "users": {
-                    "$ref": "#/definitions/requests.UserRequest"
+                "user": {
+                    "$ref": "#/definitions/model.User"
                 }
             }
         },
@@ -839,103 +899,25 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.UserRequest": {
+        "requests.VerifyGrCmsUser": {
             "type": "object",
+            "required": [
+                "gr_profile"
+            ],
             "properties": {
-                "address": {
-                    "description": "Address line 1",
-                    "type": "string",
-                    "example": "7 Tremont Street"
-                },
-                "address2": {
-                    "description": "Address line 2",
-                    "type": "string",
-                    "example": "8 Tremont Street"
-                },
-                "city": {
-                    "description": "City of residence",
-                    "type": "string",
-                    "example": "Boston"
-                },
-                "country": {
-                    "description": "3-letter ISO-3166-1 country code",
-                    "type": "string",
-                    "example": "USA"
-                },
-                "dob": {
-                    "description": "Date of birth, YYYY-MM-DD",
-                    "type": "string",
-                    "example": "1980-01-01"
-                },
-                "email": {
-                    "description": "Customer’s email (encrypted at rest). Required if ExternalID is not specified.",
-                    "type": "string",
-                    "example": "john.smith@test.com"
-                },
-                "external_id": {
-                    "description": "Identifier for customer in external system.\nRequired if Email is not specified.",
-                    "type": "string",
-                    "example": "1284111"
-                },
-                "external_id_type": {
-                    "description": "Type associated with external identifier.",
-                    "type": "string",
-                    "example": "facebook"
-                },
-                "first_name": {
-                    "description": "First name",
-                    "type": "string",
-                    "example": "John"
-                },
-                "gender": {
-                    "description": "Gender of customer: m or f",
-                    "type": "string",
-                    "example": "m"
-                },
-                "ip": {
-                    "description": "Customer’s IP at registration.",
-                    "type": "string",
-                    "example": "203.0.113.42"
-                },
-                "last_name": {
-                    "description": "Last name (surname)",
-                    "type": "string",
-                    "example": "Smith"
-                },
-                "locale": {
-                    "description": "Preferred locale, e.g. en-US",
-                    "type": "string",
-                    "example": "en-US"
-                },
-                "opted_in": {
-                    "description": "Indicates opt-in to loyalty program (defaults to true if not set).",
-                    "type": "boolean",
-                    "example": true
-                },
-                "phone_numbers": {
-                    "description": "Phone numbers associated with customer",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/requests.PhoneNumber"
-                    }
-                },
-                "referral": {
-                    "description": "Referral info when signing up with a referrer code",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/requests.Referral"
-                        }
-                    ]
-                },
-                "state": {
-                    "description": "State/province/region",
-                    "type": "string",
-                    "example": "MA"
-                },
-                "zip": {
-                    "description": "Zip or postal code",
-                    "type": "string",
-                    "example": "02021"
+                "gr_profile": {
+                    "$ref": "#/definitions/model.GrProfile"
+                }
+            }
+        },
+        "requests.VerifyGrUser": {
+            "type": "object",
+            "required": [
+                "gr_profile"
+            ],
+            "properties": {
+                "gr_profile": {
+                    "$ref": "#/definitions/model.GrProfile"
                 }
             }
         },
@@ -988,7 +970,7 @@ const docTemplate = `{
                     "example": 1002
                 },
                 "data": {
-                    "$ref": "#/definitions/model.GrMember"
+                    "$ref": "#/definitions/model.GrProfile"
                 },
                 "message": {
                     "type": "string",
@@ -1005,7 +987,7 @@ const docTemplate = `{
                     "example": 1000
                 },
                 "data": {
-                    "$ref": "#/definitions/responses.User"
+                    "$ref": "#/definitions/model.User"
                 },
                 "message": {
                     "type": "string",
@@ -1039,7 +1021,7 @@ const docTemplate = `{
                     "example": 1002
                 },
                 "data": {
-                    "$ref": "#/definitions/responses.User"
+                    "$ref": "#/definitions/model.User"
                 },
                 "message": {
                     "type": "string",
@@ -1056,7 +1038,7 @@ const docTemplate = `{
                     "example": 1003
                 },
                 "data": {
-                    "$ref": "#/definitions/model.GrMember"
+                    "$ref": "#/definitions/model.GrProfile"
                 },
                 "message": {
                     "type": "string",
@@ -1073,22 +1055,11 @@ const docTemplate = `{
                     "example": 1000
                 },
                 "data": {
-                    "$ref": "#/definitions/model.GrMember"
+                    "$ref": "#/definitions/model.GrProfile"
                 },
                 "message": {
                     "type": "string",
                     "example": "successful"
-                }
-            }
-        },
-        "responses.Identifier": {
-            "type": "object",
-            "properties": {
-                "external_id": {
-                    "type": "string"
-                },
-                "external_id_type": {
-                    "type": "string"
                 }
             }
         },
@@ -1134,26 +1105,6 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.PhoneNumber": {
-            "type": "object",
-            "properties": {
-                "phone_number": {
-                    "type": "string"
-                },
-                "phone_type": {
-                    "type": "string"
-                },
-                "preference_flags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "verified_ownership": {
-                    "type": "boolean"
-                }
-            }
-        },
         "responses.RegisterSuccessResponse": {
             "type": "object",
             "properties": {
@@ -1180,107 +1131,11 @@ const docTemplate = `{
                     "example": 1000
                 },
                 "data": {
-                    "$ref": "#/definitions/responses.User"
+                    "$ref": "#/definitions/model.User"
                 },
                 "message": {
                     "type": "string",
                     "example": "update successful"
-                }
-            }
-        },
-        "responses.User": {
-            "type": "object",
-            "properties": {
-                "account_status": {
-                    "type": "string"
-                },
-                "address": {
-                    "type": "string"
-                },
-                "address2": {
-                    "type": "string"
-                },
-                "auth_token": {
-                    "type": "string"
-                },
-                "available_points": {
-                    "type": "integer"
-                },
-                "city": {
-                    "type": "string"
-                },
-                "country": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "format: \"2006-01-02 15:04:05\"",
-                    "type": "string"
-                },
-                "dob": {
-                    "description": "format: \"2006-01-02\"",
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "external_id": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "gender": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "identifiers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/responses.Identifier"
-                    }
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "opted_in": {
-                    "type": "boolean"
-                },
-                "phone_numbers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/responses.PhoneNumber"
-                    }
-                },
-                "proxy_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "referrer_code": {
-                    "type": "string"
-                },
-                "registered_at": {
-                    "description": "same format as CreatedAt",
-                    "type": "string"
-                },
-                "state": {
-                    "type": "string"
-                },
-                "suspended": {
-                    "type": "boolean"
-                },
-                "tier": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "same format as CreatedAt",
-                    "type": "string"
-                },
-                "zip": {
-                    "type": "string"
                 }
             }
         }
@@ -1302,7 +1157,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "LBE API",
-	Description:      "Endpoints for authentication, login and register\n\n<details open>\n<summary><a href=\"javascript:void(0)\" style=\"cursor: pointer !important;\">📋\u00a0Message Codes</a></summary>\n\n| Code   | Description                   |\n| ------ | ------------------------------|\n| 1000   | successful                    |\n| 1001   | unsuccessful                  |\n| 1002   | found                         |\n| 1003   | not found                     |\n| 4000   | internal error                |\n| 4001   | invalid request body          |\n| 4002   | invalid authentication token  |\n| 4003   | missing authentication token  |\n| 4004   | invalid signature             |\n| 4005   | missing signature             |\n| 4006   | invalid appid                 |\n| 4007   | missing appid                 |\n| 4008   | invalid query parameters      |\n\n</details>",
+	Description:      "Endpoints for authentication, login and register\n\n<details open>\n<summary><a href=\"javascript:void(0)\" style=\"cursor: pointer !important;\">📋\u00a0Message Codes</a></summary>\n\n| Code   | Description                   |\n| ------ | ------------------------------|\n| 1000   | successful                    |\n| 1001   | unsuccessful                  |\n| 1002   | found                         |\n| 1003   | not found                     |\n| 4000   | internal error                |\n| 4001   | invalid request body          |\n| 4002   | invalid authentication token  |\n| 4003   | missing authentication token  |\n| 4004   | invalid signature             |\n| 4005   | missing signature             |\n| 4006   | invalid appid                 |\n| 4007   | missing appid                 |\n| 4008   | invalid query parameters      |\n| 4009   | existing user not found       |\n| 4010   | existing user found           |\n| 4011   | cached profile not found      |\n| 4012   | gr member linked              |\n| 4013   | gr member not found           |\n\n</details>",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

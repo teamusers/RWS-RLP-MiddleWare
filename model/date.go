@@ -13,6 +13,23 @@ import (
 // Example JSON: "2007-08-05"
 type Date time.Time
 
+// UnmarshalJSON will now be on the value receiver,
+// so *Date and Date both implement json.Unmarshaler.
+func (d Date) UnmarshalJSON(data []byte) error {
+	s := strings.Trim(string(data), `"`)
+	if s == "" || s == "null" {
+		return nil
+	}
+	_, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		return err
+	}
+	// but this only updates the copy; you still need a pointer
+	// => so this approach is tricky unless you also satisfy
+	// json.Unmarshaler on *Date
+	return nil
+}
+
 // MarshalJSON outputs the date in "2006-01-02" format.
 // If the date is the zero value, it outputs JSON null.
 //

@@ -1,30 +1,75 @@
 basePath: /api/v1
 definitions:
-  model.GrMember:
+  model.GrProfile:
     properties:
+      class:
+        description: |-
+          User’s membership class
+          example: premium
+        example: premium
+        type: string
       dob:
-        description: Dob is the date of birth in YYYY-MM-DD format.
-        example: "1985-04-12"
+        description: |-
+          Date of birth (YYYY-MM-DD)
+          example: 1985-07-20
+        example: "1985-07-20"
         type: string
       email:
-        description: Email is the member's email address.
-        example: jane.doe@example.com
+        description: |-
+          User’s email address
+          example: alice.smith@example.com
+        example: alice.smith@example.com
         type: string
-      f_name:
-        description: FirstName is the given name of the GR member.
-        example: Jane
+      first_name:
+        description: |-
+          User’s first name
+          example: Alice
+        example: Alice
         type: string
-      gr_id:
-        description: GrId is the unique GR member identifier.
-        example: GR12345
+      id:
+        description: |-
+          Unique identifier for the profile
+          example: 123e4567-e89b-12d3-a456-426614174000
+        example: 123e4567-e89b-12d3-a456-426614174000
         type: string
-      l_name:
-        description: LastName is the family name of the GR member.
-        example: Doe
+      last_name:
+        description: |-
+          User’s last name
+          example: Smith
+        example: Smith
         type: string
-      mobile:
-        description: Mobile is the contact phone number.
-        example: "98765432"
+      mobile_code:
+        description: |-
+          Country dialing code
+          example: 65
+        example: 65
+        type: integer
+      mobile_number:
+        description: |-
+          Local mobile number
+          example: 91234567
+        example: 91234567
+        type: integer
+      pin:
+        description: |-
+          Four-digit PIN for quick auth
+          example: 1234
+        example: "1234"
+        type: string
+    type: object
+  model.Identifier:
+    properties:
+      external_id:
+        description: |-
+          The external identifier value
+          example: ABC123
+        example: ABC123
+        type: string
+      external_id_type:
+        description: |-
+          Type of the external identifier
+          example: loyalty
+        example: loyalty
         type: string
     type: object
   model.Otp:
@@ -41,6 +86,137 @@ definitions:
           example: 1744176000
         example: 1744176000
         type: integer
+    type: object
+  model.User:
+    properties:
+      available_points:
+        description: |-
+          Loyalty points available
+          example: 1200
+        example: 1200
+        type: integer
+      country:
+        description: |-
+          ISO 3166-1 alpha-2 country code
+          example: SG
+        example: SG
+        type: string
+      created_at:
+        description: |-
+          Timestamp when the record was created (RFC3339)
+          example: 2025-04-01T08:30:00Z
+        example: "2006-01-02 15:04:05"
+        type: string
+      dob:
+        description: |-
+          Date of birth in YYYY-MM-DD
+          example: 1990-05-15
+        example: "1990-05-15"
+        type: string
+      email:
+        description: |-
+          Email address of the user
+          example: john.doe@example.com
+        example: john.doe@example.com
+        type: string
+      first_name:
+        description: |-
+          User's first name
+          example: John
+        example: John
+        type: string
+      identifiers:
+        description: |-
+          List of external identifiers for the user
+          example: [{"external_id":"ABC123","external_id_type":"loyalty"}]
+        items:
+          $ref: '#/definitions/model.Identifier'
+        type: array
+      last_name:
+        description: |-
+          User's last name
+          example: Doe
+        example: Doe
+        type: string
+      mobile_code:
+        description: |-
+          Country dialing code
+          example: 1
+        example: 1
+        type: integer
+      mobile_number:
+        description: |-
+          Mobile phone number
+          example: 98765432
+        example: 98765432
+        type: integer
+      registered_at:
+        description: |-
+          Timestamp when the user registered
+          example: 2025-04-01T08:30:00Z
+        example: "2006-01-02 15:04:05"
+        type: string
+      suspended:
+        description: |-
+          Whether the account is suspended
+          example: false
+        example: false
+        type: boolean
+      tier:
+        description: |-
+          Loyalty tier name
+          example: gold
+        example: gold
+        type: string
+      updated_at:
+        description: |-
+          Timestamp of last update
+          example: 2025-05-05T14:00:00Z
+        example: "2006-01-02 15:04:05"
+        type: string
+      user_profile:
+        allOf:
+        - $ref: '#/definitions/model.UserProfile'
+        description: Additional profile details
+    type: object
+  model.UserProfile:
+    properties:
+      active_status:
+        description: |-
+          Active status code (e.g., 1=active, 0=inactive)
+          example: 1
+        example: 1
+        type: integer
+      language:
+        description: |-
+          Preferred language (ISO 639-1)
+          example: en
+        example: en
+        type: string
+      market_pref_email:
+        description: |-
+          Whether the user opts in to email marketing
+          example: false
+        example: false
+        type: boolean
+      market_pref_mobile:
+        description: |-
+          Whether the user opts in to SMS/mobile marketing
+          example: true
+        example: true
+        type: boolean
+      market_pref_push:
+        description: |-
+          Whether the user opts in to push notifications
+          example: true
+        example: true
+        type: boolean
+      previous_email:
+        description: |-
+          Previously used email
+          example: john.old@example.com
+        example: john.old@example.com
+        type: string
     type: object
   requests.AuthRequest:
     properties:
@@ -73,85 +249,18 @@ definitions:
     required:
     - email
     type: object
-  requests.PhoneNumber:
-    properties:
-      phone_number:
-        description: Phone number (digits only)
-        example: "1234123123"
-        type: string
-      phone_type:
-        description: 'Type of phone number: mobile, office, home, fax, other'
-        example: home
-        type: string
-      preference_flags:
-        description: Flags like "primary"
-        example:
-        - '["primary"]'
-        items:
-          type: string
-        type: array
-    type: object
-  requests.Referral:
-    properties:
-      referral_code:
-        description: Code of the referring customer
-        example: JOHN-70A756
-        type: string
-    type: object
-  requests.RegisterGr:
-    properties:
-      gr_id:
-        description: GR system identifier for the member.
-        example: GR12345
-        type: string
-      gr_pin:
-        description: PIN code associated with the GR member.
-        example: "9876"
-        type: string
-    required:
-    - gr_id
-    - gr_pin
-    type: object
-  requests.RegisterGrCms:
-    properties:
-      dob:
-        description: Dob is the date of birth in YYYY-MM-DD format.
-        example: "1985-04-12"
-        type: string
-      email:
-        description: Email is the member's email address.
-        example: jane.doe@example.com
-        type: string
-      f_name:
-        description: FirstName is the given name of the GR member.
-        example: Jane
-        type: string
-      gr_id:
-        description: GrId is the unique GR member identifier.
-        example: GR12345
-        type: string
-      l_name:
-        description: LastName is the family name of the GR member.
-        example: Doe
-        type: string
-      mobile:
-        description: Mobile is the contact phone number.
-        example: "98765432"
-        type: string
-      url:
-        description: URL to send the registration confirmation link to.
-        example: https://example.com/confirm?reg_id=abc123
-        type: string
-    required:
-    - url
-    type: object
   requests.RegisterUser:
     properties:
+      gr_profile:
+        $ref: '#/definitions/model.GrProfile'
+      reg_id:
+        example: 123456
+        type: integer
       sign_up_type:
         example: NEW
         type: string
-      users:
-        $ref: '#/definitions/requests.UserRequest'
+      user:
+        $ref: '#/definitions/model.User'
     type: object
   requests.UpdateBurnPin:
     properties:
@@ -167,85 +276,19 @@ definitions:
     - burn_pin
     - email
     type: object
-  requests.UserRequest:
+  requests.VerifyGrCmsUser:
     properties:
-      address:
-        description: Address line 1
-        example: 7 Tremont Street
-        type: string
-      address2:
-        description: Address line 2
-        example: 8 Tremont Street
-        type: string
-      city:
-        description: City of residence
-        example: Boston
-        type: string
-      country:
-        description: 3-letter ISO-3166-1 country code
-        example: USA
-        type: string
-      dob:
-        description: Date of birth, YYYY-MM-DD
-        example: "1980-01-01"
-        type: string
-      email:
-        description: Customer’s email (encrypted at rest). Required if ExternalID
-          is not specified.
-        example: john.smith@test.com
-        type: string
-      external_id:
-        description: |-
-          Identifier for customer in external system.
-          Required if Email is not specified.
-        example: "1284111"
-        type: string
-      external_id_type:
-        description: Type associated with external identifier.
-        example: facebook
-        type: string
-      first_name:
-        description: First name
-        example: John
-        type: string
-      gender:
-        description: 'Gender of customer: m or f'
-        example: m
-        type: string
-      ip:
-        description: Customer’s IP at registration.
-        example: 203.0.113.42
-        type: string
-      last_name:
-        description: Last name (surname)
-        example: Smith
-        type: string
-      locale:
-        description: Preferred locale, e.g. en-US
-        example: en-US
-        type: string
-      opted_in:
-        description: Indicates opt-in to loyalty program (defaults to true if not
-          set).
-        example: true
-        type: boolean
-      phone_numbers:
-        description: Phone numbers associated with customer
-        items:
-          $ref: '#/definitions/requests.PhoneNumber'
-        type: array
-      referral:
-        allOf:
-        - $ref: '#/definitions/requests.Referral'
-        description: Referral info when signing up with a referrer code
-      state:
-        description: State/province/region
-        example: MA
-        type: string
-      zip:
-        description: Zip or postal code
-        example: "02021"
-        type: string
+      gr_profile:
+        $ref: '#/definitions/model.GrProfile'
+    required:
+    - gr_profile
+    type: object
+  requests.VerifyGrUser:
+    properties:
+      gr_profile:
+        $ref: '#/definitions/model.GrProfile'
+    required:
+    - gr_profile
     type: object
   requests.VerifyUserExistence:
     properties:
@@ -284,7 +327,7 @@ definitions:
         example: 1002
         type: integer
       data:
-        $ref: '#/definitions/model.GrMember'
+        $ref: '#/definitions/model.GrProfile'
       message:
         example: cached profile found
         type: string
@@ -296,7 +339,7 @@ definitions:
         example: 1000
         type: integer
       data:
-        $ref: '#/definitions/responses.User'
+        $ref: '#/definitions/model.User'
       message:
         example: user created
         type: string
@@ -321,7 +364,7 @@ definitions:
         example: 1002
         type: integer
       data:
-        $ref: '#/definitions/responses.User'
+        $ref: '#/definitions/model.User'
       message:
         example: user found
         type: string
@@ -333,7 +376,7 @@ definitions:
         example: 1003
         type: integer
       data:
-        $ref: '#/definitions/model.GrMember'
+        $ref: '#/definitions/model.GrProfile'
       message:
         example: email not found
         type: string
@@ -345,16 +388,9 @@ definitions:
         example: 1000
         type: integer
       data:
-        $ref: '#/definitions/model.GrMember'
+        $ref: '#/definitions/model.GrProfile'
       message:
         example: successful
-        type: string
-    type: object
-  responses.Identifier:
-    properties:
-      external_id:
-        type: string
-      external_id_type:
         type: string
     type: object
   responses.LoginResponseData:
@@ -396,19 +432,6 @@ definitions:
         example: login successful
         type: string
     type: object
-  responses.PhoneNumber:
-    properties:
-      phone_number:
-        type: string
-      phone_type:
-        type: string
-      preference_flags:
-        items:
-          type: string
-        type: array
-      verified_ownership:
-        type: boolean
-    type: object
   responses.RegisterSuccessResponse:
     properties:
       code:
@@ -428,74 +451,9 @@ definitions:
         example: 1000
         type: integer
       data:
-        $ref: '#/definitions/responses.User'
+        $ref: '#/definitions/model.User'
       message:
         example: update successful
-        type: string
-    type: object
-  responses.User:
-    properties:
-      account_status:
-        type: string
-      address:
-        type: string
-      address2:
-        type: string
-      auth_token:
-        type: string
-      available_points:
-        type: integer
-      city:
-        type: string
-      country:
-        type: string
-      created_at:
-        description: 'format: "2006-01-02 15:04:05"'
-        type: string
-      dob:
-        description: 'format: "2006-01-02"'
-        type: string
-      email:
-        type: string
-      external_id:
-        type: string
-      first_name:
-        type: string
-      gender:
-        type: string
-      id:
-        type: string
-      identifiers:
-        items:
-          $ref: '#/definitions/responses.Identifier'
-        type: array
-      last_name:
-        type: string
-      opted_in:
-        type: boolean
-      phone_numbers:
-        items:
-          $ref: '#/definitions/responses.PhoneNumber'
-        type: array
-      proxy_ids:
-        items:
-          type: string
-        type: array
-      referrer_code:
-        type: string
-      registered_at:
-        description: same format as CreatedAt
-        type: string
-      state:
-        type: string
-      suspended:
-        type: boolean
-      tier:
-        type: string
-      updated_at:
-        description: same format as CreatedAt
-        type: string
-      zip:
         type: string
     type: object
 host: localhost:18080
@@ -511,7 +469,10 @@ info:
     \ |\n| 4003   | missing authentication token  |\n| 4004   | invalid signature
     \            |\n| 4005   | missing signature             |\n| 4006   | invalid
     appid                 |\n| 4007   | missing appid                 |\n| 4008   |
-    invalid query parameters      |\n\n</details>"
+    invalid query parameters      |\n| 4009   | existing user not found       |\n|
+    4010   | existing user found           |\n| 4011   | cached profile not found
+    \     |\n| 4012   | gr member linked              |\n| 4013   | gr member not
+    found           |\n\n</details>"
   title: LBE API
   version: "1.0"
 paths:
@@ -607,7 +568,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/requests.RegisterGr'
+          $ref: '#/definitions/requests.VerifyGrUser'
       produces:
       - application/json
       responses:
@@ -644,7 +605,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/requests.RegisterGrCms'
+          $ref: '#/definitions/requests.VerifyGrCmsUser'
       produces:
       - application/json
       responses:
@@ -878,7 +839,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/requests.UserRequest'
+          $ref: '#/definitions/model.User'
       produces:
       - application/json
       responses:
