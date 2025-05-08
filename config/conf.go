@@ -44,6 +44,13 @@ type Config struct {
 			Host   string `yaml:"host"`
 			ApiKey string `yaml:"apikey"`
 		} `yaml:"rlp"`
+		Eeid struct {
+			Host         string `yaml:"host"`
+			AuthHost     string `yaml:"authhost"`
+			TenantID     string `yaml:"tenantid"`
+			ClientID     string `yaml:"clientid"`
+			ClientSecret string `yaml:"clientsecret"`
+		} `yaml:"eeid"`
 		Cms struct {
 			Host     string `yaml:"host"`
 			ApiKey   string `yaml:"apikey"`

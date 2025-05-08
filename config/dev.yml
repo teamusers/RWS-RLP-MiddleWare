@@ -42,6 +42,12 @@ api:
     host : https://3d104014-8ed4-4199-9c6e-84af7f38ae27.mock.pstmn.io
     apikey : App123 
     SystemID: 1234
+  eeid:
+    host : https://graph.microsoft.com
+    authhost : https://login.microsoftonline.com
+    tenantid : 854d144f-186e-4849-9dbd-439d971c9984
+    clientid : 90b382ed-6609-417f-8213-3f06b442f83c 
+    clientsecret: vtf8Q~EPh2Fq4EBh0WSQsRPfxEuVxdcUQ8IDNdgG
 
 allStart: 1
 proxyEnable : true
@@ -52,6 +58,7 @@ smtp:
   user: rws.developer.user@gmail.com
   password: xezy owzk xrdu kjhe # Welc0me123$!
   from: rws.developer.user@gmail.com
+  
 application:
   rlpNumberingFormat:
     maxAttempts: 5
