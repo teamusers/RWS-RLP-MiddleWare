@@ -21,6 +21,14 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	// signUpType enums
+	signUpTypeNew   = "NEW"
+	signUpTypeGR    = "GR"
+	signUpTypeGRCMS = "GR_CMS"
+	signUpTypeTM    = "TM"
+)
+
 // VerifyUserExistence godoc
 // @Summary      Verify email for registration
 // @Description  Checks if an email is already registered; if not, sends an OTP for signup.
@@ -28,10 +36,10 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        request  body      requests.VerifyUserExistence true  "Registration request payload"
-// @Success      200      {object}  responses.RegisterSuccessResponse "Email not registered; OTP sent"
+// @Success      200      {object}  responses.RegisterSuccessResponse "existing user not found"
 // @Failure      400      {object}  responses.ErrorResponse  "Invalid JSON request body"
 // @Failure      401      {object}  responses.ErrorResponse                       "Unauthorized – API key missing or invalid"
-// @Failure      409      {object}  responses.ErrorResponse                      "Email already registered"
+// @Failure      409      {object}  responses.ErrorResponse                      "existing user found"
 // @Failure      500      {object}  responses.ErrorResponse               "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /user/register/verify [post]
@@ -44,57 +52,47 @@ func VerifyUserExistence(c *gin.Context) {
 		return
 	}
 
-	respData, err := services.VerifyMemberExistence(req.Email, false)
-	if err != nil {
+	if respData, err := services.GetCIAMUserByEmail(c, req.Email); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
-	}
-
-	switch respData.Code {
-	case codes.NOT_FOUND:
-		otpService := services.NewOTPService()
-		otpResp, err := otpService.GenerateOTP(c, req.Email)
-		if err != nil {
-			log.Printf("error encountered generating otp: %v", err)
-			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
-			return
-		}
-
-		//Call send email services
-		emailData := services.EmailOtpTemplateData{
-			Email: req.Email,
-			OTP:   *otpResp.Otp,
-		}
-
-		cfg := config.GetConfig()
-		emailService := services.NewEmailService(&cfg.Smtp)
-		if err := emailService.SendOtpEmail(req.Email, emailData); err != nil {
-			log.Printf("failed to send email otp: %v", err)
-			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
-			return
-		}
-
-		resp := responses.ApiResponse[model.Otp]{
-			Code:    codes.SUCCESSFUL,
-			Message: "existing user not found",
-			Data: model.Otp{
-				Otp: otpResp.Otp,
-			},
-		}
-		c.JSON(http.StatusOK, resp)
-		return
-
-	case codes.FOUND:
+	} else if len(respData.Value) != 0 {
 		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_FOUND, "existing user found"))
 		return
+	}
 
-	default:
-		log.Printf("error encountered getting registered user: %v", err)
+	// if user is not found, generate OTP
+	otpService := services.NewOTPService()
+	otpResp, err := otpService.GenerateOTP(c, req.Email)
+	if err != nil {
+		log.Printf("error encountered generating otp: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
+	// TODO: swap to ACS send email service instead
+	//Call send email services
+	emailData := services.EmailOtpTemplateData{
+		Email: req.Email,
+		OTP:   *otpResp.Otp,
+	}
+
+	cfg := config.GetConfig()
+	emailService := services.NewEmailService(&cfg.Smtp)
+	if err := emailService.SendOtpEmail(req.Email, emailData); err != nil {
+		log.Printf("failed to send email otp: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
+
+	resp := responses.ApiResponse[model.Otp]{
+		Code:    codes.SUCCESSFUL,
+		Message: "existing user not found",
+		Data: model.Otp{
+			Otp: otpResp.Otp,
+		},
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 // CreateUser godoc
@@ -120,9 +118,9 @@ func CreateUser(c *gin.Context) {
 	}
 
 	switch req.SignUpType {
-	case "NEW": // No action for now
-	case "GR-CMS":
-		cachedProfile, err := system.ObjectGet(strconv.Itoa(req.RegId), &model.GrProfile{})
+	case signUpTypeNew: // No action for now
+	case signUpTypeGRCMS:
+		cachedProfile, err := system.ObjectGet(strconv.Itoa(req.RegId), &model.User{})
 		if err != nil {
 			log.Printf("error getting cache value: %v", err)
 			c.JSON(http.StatusConflict, responses.ApiResponse[any]{
@@ -132,19 +130,18 @@ func CreateUser(c *gin.Context) {
 			return
 		}
 
-		req.User = cachedProfile.MapGrProfileToLbeUser()
+		req.User = *cachedProfile
 
 		// match tier (assuming "Class X" format)
-		assignTier(&req.User, cachedProfile.Class, c)
+		assignTier(&req.User, c)
 
-	case "GR":
-		req.User = req.GrProfile.MapGrProfileToLbeUser()
-
+	case signUpTypeGR:
 		// match tier (assuming "Class X" format)
-		assignTier(&req.User, req.GrProfile.Class, c)
+		assignTier(&req.User, c)
 
-	case "TM":
+	case signUpTypeTM:
 		// TODO: Request and Validate TM info
+		req.User.UserProfile.EmployeeNumber = "TBC"
 
 		// match tier
 		req.User.Tier = "Tier M"
@@ -165,9 +162,10 @@ func CreateUser(c *gin.Context) {
 	}
 
 	log.Printf("RLP User Number generated: %v", newRlpNumbering)
+	req.User.PopulateIdentifiers(newRlpNumbering.RLP_ID, newRlpNumbering.RLP_NO)
 
 	//To DO - RLP : Test Actual RLP End Points
-	profileResp, err := services.Profile("", req.User.MapLbeToRlpUser(newRlpNumbering.RLP_ID), "PUT", services.ProfileURL)
+	profileResp, err := services.Profile("", req.User.MapLbeToRlpUser(), "PUT", services.ProfileURL)
 	if err != nil {
 		// Log the error
 		log.Printf("RLP Register User failed: %v", err)
@@ -180,19 +178,27 @@ func CreateUser(c *gin.Context) {
 		// call rlp
 	}
 
-	// Request member service update
-	var memberReq requests.CreateMemberUser
-	memberReq.User.Email = req.User.Email
-	memberReq.User.RLP_ID = newRlpNumbering.RLP_ID
-	memberReq.User.RLP_NO = newRlpNumbering.RLP_NO
-	memberReq.User.GR_ID = req.GrProfile.Id
-
-	errRegister := services.PostRegisterUser(memberReq)
-	if errRegister != nil {
+	// Create CIAM User
+	if respData, err := services.PostCIAMRegisterUser(c, requests.GenerateInitialRegistrationRequest(&req.User)); err != nil {
 		// Log the error
-		log.Printf("Post Register User failed: %v", err)
+		log.Printf("CIAM Register User failed: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
+	} else {
+		// add schema extensions
+		schemaExtensionsPayload := map[string]any{
+			config.GetConfig().Api.Eeid.UserIdLinkExtensionKey: requests.UserIdLinkSchemaExtensionFields{
+				RlpId: newRlpNumbering.RLP_ID,
+				RlpNo: newRlpNumbering.RLP_NO,
+				GrId:  req.User.GrProfile.Id,
+			},
+		}
+
+		if err := services.PatchCIAMAddUserSchemaExtensions(c, respData.Id, schemaExtensionsPayload); err != nil {
+			log.Printf("CIAM Patch User Schema Extensions failed: %v", err)
+			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+			return
+		}
 	}
 
 	resp := responses.ApiResponse[responses.CreateUserResponseData]{
@@ -205,7 +211,7 @@ func CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 
 	// purge regId cache if used
-	if req.SignUpType == "GR-CMS" { //TODO: Make into enum
+	if req.SignUpType == signUpTypeGRCMS {
 		system.ObjectDelete(strconv.Itoa(req.RegId))
 	}
 }
@@ -217,7 +223,7 @@ func CreateUser(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      requests.VerifyGrUser   true  "GR registration check payload"
-// @Success      200      {object}  responses.GrExistenceSuccessResponse  "GR member found"
+// @Success      200      {object}  responses.GrExistenceSuccessResponse  "gr profile found"
 // @Failure      400      {object}  responses.ErrorResponse                     "Invalid JSON request body"
 // @Failure      401      {object}  responses.ErrorResponse                                       "Unauthorized – API key missing or invalid"
 // @Failure      500      {object}  responses.ErrorResponse                            "Internal server error"
@@ -232,9 +238,17 @@ func VerifyGrExistence(c *gin.Context) {
 		return
 	}
 
-	// TO DO - verifyMemberExistence by gr_id and return error if found (GR_MEMBER_LINKED)
+	// verify if gr ID is unused
+	if respData, err := services.GetCIAMUserByGrId(c, req.User.GrProfile.Id); err != nil {
+		log.Printf("error encountered verifying user existence: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	} else if len(respData.Value) != 0 {
+		c.JSON(http.StatusConflict, responses.GrMemberIdLinkedErrorResponse())
+		return
+	}
 
-	cmsMember, err := services.GRMemberProfile(req.GrProfile.Id, nil, "GET", services.GetMemberURL)
+	cmsMember, err := services.GRMemberProfile(req.User.GrProfile.Id, nil, "GET", services.GetMemberURL)
 	if err != nil {
 		// Log the error
 		log.Printf("Error while getting GR Member: %v", err)
@@ -242,11 +256,16 @@ func VerifyGrExistence(c *gin.Context) {
 		return
 	}
 
+	// TODO: send email otp via acs if gr member email consent = true
+	if cmsMember.ContactOptionEmail {
+		// send email
+	}
+
 	// return response from CMS
 	resp := responses.ApiResponse[responses.VerifyGrUserResponseData]{
 		Code:    codes.SUCCESSFUL,
 		Message: "gr profile found",
-		Data:    responses.VerifyGrUserResponseData{GrProfile: cmsMember.MapCmsToLbeGrProfile(), Otp: model.Otp{}},
+		Data:    responses.VerifyGrUserResponseData{User: cmsMember.MapCmsProfileToLbeUser(), Otp: model.Otp{}},
 	}
 	c.JSON(http.StatusOK, resp)
 }
@@ -258,7 +277,7 @@ func VerifyGrExistence(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      requests.VerifyGrCmsUser  true  "GR CMS register payload"
-// @Success      200      {object}  responses.GrCmsExistenceSuccessResponse{}          "Email not found; profile cached"
+// @Success      200      {object}  responses.GrCmsExistenceSuccessResponse{}          "existing user not found"
 // @Failure      400      {object}  responses.ErrorResponse  "Invalid JSON request body"
 // @Failure      401      {object}  responses.ErrorResponse                      "Unauthorized – API key missing or invalid"
 // @Failure      409      {object}  responses.ErrorResponse                      "Email already registered"
@@ -274,36 +293,33 @@ func VerifyGrCmsExistence(c *gin.Context) {
 		return
 	}
 
-	respData, err := services.VerifyMemberExistence(req.GrProfile.Email, false)
-	if err != nil {
+	if respData, err := services.GetCIAMUserByEmail(c, req.User.Email); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
-	}
-
-	switch respData.Code {
-	case codes.NOT_FOUND:
-		// TO DO - verifyMemberExistence by gr_id and return error if found (GR_MEMBER_LINKED)
-
-		// TO DO - cache gr member info within expiry timestamp and generate reg_id
-		regId := uuid.New()
-		system.ObjectSet(regId.String(), req.GrProfile, 30*time.Minute)
-
-		// TO DO - send registration email with url and reg_id
-
-		// return email existence status
-		c.JSON(http.StatusOK, responses.DefaultResponse(codes.SUCCESSFUL, "existing user not found"))
-		return
-
-	case codes.FOUND:
+	} else if len(respData.Value) != 0 {
 		c.JSON(http.StatusConflict, responses.ExistingUserFoundErrorResponse())
 		return
+	}
 
-	default:
-		log.Printf("error encountered getting registered user: %v", respData.Message)
+	// verify if gr ID is unused
+	if respData, err := services.GetCIAMUserByGrId(c, req.User.GrProfile.Id); err != nil {
+		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
+	} else if len(respData.Value) != 0 {
+		c.JSON(http.StatusConflict, responses.GrMemberIdLinkedErrorResponse())
+		return
 	}
+
+	// TO DO - Generate reg_id and cache gr member info within expiry timestamp
+	regId := uuid.New()
+	system.ObjectSet(regId.String(), req.User, 30*time.Minute)
+
+	// TO DO - send registration email with url and reg_id
+
+	// return email existence status
+	c.JSON(http.StatusOK, responses.DefaultResponse(codes.SUCCESSFUL, "existing user not found"))
 }
 
 // GetCachedGrCmsProfile godoc
@@ -327,7 +343,7 @@ func GetCachedGrCmsProfile(c *gin.Context) {
 		return
 	}
 
-	cachedGrCmsProfile, err := system.ObjectGet(regId, &model.GrProfile{})
+	cachedUserProfile, err := system.ObjectGet(regId, &model.User{})
 	if err != nil {
 		log.Printf("error getting cache value: %v", err)
 		resp := responses.ApiResponse[any]{
@@ -343,17 +359,15 @@ func GetCachedGrCmsProfile(c *gin.Context) {
 		Code:    codes.SUCCESSFUL,
 		Message: "cached profile found",
 		Data: responses.VerifyGrCmsUserResponseData{
-			RegId: regId,
-			GrProfile: model.GrProfile{
-				DateOfBirth: cachedGrCmsProfile.DateOfBirth,
-			},
+			RegId:       regId,
+			DateOfBirth: cachedUserProfile.DateOfBirth,
 		},
 	}
 	c.JSON(http.StatusOK, resp)
 }
 
-func assignTier(user *model.User, class string, c *gin.Context) {
-	tier, err := GrTierMatching(class)
+func assignTier(user *model.User, c *gin.Context) {
+	tier, err := GrTierMatching(user.GrProfile.Class)
 	if err != nil {
 		log.Printf("error matching gr class to member tier: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())

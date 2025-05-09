@@ -6,7 +6,6 @@ import (
 	"lbe/api/http/responses"
 	"lbe/api/http/services"
 	"lbe/codes"
-	"lbe/model"
 	"log"
 	"net/http"
 
@@ -60,7 +59,7 @@ func GetUserProfile(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        external_id  path      string                      true  "user external ID"
-// @Param        request      body      model.User               true  "Profile fields to update"
+// @Param        request      body      requests.UpdateUserProfile               true  "Profile fields to update"
 // @Success      200          {object}  responses.UpdateUserSuccessResponse      "Update successful"
 // @Failure      400          {object}  responses.ErrorResponse    "Invalid JSON request body"
 // @Failure      401          {object}  responses.ErrorResponse                         "Unauthorized – API key missing or invalid"
@@ -70,7 +69,7 @@ func GetUserProfile(c *gin.Context) {
 // @Router       /user/update/{external_id} [put]
 func UpdateUserProfile(c *gin.Context) {
 
-	var req model.User
+	var req requests.UpdateUserProfile
 	// Bind the incoming JSON payload to the user struct.
 	if err := c.ShouldBindJSON(&req); err != nil {
 		fmt.Println("BindJSON error:", err)
@@ -87,7 +86,7 @@ func UpdateUserProfile(c *gin.Context) {
 	//To DO - RLP : To be change to RLP update user. RLP - API, Temporary update DB 1st
 	//memberResp, err := services.Member(external_id, nil, "PUT")
 	//To DO - RLP : Test Actual RLP End Points
-	profileResp, err := services.Profile(external_id, req.MapLbeToRlpUser(external_id), "PUT", services.ProfileURL)
+	profileResp, err := services.Profile(external_id, req.User.MapLbeToRlpUser(), "PUT", services.ProfileURL)
 	if err != nil {
 		// Log the error
 		log.Printf("Update User Profile failed: %v", err)

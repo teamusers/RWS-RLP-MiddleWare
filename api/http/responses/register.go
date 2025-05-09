@@ -19,15 +19,15 @@ import (
 //	  "otp_expiry": 1744176000
 //	}
 type VerifyGrUserResponseData struct {
-	// GrProfile contains the GR profile fields.
-	GrProfile model.GrProfile `json:"gr_profile"`
+	// User contains user data
+	User model.User `json:"user"`
 	// Otp contains the one‑time password details.
 	model.Otp
 }
 
 type VerifyGrCmsUserResponseData struct {
-	RegId string `json:"reg_id"`
-	model.GrProfile
+	RegId       string     `json:"reg_id"`
+	DateOfBirth model.Date `json:"dob"`
 }
 
 type CreateUserResponseData struct {

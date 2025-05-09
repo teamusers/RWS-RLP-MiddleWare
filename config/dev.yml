@@ -48,7 +48,8 @@ api:
     tenantid : 854d144f-186e-4849-9dbd-439d971c9984
     clientid : 90b382ed-6609-417f-8213-3f06b442f83c 
     clientsecret: vtf8Q~EPh2Fq4EBh0WSQsRPfxEuVxdcUQ8IDNdgG
-
+    userIdLinkExtensionKey: exth7tu5cmc_LBE
+    
 allStart: 1
 proxyEnable : true
  

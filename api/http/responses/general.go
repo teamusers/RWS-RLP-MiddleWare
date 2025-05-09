@@ -61,3 +61,7 @@ func ExistingUserFoundErrorResponse() ApiResponse[any] {
 func ExistingUserNotFoundErrorResponse() ApiResponse[any] {
 	return DefaultResponse(codes.EXISTING_USER_NOT_FOUND, "existing user not found")
 }
+
+func GrMemberIdLinkedErrorResponse() ApiResponse[any] {
+	return DefaultResponse(codes.GR_MEMBER_LINKED, "gr profile already linked to another email")
+}

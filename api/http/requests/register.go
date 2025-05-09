@@ -10,16 +10,16 @@ type VerifyUserExistence struct {
 }
 
 type RegisterUser struct {
-	User       model.User      `json:"user"`
-	GrProfile  model.GrProfile `json:"gr_profile"`
-	SignUpType string          `json:"sign_up_type" example:"NEW"`
-	RegId      int             `json:"reg_id" example:"123456"`
+	User model.User `json:"user"`
+	// GrProfile  model.GrProfile `json:"gr_profile"`
+	SignUpType string `json:"sign_up_type" example:"NEW"`
+	RegId      int    `json:"reg_id" example:"123456"`
 }
 
 type VerifyGrUser struct {
-	model.GrProfile `json:"gr_profile" binding:"required"`
+	User model.User `json:"user" binding:"required"`
 }
 
 type VerifyGrCmsUser struct {
-	model.GrProfile `json:"gr_profile" binding:"required"`
+	User model.User `json:"user" binding:"required"`
 }

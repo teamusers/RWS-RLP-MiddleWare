@@ -1,23 +1,20 @@
 package model
 
-import (
-	"slices"
-	"strconv"
-	"strings"
-)
-
 // RlpUser represents the payload to register or update a customer.
 // swagger:model RlpUserReq
 type RlpUserReq struct {
 	// Identifier for customer in external system.
 	// Required if Email is not specified.
-	ExternalID string `json:"external_id" example:"1284111"`
+	ExternalID string `json:"external_id,omitempty" example:"1284111"`
 
 	// Indicates opt-in to loyalty program (defaults to true if not set).
-	OptedIn *bool `json:"opted_in,omitempty" example:"true"`
+	OptedIn bool `json:"opted_in,omitempty" example:"true"`
 
 	// Type associated with external identifier.
 	ExternalIDType string `json:"external_id_type,omitempty" example:"facebook"`
+
+	// Array of external id identifiers tied to the user.
+	Identifier []Identifier `json:"identifiers,omitempty"`
 
 	// Customer’s email (encrypted at rest). Required if ExternalID is not specified.
 	Email string `json:"email,omitempty" example:"john.smith@test.com"`
@@ -128,13 +125,10 @@ type PhoneNumber struct {
 }
 
 func (rlpUser *RlpUserResp) MapRlpToLbeUser() User {
-	mobileCode, mobileNumber := extractMobileParts(&rlpUser.Identifiers)
-
 	return User{
 		Email:           rlpUser.Email,
 		Identifier:      rlpUser.Identifiers,
-		MobileCode:      mobileCode,
-		MobileNumber:    mobileNumber,
+		MobileNumber:    rlpUser.PhoneNumbers[0].PhoneNumber,
 		FirstName:       rlpUser.FirstName,
 		LastName:        rlpUser.LastName,
 		DateOfBirth:     rlpUser.Dob,
@@ -147,22 +141,4 @@ func (rlpUser *RlpUserResp) MapRlpToLbeUser() User {
 		UpdatedAt:       rlpUser.UpdatedAt,
 		UserProfile:     rlpUser.UserProfile,
 	}
-}
-
-func extractMobileParts(identifiers *[]Identifier) (mobileCode, mobileNumber int) {
-	for i, id := range *identifiers {
-		if id.ExternalIDType == "mobile" {
-			parts := strings.SplitN(id.ExternalID, "-", 2)
-			if len(parts) == 2 {
-				mc, err1 := strconv.Atoi(parts[0])
-				mn, err2 := strconv.Atoi(parts[1])
-				if err1 == nil && err2 == nil {
-					// Delete the entry from the slice
-					*identifiers = slices.Delete(*identifiers, i, i+1)
-					return mc, mn
-				}
-			}
-		}
-	}
-	return 0, 0
 }
