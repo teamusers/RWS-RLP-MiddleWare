@@ -162,7 +162,10 @@ func CreateUser(c *gin.Context) {
 	}
 
 	log.Printf("RLP User Number generated: %v", newRlpNumbering)
+
+	// populate registrations defaults
 	req.User.PopulateIdentifiers(newRlpNumbering.RLP_ID, newRlpNumbering.RLP_NO)
+	req.User.UserProfile.LanguagePreference = "EN"
 
 	//To DO - RLP : Test Actual RLP End Points
 	profileResp, err := services.Profile("", req.User.MapLbeToRlpUser(), "PUT", services.ProfileURL)
