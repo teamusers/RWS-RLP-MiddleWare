@@ -33,8 +33,8 @@ func Routers(e *gin.RouterGroup) {
 		usersGroup.PUT("/pin", user.UpdateBurnPin)
 		usersGroup.PUT("/update/:external_id", user.UpdateUserProfile)
 
-		//archive not ready yet for RLP - SessionM API
 		//PUT - LBE-11 - api/v1/user/archive - withdraw user profile (active_status=0, previous email=current email, email=null)
+		usersGroup.PUT("/archive/:external_id", user.WithdrawUserProfile)
 
 		//POST - LBE-6 - api/v1/user/gr - GR user's profile verification
 		usersGroup.POST("/gr", user.VerifyGrExistence)

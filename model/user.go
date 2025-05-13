@@ -59,7 +59,7 @@ type User struct {
 	UserProfile UserProfile `json:"user_profile,omitempty"`
 
 	// GR Profile-unique information. Only used within LBE.
-	GrProfile
+	GrProfile GrProfile `json:"gr_profile,omitempty"`
 }
 
 // Identifier holds an external ID and its type.

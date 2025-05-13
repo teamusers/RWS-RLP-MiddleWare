@@ -62,3 +62,7 @@ type UserIdLinkSchemaExtensionFields struct {
 	RlpNo string `json:"rlpno"`
 	GrId  string `json:"grid"`
 }
+
+type GraphDisableAccountRequest struct {
+	AccountEnabled bool `json:"accountEnabled"`
+}
