@@ -45,11 +45,12 @@ type Config struct {
 			ApiKey string `yaml:"apikey"`
 		} `yaml:"rlp"`
 		Eeid struct {
-			Host         string `yaml:"host"`
-			AuthHost     string `yaml:"authhost"`
-			TenantID     string `yaml:"tenantid"`
-			ClientID     string `yaml:"clientid"`
-			ClientSecret string `yaml:"clientsecret"`
+			Host                   string `yaml:"host"`
+			AuthHost               string `yaml:"authhost"`
+			TenantID               string `yaml:"tenantid"`
+			ClientID               string `yaml:"clientid"`
+			ClientSecret           string `yaml:"clientsecret"`
+			UserIdLinkExtensionKey string `yaml:"userIdLinkExtensionKey"`
 		} `yaml:"eeid"`
 		Cms struct {
 			Host     string `yaml:"host"`

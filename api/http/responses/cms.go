@@ -41,14 +41,17 @@ type GRProfilePayload struct {
 	AnnualIncomeRangeCategoryID          int64     `json:"AnnualIncomeRangeCategoryID"`
 }
 
-func (g *GRProfilePayload) MapCmsToLbeGrProfile() model.GrProfile {
-	return model.GrProfile{
-		Id:          g.MemberNo,
-		Class:       g.MemberClassCode,
+func (g *GRProfilePayload) MapCmsProfileToLbeUser() model.User {
+	return model.User{
 		FirstName:   g.FirstName,
 		LastName:    g.LastName,
 		Email:       g.EmailAddress,
 		DateOfBirth: model.Date(g.DateOfBirth),
 		//TODO: Add mobile code and number
+
+		GrProfile: model.GrProfile{
+			Id:    g.MemberNo,
+			Class: g.MemberClassCode,
+		},
 	}
 }

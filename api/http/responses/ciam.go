@@ -17,23 +17,18 @@ type GraphUserCollection struct {
 	} `json:"value"`
 }
 
-// Identity represents one sign-in identity for a Graph user.
-type Identity struct {
-	SignInType       string `json:"signInType"`       // e.g. "emailAddress"
-	Issuer           string `json:"issuer"`           // e.g. "eeidtest1.onmicrosoft.com"
-	IssuerAssignedID string `json:"issuerAssignedId"` // e.g. "ue.test1@eeidtest1.onmicrosoft.com"
+// GraphCreateUserResponse extracts the CIAM EEID user id of the newly created user from the response.
+type GraphCreateUserResponse struct {
+	Id string `json:"id"`
+	// other fields are irrelevant
 }
 
-// GraphCreateUserPayload is the full shape to create a new Azure AD (EEID) user.
-type GraphCreateUserPayload struct {
-	AccountEnabled  bool       `json:"accountEnabled"`
-	DisplayName     string     `json:"displayName"`
-	MailNickname    string     `json:"mailNickname"`
-	Identities      []Identity `json:"identities"`
-	Mail            string     `json:"mail"`
-	PasswordProfile struct {
-		ForceChangePasswordNextSignIn bool   `json:"forceChangePasswordNextSignIn"`
-		Password                      string `json:"password"`
-	} `json:"passwordProfile"`
-	PasswordPolicies string `json:"passwordPolicies"`
+// GraphUserExtensionCollection holds the “value” array from a Graph `/users` response.
+type GraphUserExtensionCollection struct {
+	Value []struct {
+		ID                string `json:"id"`
+		DisplayName       string `json:"displayName"`
+		Mail              string `json:"mail"`
+		UserPrincipalName string `json:"userPrincipalName"`
+	} `json:"value"`
 }
