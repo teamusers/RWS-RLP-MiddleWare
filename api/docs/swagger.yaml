@@ -8,48 +8,12 @@ definitions:
           example: premium
         example: premium
         type: string
-      dob:
-        description: |-
-          Date of birth (YYYY-MM-DD)
-          example: 1985-07-20
-        example: "1985-07-20"
-        type: string
-      email:
-        description: |-
-          User’s email address
-          example: alice.smith@example.com
-        example: alice.smith@example.com
-        type: string
-      first_name:
-        description: |-
-          User’s first name
-          example: Alice
-        example: Alice
-        type: string
       id:
         description: |-
           Unique identifier for the profile
           example: 123e4567-e89b-12d3-a456-426614174000
         example: 123e4567-e89b-12d3-a456-426614174000
         type: string
-      last_name:
-        description: |-
-          User’s last name
-          example: Smith
-        example: Smith
-        type: string
-      mobile_code:
-        description: |-
-          Country dialing code
-          example: 65
-        example: 65
-        type: integer
-      mobile_number:
-        description: |-
-          Local mobile number
-          example: 91234567
-        example: 91234567
-        type: integer
       pin:
         description: |-
           Four-digit PIN for quick auth
@@ -86,6 +50,19 @@ definitions:
           example: 1744176000
         example: 1744176000
         type: integer
+    type: object
+  model.PhoneNumber:
+    properties:
+      phone_number:
+        type: string
+      phone_type:
+        type: string
+      preference_flags:
+        items:
+          type: string
+        type: array
+      verified_ownership:
+        type: boolean
     type: object
   model.User:
     properties:
@@ -125,6 +102,10 @@ definitions:
           example: John
         example: John
         type: string
+      gr_profile:
+        allOf:
+        - $ref: '#/definitions/model.GrProfile'
+        description: GR Profile-unique information. Only used within LBE.
       identifiers:
         description: |-
           List of external identifiers for the user
@@ -138,18 +119,13 @@ definitions:
           example: Doe
         example: Doe
         type: string
-      mobile_code:
+      phone_numbers:
         description: |-
-          Country dialing code
-          example: 1
-        example: 1
-        type: integer
-      mobile_number:
-        description: |-
-          Mobile phone number
-          example: 98765432
-        example: 98765432
-        type: integer
+          Mobile phone number array
+          example: [{"phone_number":"87654321"}]
+        items:
+          $ref: '#/definitions/model.PhoneNumber'
+        type: array
       registered_at:
         description: |-
           Timestamp when the user registered
@@ -187,7 +163,25 @@ definitions:
           example: 1
         example: 1
         type: integer
-      language:
+      burn_pin:
+        description: |-
+          Secret Key for burn transaction
+          example: 1111
+        example: "1111"
+        type: string
+      country_code:
+        description: |-
+          Country code for mobile number
+          example: +65
+        example: "+65"
+        type: string
+      employee_number:
+        description: |-
+          Employee Number for RWS employees only, otherwise empty
+          example: 1111
+        example: "1111"
+        type: string
+      language_preference:
         description: |-
           Preferred language (ISO 639-1)
           example: en
@@ -251,12 +245,11 @@ definitions:
     type: object
   requests.RegisterUser:
     properties:
-      gr_profile:
-        $ref: '#/definitions/model.GrProfile'
       reg_id:
         example: 123456
         type: integer
       sign_up_type:
+        description: GrProfile  model.GrProfile `json:"gr_profile"`
         example: NEW
         type: string
       user:
@@ -276,19 +269,24 @@ definitions:
     - burn_pin
     - email
     type: object
+  requests.UpdateUserProfile:
+    properties:
+      user:
+        $ref: '#/definitions/model.User'
+    type: object
   requests.VerifyGrCmsUser:
     properties:
-      gr_profile:
-        $ref: '#/definitions/model.GrProfile'
+      user:
+        $ref: '#/definitions/model.User'
     required:
-    - gr_profile
+    - user
     type: object
   requests.VerifyGrUser:
     properties:
-      gr_profile:
-        $ref: '#/definitions/model.GrProfile'
+      user:
+        $ref: '#/definitions/model.User'
     required:
-    - gr_profile
+    - user
     type: object
   requests.VerifyUserExistence:
     properties:
@@ -327,7 +325,7 @@ definitions:
         example: 1002
         type: integer
       data:
-        $ref: '#/definitions/model.GrProfile'
+        $ref: '#/definitions/responses.VerifyGrCmsUserResponseData'
       message:
         example: cached profile found
         type: string
@@ -339,10 +337,15 @@ definitions:
         example: 1000
         type: integer
       data:
-        $ref: '#/definitions/model.User'
+        $ref: '#/definitions/responses.CreateUserResponseData'
       message:
         example: user created
         type: string
+    type: object
+  responses.CreateUserResponseData:
+    properties:
+      user:
+        $ref: '#/definitions/model.User'
     type: object
   responses.ErrorResponse:
     properties:
@@ -375,10 +378,9 @@ definitions:
         description: 'in: body'
         example: 1003
         type: integer
-      data:
-        $ref: '#/definitions/model.GrProfile'
+      data: {}
       message:
-        example: email not found
+        example: existing user not found
         type: string
     type: object
   responses.GrExistenceSuccessResponse:
@@ -388,9 +390,9 @@ definitions:
         example: 1000
         type: integer
       data:
-        $ref: '#/definitions/model.GrProfile'
+        $ref: '#/definitions/responses.VerifyGrUserResponseData'
       message:
-        example: successful
+        example: gr profile found
         type: string
     type: object
   responses.LoginResponseData:
@@ -455,6 +457,32 @@ definitions:
       message:
         example: update successful
         type: string
+    type: object
+  responses.VerifyGrCmsUserResponseData:
+    properties:
+      dob:
+        type: string
+      reg_id:
+        type: string
+    type: object
+  responses.VerifyGrUserResponseData:
+    properties:
+      otp:
+        description: |-
+          Otp is the one‑time password sent to the user.
+          example: "123456"
+        example: "123456"
+        type: string
+      otp_expiry:
+        description: |-
+          OtpExpiry is the Unix timestamp (seconds since epoch) when the OTP expires.
+          example: 1744176000
+        example: 1744176000
+        type: integer
+      user:
+        allOf:
+        - $ref: '#/definitions/model.User'
+        description: User contains user data
     type: object
 host: localhost:18080
 info:
@@ -557,6 +585,51 @@ paths:
       summary: Get user profile
       tags:
       - user
+  /user/archive/{external_id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates a user's profile fields (non‐zero values in the JSON body).
+      parameters:
+      - description: user external ID
+        in: path
+        name: external_id
+        required: true
+        type: string
+      - description: Profile fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdateUserProfile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Update successful
+          schema:
+            $ref: '#/definitions/responses.UpdateUserSuccessResponse'
+        "400":
+          description: Invalid JSON request body
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized – API key missing or invalid
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "409":
+          description: existing user not found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update user profile
+      tags:
+      - user
   /user/gr:
     post:
       consumes:
@@ -573,7 +646,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: GR member found
+          description: gr profile found
           schema:
             $ref: '#/definitions/responses.GrExistenceSuccessResponse'
         "400":
@@ -610,7 +683,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Email not found; profile cached
+          description: existing user not found
           schema:
             $ref: '#/definitions/responses.GrCmsExistenceSuccessResponse'
         "400":
@@ -799,7 +872,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Email not registered; OTP sent
+          description: existing user not found
           schema:
             $ref: '#/definitions/responses.RegisterSuccessResponse'
         "400":
@@ -811,7 +884,7 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
         "409":
-          description: Email already registered
+          description: existing user found
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
         "500":
@@ -839,7 +912,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/model.User'
+          $ref: '#/definitions/requests.UpdateUserProfile'
       produces:
       - application/json
       responses:

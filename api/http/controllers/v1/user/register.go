@@ -165,10 +165,15 @@ func CreateUser(c *gin.Context) {
 
 	// populate registrations defaults
 	req.User.PopulateIdentifiers(newRlpNumbering.RLP_ID, newRlpNumbering.RLP_NO)
-	req.User.UserProfile.LanguagePreference = "EN"
+
+	rlpCreateUserRequest := req.User.MapLbeToRlpUser()
+	rlpCreateUserRequest.OptedIn = true
+	rlpCreateUserRequest.ExternalID = newRlpNumbering.RLP_ID
+	rlpCreateUserRequest.ExternalIDType = "rlp_id"
+	rlpCreateUserRequest.UserProfile.LanguagePreference = "EN"
 
 	//To DO - RLP : Test Actual RLP End Points
-	profileResp, err := services.Profile("", req.User.MapLbeToRlpUser(), "PUT", services.ProfileURL)
+	profileResp, err := services.Profile("", rlpCreateUserRequest, "PUT", services.ProfileURL)
 	if err != nil {
 		// Log the error
 		log.Printf("RLP Register User failed: %v", err)

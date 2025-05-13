@@ -75,6 +75,76 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/archive/{external_id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Updates a user's profile fields (non‐zero values in the JSON body).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Update user profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user external ID",
+                        "name": "external_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Profile fields to update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UpdateUserProfile"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Update successful",
+                        "schema": {
+                            "$ref": "#/definitions/responses.UpdateUserSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON request body",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized – API key missing or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "existing user not found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/gr": {
             "post": {
                 "security": [
@@ -106,7 +176,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "GR member found",
+                        "description": "gr profile found",
                         "schema": {
                             "$ref": "#/definitions/responses.GrExistenceSuccessResponse"
                         }
@@ -163,7 +233,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Email not found; profile cached",
+                        "description": "existing user not found",
                         "schema": {
                             "$ref": "#/definitions/responses.GrCmsExistenceSuccessResponse"
                         }
@@ -458,7 +528,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Email not registered; OTP sent",
+                        "description": "existing user not found",
                         "schema": {
                             "$ref": "#/definitions/responses.RegisterSuccessResponse"
                         }
@@ -476,7 +546,7 @@ const docTemplate = `{
                         }
                     },
                     "409": {
-                        "description": "Email already registered",
+                        "description": "existing user found",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse"
                         }
@@ -522,7 +592,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.User"
+                            "$ref": "#/definitions/requests.UpdateUserProfile"
                         }
                     }
                 ],
@@ -631,40 +701,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "premium"
                 },
-                "dob": {
-                    "description": "Date of birth (YYYY-MM-DD)\nexample: 1985-07-20",
-                    "type": "string",
-                    "example": "1985-07-20"
-                },
-                "email": {
-                    "description": "User’s email address\nexample: alice.smith@example.com",
-                    "type": "string",
-                    "example": "alice.smith@example.com"
-                },
-                "first_name": {
-                    "description": "User’s first name\nexample: Alice",
-                    "type": "string",
-                    "example": "Alice"
-                },
                 "id": {
                     "description": "Unique identifier for the profile\nexample: 123e4567-e89b-12d3-a456-426614174000",
                     "type": "string",
                     "example": "123e4567-e89b-12d3-a456-426614174000"
-                },
-                "last_name": {
-                    "description": "User’s last name\nexample: Smith",
-                    "type": "string",
-                    "example": "Smith"
-                },
-                "mobile_code": {
-                    "description": "Country dialing code\nexample: 65",
-                    "type": "integer",
-                    "example": 65
-                },
-                "mobile_number": {
-                    "description": "Local mobile number\nexample: 91234567",
-                    "type": "integer",
-                    "example": 91234567
                 },
                 "pin": {
                     "description": "Four-digit PIN for quick auth\nexample: 1234",
@@ -703,6 +743,26 @@ const docTemplate = `{
                 }
             }
         },
+        "model.PhoneNumber": {
+            "type": "object",
+            "properties": {
+                "phone_number": {
+                    "type": "string"
+                },
+                "phone_type": {
+                    "type": "string"
+                },
+                "preference_flags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "verified_ownership": {
+                    "type": "boolean"
+                }
+            }
+        },
         "model.User": {
             "type": "object",
             "properties": {
@@ -736,6 +796,14 @@ const docTemplate = `{
                     "type": "string",
                     "example": "John"
                 },
+                "gr_profile": {
+                    "description": "GR Profile-unique information. Only used within LBE.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.GrProfile"
+                        }
+                    ]
+                },
                 "identifiers": {
                     "description": "List of external identifiers for the user\nexample: [{\"external_id\":\"ABC123\",\"external_id_type\":\"loyalty\"}]",
                     "type": "array",
@@ -748,15 +816,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Doe"
                 },
-                "mobile_code": {
-                    "description": "Country dialing code\nexample: 1",
-                    "type": "integer",
-                    "example": 1
-                },
-                "mobile_number": {
-                    "description": "Mobile phone number\nexample: 98765432",
-                    "type": "integer",
-                    "example": 98765432
+                "phone_numbers": {
+                    "description": "Mobile phone number array\nexample: [{\"phone_number\":\"87654321\"}]",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.PhoneNumber"
+                    }
                 },
                 "registered_at": {
                     "description": "Timestamp when the user registered\nexample: 2025-04-01T08:30:00Z",
@@ -796,7 +861,22 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
-                "language": {
+                "burn_pin": {
+                    "description": "Secret Key for burn transaction\nexample: 1111",
+                    "type": "string",
+                    "example": "1111"
+                },
+                "country_code": {
+                    "description": "Country code for mobile number\nexample: +65",
+                    "type": "string",
+                    "example": "+65"
+                },
+                "employee_number": {
+                    "description": "Employee Number for RWS employees only, otherwise empty\nexample: 1111",
+                    "type": "string",
+                    "example": "1111"
+                },
+                "language_preference": {
                     "description": "Preferred language (ISO 639-1)\nexample: en",
                     "type": "string",
                     "example": "en"
@@ -864,14 +944,12 @@ const docTemplate = `{
         "requests.RegisterUser": {
             "type": "object",
             "properties": {
-                "gr_profile": {
-                    "$ref": "#/definitions/model.GrProfile"
-                },
                 "reg_id": {
                     "type": "integer",
                     "example": 123456
                 },
                 "sign_up_type": {
+                    "description": "GrProfile  model.GrProfile ` + "`" + `json:\"gr_profile\"` + "`" + `",
                     "type": "string",
                     "example": "NEW"
                 },
@@ -899,25 +977,33 @@ const docTemplate = `{
                 }
             }
         },
+        "requests.UpdateUserProfile": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "$ref": "#/definitions/model.User"
+                }
+            }
+        },
         "requests.VerifyGrCmsUser": {
             "type": "object",
             "required": [
-                "gr_profile"
+                "user"
             ],
             "properties": {
-                "gr_profile": {
-                    "$ref": "#/definitions/model.GrProfile"
+                "user": {
+                    "$ref": "#/definitions/model.User"
                 }
             }
         },
         "requests.VerifyGrUser": {
             "type": "object",
             "required": [
-                "gr_profile"
+                "user"
             ],
             "properties": {
-                "gr_profile": {
-                    "$ref": "#/definitions/model.GrProfile"
+                "user": {
+                    "$ref": "#/definitions/model.User"
                 }
             }
         },
@@ -970,7 +1056,7 @@ const docTemplate = `{
                     "example": 1002
                 },
                 "data": {
-                    "$ref": "#/definitions/model.GrProfile"
+                    "$ref": "#/definitions/responses.VerifyGrCmsUserResponseData"
                 },
                 "message": {
                     "type": "string",
@@ -987,11 +1073,19 @@ const docTemplate = `{
                     "example": 1000
                 },
                 "data": {
-                    "$ref": "#/definitions/model.User"
+                    "$ref": "#/definitions/responses.CreateUserResponseData"
                 },
                 "message": {
                     "type": "string",
                     "example": "user created"
+                }
+            }
+        },
+        "responses.CreateUserResponseData": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "$ref": "#/definitions/model.User"
                 }
             }
         },
@@ -1037,12 +1131,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1003
                 },
-                "data": {
-                    "$ref": "#/definitions/model.GrProfile"
-                },
+                "data": {},
                 "message": {
                     "type": "string",
-                    "example": "email not found"
+                    "example": "existing user not found"
                 }
             }
         },
@@ -1055,11 +1147,11 @@ const docTemplate = `{
                     "example": 1000
                 },
                 "data": {
-                    "$ref": "#/definitions/model.GrProfile"
+                    "$ref": "#/definitions/responses.VerifyGrUserResponseData"
                 },
                 "message": {
                     "type": "string",
-                    "example": "successful"
+                    "example": "gr profile found"
                 }
             }
         },
@@ -1136,6 +1228,40 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "update successful"
+                }
+            }
+        },
+        "responses.VerifyGrCmsUserResponseData": {
+            "type": "object",
+            "properties": {
+                "dob": {
+                    "type": "string"
+                },
+                "reg_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.VerifyGrUserResponseData": {
+            "type": "object",
+            "properties": {
+                "otp": {
+                    "description": "Otp is the one‑time password sent to the user.\nexample: \"123456\"",
+                    "type": "string",
+                    "example": "123456"
+                },
+                "otp_expiry": {
+                    "description": "OtpExpiry is the Unix timestamp (seconds since epoch) when the OTP expires.\nexample: 1744176000",
+                    "type": "integer",
+                    "example": 1744176000
+                },
+                "user": {
+                    "description": "User contains user data",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    ]
                 }
             }
         }
