@@ -57,6 +57,11 @@ type Config struct {
 			ApiKey   string `yaml:"apikey"`
 			SystemID string `yaml:"SystemID"`
 		} `yaml:"cms"`
+		Acs struct {
+			Host   string `yaml:"host"`
+			AppId  string `yaml:"appId"`
+			Secret string `yaml:"secret"`
+		} `yaml:"acs"`
 	} `yaml:"api"`
 	Application struct {
 		RLPNumberingFormat struct {

@@ -61,6 +61,8 @@ func VerifyUserExistence(c *gin.Context) {
 		return
 	}
 
+	log.Printf("user %s not found, generating otp", req.Email)
+
 	// if user is not found, generate OTP
 	otpService := services.NewOTPService()
 	otpResp, err := otpService.GenerateOTP(c, req.Email)
@@ -70,16 +72,17 @@ func VerifyUserExistence(c *gin.Context) {
 		return
 	}
 
-	// TODO: swap to ACS send email service instead
-	//Call send email services
-	emailData := services.EmailOtpTemplateData{
-		Email: req.Email,
-		OTP:   *otpResp.Otp,
+	// Send OTP email via ACS
+	acsRequest := requests.AcsSendEmailByTemplateRequest{
+		Email:   req.Email,
+		Subject: services.AcsEmailSubjectRequestOtp,
+		Data: requests.RequestEmailOtpTemplateData{
+			Email: req.Email,
+			Otp:   *otpResp.Otp,
+		},
 	}
 
-	cfg := config.GetConfig()
-	emailService := services.NewEmailService(&cfg.Smtp)
-	if err := emailService.SendOtpEmail(req.Email, emailData); err != nil {
+	if err := services.PostAcsSendEmailByTemplate(services.AcsEmailTemplateRequestOtp, acsRequest); err != nil {
 		log.Printf("failed to send email otp: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -88,9 +91,7 @@ func VerifyUserExistence(c *gin.Context) {
 	resp := responses.ApiResponse[model.Otp]{
 		Code:    codes.SUCCESSFUL,
 		Message: "existing user not found",
-		Data: model.Otp{
-			Otp: otpResp.Otp,
-		},
+		Data:    otpResp,
 	}
 	c.JSON(http.StatusOK, resp)
 }
