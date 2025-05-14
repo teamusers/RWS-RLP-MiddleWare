@@ -172,6 +172,7 @@ func CreateUser(c *gin.Context) {
 	rlpCreateUserRequest.ExternalID = newRlpNumbering.RLP_ID
 	rlpCreateUserRequest.ExternalIDType = "rlp_id"
 	rlpCreateUserRequest.UserProfile.LanguagePreference = "EN"
+	rlpCreateUserRequest.UserProfile.PreviousEmail = rlpCreateUserRequest.Email
 
 	//To DO - RLP : Test Actual RLP End Points
 	profileResp, err := services.Profile("", rlpCreateUserRequest, "PUT", services.ProfileURL)
