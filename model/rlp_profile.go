@@ -65,17 +65,6 @@ type RlpUserReq struct {
 	UserProfile UserProfile `json:"user_profile,omitempty"`
 }
 
-// type PhoneNumber struct {
-// 	// Phone number (digits only)
-// 	PhoneNumber string `json:"phone_number" example:"1234123123"`
-
-// 	// Type of phone number: mobile, office, home, fax, other
-// 	PhoneType string `json:"phone_type,omitempty" example:"home"`
-
-// 	// Flags like "primary"
-// 	PreferenceFlags []string `json:"preference_flags,omitempty" example:"[\"primary\"]"`
-// }
-
 // Referral holds referral info.
 // swagger:model Referral
 type Referral struct {
@@ -115,20 +104,11 @@ type RlpUserResp struct {
 	UserProfile     UserProfile   `json:"user_profile"` //TBC
 }
 
-// PhoneNumber holds a phone record
-// swagger:model PhoneNumber
-type PhoneNumber struct {
-	PhoneNumber       string   `json:"phone_number"`
-	PhoneType         string   `json:"phone_type"`
-	PreferenceFlags   []string `json:"preference_flags"`
-	VerifiedOwnership bool     `json:"verified_ownership,omitempty"`
-}
-
 func (rlpUser *RlpUserResp) MapRlpToLbeUser() User {
 	return User{
 		Email:           rlpUser.Email,
 		Identifier:      rlpUser.Identifiers,
-		MobileNumber:    rlpUser.PhoneNumbers[0].PhoneNumber,
+		PhoneNumbers:    rlpUser.PhoneNumbers,
 		FirstName:       rlpUser.FirstName,
 		LastName:        rlpUser.LastName,
 		DateOfBirth:     rlpUser.Dob,

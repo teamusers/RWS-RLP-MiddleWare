@@ -61,6 +61,8 @@ func VerifyUserExistence(c *gin.Context) {
 		return
 	}
 
+	log.Printf("user %s not found, generating otp", req.Email)
+
 	// if user is not found, generate OTP
 	otpService := services.NewOTPService()
 	otpResp, err := otpService.GenerateOTP(c, req.Email)
@@ -70,16 +72,17 @@ func VerifyUserExistence(c *gin.Context) {
 		return
 	}
 
-	// TODO: swap to ACS send email service instead
-	//Call send email services
-	emailData := services.EmailOtpTemplateData{
-		Email: req.Email,
-		OTP:   *otpResp.Otp,
+	// Send OTP email via ACS
+	acsRequest := requests.AcsSendEmailByTemplateRequest{
+		Email:   req.Email,
+		Subject: services.AcsEmailSubjectRequestOtp,
+		Data: requests.RequestEmailOtpTemplateData{
+			Email: req.Email,
+			Otp:   *otpResp.Otp,
+		},
 	}
 
-	cfg := config.GetConfig()
-	emailService := services.NewEmailService(&cfg.Smtp)
-	if err := emailService.SendOtpEmail(req.Email, emailData); err != nil {
+	if err := services.PostAcsSendEmailByTemplate(services.AcsEmailTemplateRequestOtp, acsRequest); err != nil {
 		log.Printf("failed to send email otp: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -88,9 +91,7 @@ func VerifyUserExistence(c *gin.Context) {
 	resp := responses.ApiResponse[model.Otp]{
 		Code:    codes.SUCCESSFUL,
 		Message: "existing user not found",
-		Data: model.Otp{
-			Otp: otpResp.Otp,
-		},
+		Data:    otpResp,
 	}
 	c.JSON(http.StatusOK, resp)
 }
@@ -165,10 +166,16 @@ func CreateUser(c *gin.Context) {
 
 	// populate registrations defaults
 	req.User.PopulateIdentifiers(newRlpNumbering.RLP_ID, newRlpNumbering.RLP_NO)
-	req.User.UserProfile.LanguagePreference = "EN"
+
+	rlpCreateUserRequest := req.User.MapLbeToRlpUser()
+	rlpCreateUserRequest.OptedIn = true
+	rlpCreateUserRequest.ExternalID = newRlpNumbering.RLP_ID
+	rlpCreateUserRequest.ExternalIDType = "rlp_id"
+	rlpCreateUserRequest.UserProfile.LanguagePreference = "EN"
+	rlpCreateUserRequest.UserProfile.PreviousEmail = rlpCreateUserRequest.Email
 
 	//To DO - RLP : Test Actual RLP End Points
-	profileResp, err := services.Profile("", req.User.MapLbeToRlpUser(), "PUT", services.ProfileURL)
+	profileResp, err := services.Profile("", rlpCreateUserRequest, "PUT", services.ProfileURL)
 	if err != nil {
 		// Log the error
 		log.Printf("RLP Register User failed: %v", err)
@@ -259,16 +266,38 @@ func VerifyGrExistence(c *gin.Context) {
 		return
 	}
 
-	// TODO: send email otp via acs if gr member email consent = true
+	// generate OTP
+	otpService := services.NewOTPService()
+	otpResp, err := otpService.GenerateOTP(c, cmsMember.EmailAddress)
+	if err != nil {
+		log.Printf("error encountered generating otp: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
+
+	// send email otp via acs if gr member email consent = true
 	if cmsMember.ContactOptionEmail {
-		// send email
+		acsRequest := requests.AcsSendEmailByTemplateRequest{
+			Email:   cmsMember.EmailAddress,
+			Subject: services.AcsEmailSubjectRequestOtp,
+			Data: requests.RequestEmailOtpTemplateData{
+				Email: cmsMember.EmailAddress,
+				Otp:   *otpResp.Otp,
+			},
+		}
+
+		if err := services.PostAcsSendEmailByTemplate(services.AcsEmailTemplateRequestOtp, acsRequest); err != nil {
+			log.Printf("failed to send email otp: %v", err)
+			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+			return
+		}
 	}
 
 	// return response from CMS
 	resp := responses.ApiResponse[responses.VerifyGrUserResponseData]{
 		Code:    codes.SUCCESSFUL,
 		Message: "gr profile found",
-		Data:    responses.VerifyGrUserResponseData{User: cmsMember.MapCmsProfileToLbeUser(), Otp: model.Otp{}},
+		Data:    responses.VerifyGrUserResponseData{User: cmsMember.MapCmsProfileToLbeUser(), Otp: otpResp},
 	}
 	c.JSON(http.StatusOK, resp)
 }

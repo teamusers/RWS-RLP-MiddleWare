@@ -11,9 +11,9 @@ type User struct {
 	// example: [{"external_id":"ABC123","external_id_type":"loyalty"}]
 	Identifier []Identifier `json:"identifiers,omitempty"`
 
-	// Mobile phone number
-	// example: 98765432
-	MobileNumber string `json:"mobile_number,omitempty" example:"98765432"`
+	// Mobile phone number array
+	// example: [{"phone_number":"87654321"}]
+	PhoneNumbers []PhoneNumber `json:"phone_numbers,omitempty"`
 
 	// User's first name
 	// example: John
@@ -59,7 +59,7 @@ type User struct {
 	UserProfile UserProfile `json:"user_profile,omitempty"`
 
 	// GR Profile-unique information. Only used within LBE.
-	GrProfile
+	GrProfile GrProfile `json:"gr_profile,omitempty"`
 }
 
 // Identifier holds an external ID and its type.
@@ -72,6 +72,15 @@ type Identifier struct {
 	// Type of the external identifier
 	// example: loyalty
 	ExternalIDType string `json:"external_id_type" example:"loyalty"`
+}
+
+// PhoneNumber holds a phone record
+// swagger:model PhoneNumber
+type PhoneNumber struct {
+	PhoneNumber       string   `json:"phone_number"`
+	PhoneType         string   `json:"phone_type"`
+	PreferenceFlags   []string `json:"preference_flags"`
+	VerifiedOwnership bool     `json:"verified_ownership,omitempty"`
 }
 
 // UserProfile contains supplementary user attributes.
@@ -139,32 +148,16 @@ type GrProfile struct {
 
 // Mapper function to convert LBE User format to RLP User format
 func (u *User) MapLbeToRlpUser() RlpUserReq {
-	rlpUserObj := RlpUserReq{
-		OptedIn:    true,
-		Identifier: u.Identifier,
-		Email:      u.Email,
-		Dob:        u.DateOfBirth,
-		Country:    u.Country,
-		FirstName:  u.FirstName,
-		LastName:   u.LastName,
-		PhoneNumbers: []PhoneNumber{
-			{
-				PhoneNumber: u.MobileNumber,
-			},
-		},
-		UserProfile: u.UserProfile,
+	return RlpUserReq{
+		Identifier:   u.Identifier,
+		Email:        u.Email,
+		Dob:          u.DateOfBirth,
+		Country:      u.Country,
+		FirstName:    u.FirstName,
+		LastName:     u.LastName,
+		PhoneNumbers: u.PhoneNumbers,
+		UserProfile:  u.UserProfile,
 	}
-
-	// update external id if provided in identifier (avoids override during update)
-	for i := range rlpUserObj.Identifier {
-		if rlpUserObj.Identifier[i].ExternalIDType == "rlp_id" {
-			rlpUserObj.ExternalID = rlpUserObj.Identifier[i].ExternalID
-			rlpUserObj.ExternalIDType = "rlp_id"
-			break
-		}
-	}
-
-	return rlpUserObj
 }
 
 // Populate function used to append id links to identifier list for initial registration

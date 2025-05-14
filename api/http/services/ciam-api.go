@@ -137,6 +137,23 @@ func PatchCIAMAddUserSchemaExtensions(ctx context.Context, userId string, payloa
 	return err
 }
 
+func PatchCIAMUpdateUser(ctx context.Context, userId string, payload any) error {
+	tokenResp, err := GetCIAMAccessToken(ctx)
+	if err != nil {
+		return fmt.Errorf("getting access token: %w", err)
+	}
+	// extract the actual bearer token
+	bearer := tokenResp.AccessToken
+
+	cfg := config.GetConfig().Api.Eeid
+	base := strings.TrimRight(cfg.Host, "/")
+	fullURL := fmt.Sprintf("%s%s/%s", base, ciamUserURL, userId)
+
+	log.Printf("patching CIAM user id: %v", userId)
+	_, err = doJSONRequest[struct{}](ctx, http.MethodPatch, fullURL, bearer, payload, http.StatusNoContent)
+	return err
+}
+
 func doJSONRequest[T any](ctx context.Context, method, url string, bearerToken string, body any, expectedStatus int) (*T, error) {
 	var bodyReader io.Reader
 	if body != nil {
