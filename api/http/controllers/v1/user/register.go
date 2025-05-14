@@ -265,16 +265,38 @@ func VerifyGrExistence(c *gin.Context) {
 		return
 	}
 
-	// TODO: send email otp via acs if gr member email consent = true
+	// generate OTP
+	otpService := services.NewOTPService()
+	otpResp, err := otpService.GenerateOTP(c, cmsMember.EmailAddress)
+	if err != nil {
+		log.Printf("error encountered generating otp: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
+
+	// send email otp via acs if gr member email consent = true
 	if cmsMember.ContactOptionEmail {
-		// send email
+		acsRequest := requests.AcsSendEmailByTemplateRequest{
+			Email:   cmsMember.EmailAddress,
+			Subject: services.AcsEmailSubjectRequestOtp,
+			Data: requests.RequestEmailOtpTemplateData{
+				Email: cmsMember.EmailAddress,
+				Otp:   *otpResp.Otp,
+			},
+		}
+
+		if err := services.PostAcsSendEmailByTemplate(services.AcsEmailTemplateRequestOtp, acsRequest); err != nil {
+			log.Printf("failed to send email otp: %v", err)
+			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+			return
+		}
 	}
 
 	// return response from CMS
 	resp := responses.ApiResponse[responses.VerifyGrUserResponseData]{
 		Code:    codes.SUCCESSFUL,
 		Message: "gr profile found",
-		Data:    responses.VerifyGrUserResponseData{User: cmsMember.MapCmsProfileToLbeUser(), Otp: model.Otp{}},
+		Data:    responses.VerifyGrUserResponseData{User: cmsMember.MapCmsProfileToLbeUser(), Otp: otpResp},
 	}
 	c.JSON(http.StatusOK, resp)
 }
