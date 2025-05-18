@@ -90,6 +90,10 @@ type UserProfile struct {
 	// example: +65
 	CountryCode string `json:"country_code,omitempty" example:"+65"`
 
+	// Country name
+	// example: Singapore
+	CountryName string `json:"country_name,omitempty" example:"Singapore"`
+
 	// Previously used email
 	// example: john.old@example.com
 	PreviousEmail string `json:"previous_email,omitempty" example:"john.old@example.com"`
