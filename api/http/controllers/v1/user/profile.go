@@ -29,6 +29,7 @@ import (
 // @Security     ApiKeyAuth
 // @Router       /user/{external_id} [get]
 func GetUserProfile(c *gin.Context) {
+	httpClient := utils.GetHttpClient(c.Request.Context())
 	external_id := c.Param("external_id")
 	if external_id == "" {
 		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
@@ -36,7 +37,7 @@ func GetUserProfile(c *gin.Context) {
 	}
 
 	//To DO - RLP : Test Actual RLP End Points
-	profileResp, err := services.Profile(external_id, nil, "GET", services.ProfileURL)
+	profileResp, err := services.GetProfile(c, httpClient, external_id)
 	if err != nil {
 		// Log the error
 		log.Printf("GET User Profile failed: %v", err)
@@ -70,7 +71,7 @@ func GetUserProfile(c *gin.Context) {
 // @Security     ApiKeyAuth
 // @Router       /user/update/{external_id} [put]
 func UpdateUserProfile(c *gin.Context) {
-
+	httpClient := utils.GetHttpClient(c.Request.Context())
 	var req requests.UpdateUserProfile
 	// Bind the incoming JSON payload to the user struct.
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -88,7 +89,7 @@ func UpdateUserProfile(c *gin.Context) {
 	//To DO - RLP : To be change to RLP update user. RLP - API, Temporary update DB 1st
 	//memberResp, err := services.Member(external_id, nil, "PUT")
 	//To DO - RLP : Test Actual RLP End Points
-	profileResp, err := services.Profile(external_id, req.User.MapLbeToRlpUser(), "PUT", services.ProfileURL)
+	profileResp, err := services.PutProfile(c, httpClient, external_id, req.User.MapLbeToRlpUser())
 	if err != nil {
 		// Log the error
 		log.Printf("Update User Profile failed: %v", err)
@@ -163,7 +164,7 @@ func WithdrawUserProfile(c *gin.Context) {
 	}
 
 	// Retrieve user profile from RLP
-	rlpResp, err := services.Profile(external_id, nil, "GET", services.ProfileURL)
+	rlpResp, err := services.GetProfile(c, httpClient, external_id)
 	if err != nil {
 		// Log the error
 		log.Printf("GET User Profile failed: %v", err)
@@ -197,7 +198,7 @@ func WithdrawUserProfile(c *gin.Context) {
 	rlpUserProfile.UserProfile.MarketingPreference.Email = false
 	rlpUserProfile.UserProfile.MarketingPreference.Mobile = false
 
-	profileResp, err := services.Profile(external_id, rlpUserProfile, "PUT", services.ProfileURL)
+	profileResp, err := services.PutProfile(c, httpClient, external_id, rlpUserProfile)
 	if err != nil {
 		// Log the error
 		log.Printf("Update User Profile to withdraw failed: %v", err)

@@ -71,23 +71,28 @@ func DoAPIRequest[T any](opts model.APIRequestOptions) (*T, error) {
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
+	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("reading response body: %w", err)
 	}
 
+	// 1) strip UTF-8 BOM if present
+	raw = bytes.TrimPrefix(raw, []byte("\xef\xbb\xbf"))
+	// 2) replace any non-breaking space (U+00A0) with a normal space
+	raw = []byte(strings.ReplaceAll(string(raw), "\u00A0", " "))
+
 	if resp.StatusCode != opts.ExpectedStatus {
-		return nil, fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(respBody))
+		return nil, fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(raw))
 	}
 
-	if len(respBody) == 0 {
+	if len(raw) == 0 {
 		var empty T
 		return &empty, nil
 	}
 
 	var result T
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return nil, fmt.Errorf("decoding response: %w", err)
+	if err := json.Unmarshal(raw, &result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w; cleaned body: %q", err, raw)
 	}
 	return &result, nil
 }

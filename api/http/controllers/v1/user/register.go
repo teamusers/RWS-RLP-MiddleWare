@@ -177,7 +177,7 @@ func CreateUser(c *gin.Context) {
 	rlpCreateUserRequest.UserProfile.PreviousEmail = rlpCreateUserRequest.Email
 
 	//To DO - RLP : Test Actual RLP End Points
-	profileResp, err := services.Profile("", rlpCreateUserRequest, "PUT", services.ProfileURL)
+	profileResp, err := services.PutProfile(c, httpClient, "", rlpCreateUserRequest)
 	if err != nil {
 		// Log the error
 		log.Printf("RLP Register User failed: %v", err)
