@@ -58,9 +58,10 @@ type Config struct {
 			SystemID string `yaml:"SystemID"`
 		} `yaml:"cms"`
 		Acs struct {
-			Host   string `yaml:"host"`
-			AppId  string `yaml:"appId"`
-			Secret string `yaml:"secret"`
+			Host                     string `yaml:"host"`
+			AppId                    string `yaml:"appId"`
+			Secret                   string `yaml:"secret"`
+			GrCmsRegistrationUrlHost string `yaml:"grCmsRegistrationUrlHost"`
 		} `yaml:"acs"`
 	} `yaml:"api"`
 	Application struct {

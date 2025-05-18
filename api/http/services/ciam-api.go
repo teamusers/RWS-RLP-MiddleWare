@@ -2,20 +2,18 @@
 package services
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"lbe/api/http/requests"
 	"lbe/api/http/responses"
 	"lbe/config"
+	"lbe/model"
+	"lbe/utils"
 )
 
 // Endpoints
@@ -27,7 +25,7 @@ const (
 )
 
 // GetCIAMAccessToken acquires a bearer token from Azure AD using client credentials.
-func GetCIAMAccessToken(ctx context.Context) (*responses.TokenResponse, error) {
+func GetCIAMAccessToken(ctx context.Context, client *http.Client) (*responses.TokenResponse, error) {
 	cfg := config.GetConfig().Api.Eeid
 
 	host := strings.TrimRight(cfg.AuthHost, "/")
@@ -44,35 +42,20 @@ func GetCIAMAccessToken(ctx context.Context) (*responses.TokenResponse, error) {
 		"scope":         {"https://graph.microsoft.com/.default"},
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(form.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		log.Printf("CIAM token endpoint error %d: %s", resp.StatusCode, body)
-		return nil, fmt.Errorf("failed to acquire token, status %d", resp.StatusCode)
-	}
-
-	var tr responses.TokenResponse
-	if err := json.NewDecoder(resp.Body).Decode(&tr); err != nil {
-		return nil, err
-	}
-	return &tr, nil
+	return utils.DoAPIRequest[responses.TokenResponse](model.APIRequestOptions{
+		Method:         http.MethodPost,
+		URL:            tokenURL,
+		Body:           form,
+		ExpectedStatus: http.StatusOK,
+		Client:         client,
+		Context:        ctx,
+		ContentType:    model.ContentTypeForm,
+	})
 }
 
 // GetCIAMUserByEmail calls Graph GET /users?$filter=mail eq '{email}'.
-func GetCIAMUserByEmail(ctx context.Context, email string) (*responses.GraphUserCollection, error) {
-	tokenResp, err := GetCIAMAccessToken(ctx)
+func GetCIAMUserByEmail(ctx context.Context, client *http.Client, email string) (*responses.GraphUserCollection, error) {
+	tokenResp, err := GetCIAMAccessToken(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("getting access token: %w", err)
 	}
@@ -84,12 +67,21 @@ func GetCIAMUserByEmail(ctx context.Context, email string) (*responses.GraphUser
 	filter := url.QueryEscape(fmt.Sprintf("mail eq '%s'", email))
 	fullURL := fmt.Sprintf("%s%s?$filter=%s", base, ciamUserURL, filter)
 
-	return doJSONRequest[responses.GraphUserCollection](ctx, http.MethodGet, fullURL, bearer, nil, http.StatusOK)
+	return utils.DoAPIRequest[responses.GraphUserCollection](model.APIRequestOptions{
+		Method:         http.MethodGet,
+		URL:            fullURL,
+		Body:           nil,
+		BearerToken:    bearer,
+		ExpectedStatus: http.StatusOK,
+		Client:         client,
+		Context:        ctx,
+		ContentType:    model.ContentTypeJson,
+	})
 }
 
 // GetCIAMUserByGrId calls Graph GET /users?$filter={schemaIdKey}/grid eq '{grId}'.
-func GetCIAMUserByGrId(ctx context.Context, grId string) (*responses.GraphUserCollection, error) {
-	tokenResp, err := GetCIAMAccessToken(ctx)
+func GetCIAMUserByGrId(ctx context.Context, client *http.Client, grId string) (*responses.GraphUserCollection, error) {
+	tokenResp, err := GetCIAMAccessToken(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("getting access token: %w", err)
 	}
@@ -101,12 +93,21 @@ func GetCIAMUserByGrId(ctx context.Context, grId string) (*responses.GraphUserCo
 	filter := url.QueryEscape(fmt.Sprintf("%s/grid eq '%s'", cfg.UserIdLinkExtensionKey, grId))
 	fullURL := fmt.Sprintf("%s%s?$filter=%s", base, ciamUserURL, filter)
 
-	return doJSONRequest[responses.GraphUserCollection](ctx, http.MethodGet, fullURL, bearer, nil, http.StatusOK)
+	return utils.DoAPIRequest[responses.GraphUserCollection](model.APIRequestOptions{
+		Method:         http.MethodGet,
+		URL:            fullURL,
+		Body:           nil,
+		BearerToken:    bearer,
+		ExpectedStatus: http.StatusOK,
+		Client:         client,
+		Context:        ctx,
+		ContentType:    model.ContentTypeJson,
+	})
 }
 
 // PostCIAMRegisterUser calls Graph POST /users to create a new AD user.
-func PostCIAMRegisterUser(ctx context.Context, payload requests.GraphCreateUserRequest) (*responses.GraphCreateUserResponse, error) {
-	tokenResp, err := GetCIAMAccessToken(ctx)
+func PostCIAMRegisterUser(ctx context.Context, client *http.Client, payload requests.GraphCreateUserRequest) (*responses.GraphCreateUserResponse, error) {
+	tokenResp, err := GetCIAMAccessToken(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("getting access token: %w", err)
 	}
@@ -118,11 +119,20 @@ func PostCIAMRegisterUser(ctx context.Context, payload requests.GraphCreateUserR
 	fullURL := fmt.Sprintf("%s%s", base, ciamUserURL)
 
 	log.Printf("registering user: %v", payload.DisplayName)
-	return doJSONRequest[responses.GraphCreateUserResponse](ctx, http.MethodPost, fullURL, bearer, payload, http.StatusCreated)
+	return utils.DoAPIRequest[responses.GraphCreateUserResponse](model.APIRequestOptions{
+		Method:         http.MethodPost,
+		URL:            fullURL,
+		Body:           payload,
+		BearerToken:    bearer,
+		ExpectedStatus: http.StatusCreated,
+		Client:         client,
+		Context:        ctx,
+		ContentType:    model.ContentTypeJson,
+	})
 }
 
-func PatchCIAMAddUserSchemaExtensions(ctx context.Context, userId string, payload any) error {
-	tokenResp, err := GetCIAMAccessToken(ctx)
+func PatchCIAMAddUserSchemaExtensions(ctx context.Context, client *http.Client, userId string, payload any) error {
+	tokenResp, err := GetCIAMAccessToken(ctx, client)
 	if err != nil {
 		return fmt.Errorf("getting access token: %w", err)
 	}
@@ -133,12 +143,21 @@ func PatchCIAMAddUserSchemaExtensions(ctx context.Context, userId string, payloa
 	base := strings.TrimRight(cfg.Host, "/")
 	fullURL := fmt.Sprintf("%s%s/%s", base, ciamUserURL, userId)
 
-	_, err = doJSONRequest[struct{}](ctx, http.MethodPatch, fullURL, bearer, payload, http.StatusNoContent)
+	_, err = utils.DoAPIRequest[struct{}](model.APIRequestOptions{
+		Method:         http.MethodPatch,
+		URL:            fullURL,
+		Body:           payload,
+		BearerToken:    bearer,
+		ExpectedStatus: http.StatusNoContent,
+		Client:         client,
+		Context:        ctx,
+		ContentType:    model.ContentTypeJson,
+	})
 	return err
 }
 
-func PatchCIAMUpdateUser(ctx context.Context, userId string, payload any) error {
-	tokenResp, err := GetCIAMAccessToken(ctx)
+func PatchCIAMUpdateUser(ctx context.Context, client *http.Client, userId string, payload any) error {
+	tokenResp, err := GetCIAMAccessToken(ctx, client)
 	if err != nil {
 		return fmt.Errorf("getting access token: %w", err)
 	}
@@ -150,57 +169,15 @@ func PatchCIAMUpdateUser(ctx context.Context, userId string, payload any) error 
 	fullURL := fmt.Sprintf("%s%s/%s", base, ciamUserURL, userId)
 
 	log.Printf("patching CIAM user id: %v", userId)
-	_, err = doJSONRequest[struct{}](ctx, http.MethodPatch, fullURL, bearer, payload, http.StatusNoContent)
+	_, err = utils.DoAPIRequest[struct{}](model.APIRequestOptions{
+		Method:         http.MethodPatch,
+		URL:            fullURL,
+		Body:           payload,
+		BearerToken:    bearer,
+		ExpectedStatus: http.StatusNoContent,
+		Client:         client,
+		Context:        ctx,
+		ContentType:    model.ContentTypeJson,
+	})
 	return err
-}
-
-func doJSONRequest[T any](ctx context.Context, method, url string, bearerToken string, body any, expectedStatus int) (*T, error) {
-	var bodyReader io.Reader
-	if body != nil {
-		b, err := json.Marshal(body)
-		if err != nil {
-			return nil, fmt.Errorf("marshaling body: %w", err)
-		}
-		bodyReader = bytes.NewReader(b)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, method, url, bodyReader)
-	if err != nil {
-		return nil, fmt.Errorf("creating request: %w", err)
-	}
-	req.Header.Set("Accept", "application/json")
-	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
-	if bearerToken != "" {
-		req.Header.Set("Authorization", "Bearer "+bearerToken)
-	}
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("executing request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("reading response body: %w", err)
-	}
-
-	if resp.StatusCode != expectedStatus {
-		return nil, fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(respBody))
-	}
-
-	if len(respBody) == 0 {
-		// Empty body, return nil or a zero-value
-		var empty T
-		return &empty, nil
-	}
-
-	var result T
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return nil, fmt.Errorf("decoding response: %w", err)
-	}
-	return &result, nil
 }

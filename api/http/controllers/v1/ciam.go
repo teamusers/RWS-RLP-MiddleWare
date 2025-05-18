@@ -7,6 +7,7 @@ import (
 	"lbe/api/http/requests"
 	"lbe/api/http/responses"
 	"lbe/config"
+	"lbe/utils"
 
 	"lbe/api/http/services"
 
@@ -37,6 +38,7 @@ func VerifyUserHandler(c *gin.Context) {
 
 // RegisterUserHandler handles POST /ciam/users/register
 func RegisterUserHandler(c *gin.Context) {
+	httpClient := utils.GetHttpClient(c.Request.Context())
 	var req requests.GraphCreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -44,7 +46,7 @@ func RegisterUserHandler(c *gin.Context) {
 	}
 
 	log.Println("verify if user exists before creation")
-	if respData, err := services.GetCIAMUserByEmail(c.Request.Context(), req.Mail); err != nil {
+	if respData, err := services.GetCIAMUserByEmail(c.Request.Context(), httpClient, req.Mail); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	} else if len(respData.Value) != 0 {
@@ -55,7 +57,7 @@ func RegisterUserHandler(c *gin.Context) {
 
 	log.Println("starting register")
 	var userId = ""
-	if respData, err := services.PostCIAMRegisterUser(c.Request.Context(), req); err != nil {
+	if respData, err := services.PostCIAMRegisterUser(c.Request.Context(), httpClient, req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	} else {
@@ -64,7 +66,7 @@ func RegisterUserHandler(c *gin.Context) {
 	}
 
 	log.Println("verify if user exists after creation")
-	if respData, err := services.GetCIAMUserByEmail(c.Request.Context(), req.Mail); err != nil {
+	if respData, err := services.GetCIAMUserByEmail(c.Request.Context(), httpClient, req.Mail); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	} else if len(respData.Value) == 0 {
@@ -85,14 +87,14 @@ func RegisterUserHandler(c *gin.Context) {
 	log.Println("schema" + userId)
 	log.Println(schemaExtensionsPayload)
 
-	if err := services.PatchCIAMAddUserSchemaExtensions(c, userId, schemaExtensionsPayload); err != nil {
+	if err := services.PatchCIAMAddUserSchemaExtensions(c, httpClient, userId, schemaExtensionsPayload); err != nil {
 		log.Printf("CIAM Patch User Schema Extensions failed: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
 
 	log.Println("get user by grId - success")
-	if respData, err := services.GetCIAMUserByGrId(c, "0000"); err != nil {
+	if respData, err := services.GetCIAMUserByGrId(c, httpClient, "0000"); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -103,7 +105,7 @@ func RegisterUserHandler(c *gin.Context) {
 	}
 
 	log.Println("get user by grId - fail")
-	if respData, err := services.GetCIAMUserByGrId(c, "00100"); err != nil {
+	if respData, err := services.GetCIAMUserByGrId(c, httpClient, "00100"); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return

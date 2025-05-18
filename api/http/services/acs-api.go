@@ -1,17 +1,15 @@
 package services
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
+	"context"
 	"fmt"
-	"io"
 	"lbe/api/http/responses"
 	"lbe/config"
+	"lbe/model"
+	"lbe/utils"
 	"log"
 	"net/http"
 	"strings"
-	"time"
 )
 
 const (
@@ -26,7 +24,7 @@ const (
 	AcsEmailTemplateRequestOtp = "request_email_otp"
 )
 
-func getAcsAccessToken() (string, error) {
+func getAcsAccessToken(ctx context.Context, client *http.Client) (string, error) {
 	appId := config.GetConfig().Api.Acs.AppId
 	secretKey := config.GetConfig().Api.Acs.Secret
 	reqBody, err := GenerateSignature(appId, secretKey)
@@ -36,97 +34,53 @@ func getAcsAccessToken() (string, error) {
 		return "", err
 	}
 
-	// Encode the request body into JSON.
-	jsonData, err := json.Marshal(reqBody)
-	if err != nil {
+	headers := map[string]string{
+		"AppID": config.GetConfig().Api.Acs.AppId,
+	}
+
+	if response, err := utils.DoAPIRequest[responses.ApiResponse[responses.AcsAuthResponseData]](model.APIRequestOptions{
+		Method:         http.MethodPost,
+		URL:            buildFullAcsUrl(AcsAuthURL),
+		Body:           reqBody,
+		ExpectedStatus: http.StatusOK,
+		Headers:        headers,
+		Client:         client,
+		Context:        ctx,
+		ContentType:    model.ContentTypeJson,
+	}); err != nil {
 		return "", err
+	} else {
+		return response.Data.AccessToken, nil
 	}
-
-	// Create a new HTTP request.
-	req, err := http.NewRequest("POST", buildFullAcsUrl(AcsAuthURL), bytes.NewBuffer(jsonData))
-	if err != nil {
-		return "", err
-	}
-
-	req.Header.Set("AppID", appId)
-	req.Header.Set("Content-Type", "application/json")
-
-	// Create an HTTP client with a timeout.
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	// Check for a non-OK status.
-	if resp.StatusCode != http.StatusOK {
-		return "", errors.New("authentication endpoint returned non-OK status")
-	}
-
-	// Decode the response.
-	var authResp responses.ApiResponse[responses.AcsAuthResponseData]
-	if err := json.NewDecoder(resp.Body).Decode(&authResp); err != nil {
-		return "", err
-	}
-
-	return authResp.Data.AccessToken, nil
 }
 
-func PostAcsSendEmailByTemplate(templateName string, payload any) error {
+func PostAcsSendEmailByTemplate(ctx context.Context, client *http.Client, templateName string, payload any) error {
+	bearerToken, err := getAcsAccessToken(ctx, client)
+	if err != nil {
+		log.Printf("error getting acs token: %v", err)
+		return err
+	}
+	headers := map[string]string{
+		"AppID": config.GetConfig().Api.Acs.AppId,
+	}
+
 	url := strings.ReplaceAll(AcsSendEmailByTemplateURL, ":template_name", templateName)
 
-	if _, err := buildAcsHttpClient(http.MethodPost, buildFullAcsUrl(url), payload, http.StatusOK); err != nil {
+	if _, err := utils.DoAPIRequest[struct{}](model.APIRequestOptions{
+		Method:         http.MethodPost,
+		URL:            buildFullAcsUrl(url),
+		Body:           payload,
+		BearerToken:    bearerToken,
+		ExpectedStatus: http.StatusOK,
+		Headers:        headers,
+		Client:         client,
+		Context:        ctx,
+		ContentType:    model.ContentTypeJson,
+	}); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func buildAcsHttpClient(httpMethod, url string, payload any, expectedStatus int) (*http.Response, error) {
-	var req *http.Request
-	var err error
-
-	// Get the access token.
-	token, err := getAcsAccessToken()
-	if err != nil {
-		return nil, err
-	}
-
-	if payload != nil {
-		jsonData, err := json.Marshal(payload)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling payload: %w", err)
-		}
-		req, _ = http.NewRequest(httpMethod, url, bytes.NewBuffer(jsonData))
-		req.Header.Set("Content-Type", "application/json")
-	} else {
-		req, err = http.NewRequest(httpMethod, url, nil)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	// Set the required headers.
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("AppID", config.GetConfig().Api.Acs.AppId)
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("executing request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("reading response body: %w", err)
-	}
-
-	if resp.StatusCode != expectedStatus {
-		return nil, fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(respBody))
-	}
-
-	return resp, err
 }
 
 func buildFullAcsUrl(endpoint string) string {

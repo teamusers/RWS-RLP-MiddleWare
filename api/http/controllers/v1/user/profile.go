@@ -6,6 +6,7 @@ import (
 	"lbe/api/http/responses"
 	"lbe/api/http/services"
 	"lbe/codes"
+	"lbe/utils"
 	"log"
 	"net/http"
 	"time"
@@ -154,6 +155,7 @@ func UpdateBurnPin(c *gin.Context) {
 // @Security     ApiKeyAuth
 // @Router       /user/archive/{external_id} [put]
 func WithdrawUserProfile(c *gin.Context) {
+	httpClient := utils.GetHttpClient(c.Request.Context())
 	external_id := c.Param("external_id")
 	if external_id == "" {
 		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
@@ -171,7 +173,8 @@ func WithdrawUserProfile(c *gin.Context) {
 
 	// Retrieve CIAM id
 	ciamUserId := ""
-	if respData, err := services.GetCIAMUserByEmail(c, rlpResp.User.Email); err != nil {
+
+	if respData, err := services.GetCIAMUserByEmail(c, httpClient, rlpResp.User.Email); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -206,9 +209,26 @@ func WithdrawUserProfile(c *gin.Context) {
 	ciamPayload := requests.GraphDisableAccountRequest{
 		AccountEnabled: false,
 	}
-	if err := services.PatchCIAMUpdateUser(c, ciamUserId, ciamPayload); err != nil {
+	if err := services.PatchCIAMUpdateUser(c, httpClient, ciamUserId, ciamPayload); err != nil {
 		// Log the error
 		log.Printf("Update CIAM User AccountEnabled to false failed: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
+
+	//TODO: update API call to ACS to proper template
+	acsRequest := requests.AcsSendEmailByTemplateRequest{
+		Email:   rlpResp.User.Email,                 // original email
+		Subject: services.AcsEmailSubjectRequestOtp, //TODO: update subject
+		Data: requests.RequestEmailOtpTemplateData{ //TODO: update template data
+			Email: rlpResp.User.Email,
+			Otp:   "withdraw email",
+		},
+	}
+
+	//TODO: update template
+	if err := services.PostAcsSendEmailByTemplate(c, httpClient, services.AcsEmailTemplateRequestOtp, acsRequest); err != nil {
+		log.Printf("failed to send withdrawal email: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
