@@ -15,22 +15,22 @@ import (
 
 const (
 	// Endpoints
-	ProfileURL = "/priv/v1/apps/:api_key/external/users/:external_id"
+	ProfileURL = "/priv/v1/apps/:api_key/external/users"
 	EventUrl   = "/api/1.0/user_events/:event_name"
 
 	// Event Names
 	RlpEventNameUpdateUserTier = "update_user_tier"
 )
 
-func PutProfile(ctx context.Context, client *http.Client, externalId string, payload any) (*responses.GetUserResponse, error) {
+func PutProfile(ctx context.Context, client *http.Client, externalId string, payload any) (*responses.GetUserResponse, []byte, error) {
 	return profile(ctx, client, externalId, payload, http.MethodPut)
 }
 
-func GetProfile(ctx context.Context, client *http.Client, externalId string) (*responses.GetUserResponse, error) {
+func GetProfile(ctx context.Context, client *http.Client, externalId string) (*responses.GetUserResponse, []byte, error) {
 	return profile(ctx, client, externalId, nil, http.MethodGet)
 }
 
-func UpdateUserTier(ctx context.Context, client *http.Client, payload any) (*responses.UserTierUpdateEventResponse, error) {
+func UpdateUserTier(ctx context.Context, client *http.Client, payload any) (*responses.UserTierUpdateEventResponse, []byte, error) {
 	conf := config.GetConfig()
 	endpoint := strings.ReplaceAll(EventUrl, ":event_name", RlpEventNameUpdateUserTier)
 	urlWithParams := fmt.Sprintf("%s%s", conf.Api.Rlp.Host, endpoint)
@@ -46,10 +46,12 @@ func UpdateUserTier(ctx context.Context, client *http.Client, payload any) (*res
 	})
 }
 
-func profile(ctx context.Context, client *http.Client, externalId string, payload any, operation string) (*responses.GetUserResponse, error) {
+func profile(ctx context.Context, client *http.Client, externalId string, payload any, operation string) (*responses.GetUserResponse, []byte, error) {
 	conf := config.GetConfig()
 	endpoint := strings.ReplaceAll(ProfileURL, ":api_key", conf.Api.Rlp.ApiKey)
-	endpoint = strings.ReplaceAll(endpoint, ":external_id", externalId)
+	if externalId != "" {
+		endpoint = fmt.Sprintf("%s/%s", endpoint, externalId)
+	}
 	urlWithParams := fmt.Sprintf("%s%s", conf.Api.Rlp.Host, endpoint)
 
 	return utils.DoAPIRequest[responses.GetUserResponse](model.APIRequestOptions{

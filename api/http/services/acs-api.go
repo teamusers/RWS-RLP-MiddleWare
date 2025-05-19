@@ -38,7 +38,7 @@ func getAcsAccessToken(ctx context.Context, client *http.Client) (string, error)
 		"AppID": config.GetConfig().Api.Acs.AppId,
 	}
 
-	if response, err := utils.DoAPIRequest[responses.ApiResponse[responses.AcsAuthResponseData]](model.APIRequestOptions{
+	if response, _, err := utils.DoAPIRequest[responses.ApiResponse[responses.AcsAuthResponseData]](model.APIRequestOptions{
 		Method:         http.MethodPost,
 		URL:            buildFullAcsUrl(AcsAuthURL),
 		Body:           reqBody,
@@ -66,7 +66,7 @@ func PostAcsSendEmailByTemplate(ctx context.Context, client *http.Client, templa
 
 	url := strings.ReplaceAll(AcsSendEmailByTemplateURL, ":template_name", templateName)
 
-	if _, err := utils.DoAPIRequest[struct{}](model.APIRequestOptions{
+	if _, _, err := utils.DoAPIRequest[struct{}](model.APIRequestOptions{
 		Method:         http.MethodPost,
 		URL:            buildFullAcsUrl(url),
 		Body:           payload,

@@ -15,18 +15,17 @@ type Date time.Time
 
 // UnmarshalJSON will now be on the value receiver,
 // so *Date and Date both implement json.Unmarshaler.
-func (d Date) UnmarshalJSON(data []byte) error {
+func (d *Date) UnmarshalJSON(data []byte) error {
 	s := strings.Trim(string(data), `"`)
 	if s == "" || s == "null" {
+		*d = Date(time.Time{}) // set to zero time
 		return nil
 	}
-	_, err := time.Parse("2006-01-02", s)
+	t, err := time.Parse("2006-01-02", s)
 	if err != nil {
 		return err
 	}
-	// but this only updates the copy; you still need a pointer
-	// => so this approach is tricky unless you also satisfy
-	// json.Unmarshaler on *Date
+	*d = Date(t)
 	return nil
 }
 
@@ -82,4 +81,12 @@ func (dt *DateTime) UnmarshalJSON(b []byte) error {
 	}
 	*dt = DateTime(t)
 	return nil
+}
+
+func (dt DateTime) MarshalJSON() ([]byte, error) {
+	t := time.Time(dt)
+	if t.IsZero() {
+		return []byte("null"), nil
+	}
+	return []byte(fmt.Sprintf(`"%s"`, t.Format("2006-01-02 15:04:05"))), nil
 }

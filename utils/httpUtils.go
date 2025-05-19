@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"lbe/model"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -23,7 +24,7 @@ func GetHttpClient(ctx context.Context) *http.Client {
 	return http.DefaultClient // fallback
 }
 
-func DoAPIRequest[T any](opts model.APIRequestOptions) (*T, error) {
+func DoAPIRequest[T any](opts model.APIRequestOptions) (*T, []byte, error) {
 	var bodyReader io.Reader
 	if opts.Body != nil {
 		switch opts.ContentType {
@@ -32,7 +33,7 @@ func DoAPIRequest[T any](opts model.APIRequestOptions) (*T, error) {
 			if form, ok := opts.Body.(url.Values); ok {
 				bodyReader = strings.NewReader(form.Encode())
 			} else {
-				return nil, fmt.Errorf("body must be url.Values for content type %s", opts.ContentType)
+				return nil, nil, fmt.Errorf("body must be url.Values for content type %s", opts.ContentType)
 			}
 		case model.ContentTypeJson:
 			fallthrough
@@ -40,7 +41,7 @@ func DoAPIRequest[T any](opts model.APIRequestOptions) (*T, error) {
 			// Marshal as JSON
 			b, err := json.Marshal(opts.Body)
 			if err != nil {
-				return nil, fmt.Errorf("marshaling body: %w", err)
+				return nil, nil, fmt.Errorf("marshaling body: %w", err)
 			}
 			bodyReader = bytes.NewReader(b)
 			opts.ContentType = model.ContentTypeJson // ensure default if empty
@@ -49,7 +50,7 @@ func DoAPIRequest[T any](opts model.APIRequestOptions) (*T, error) {
 
 	req, err := http.NewRequestWithContext(opts.Context, opts.Method, opts.URL, bodyReader)
 	if err != nil {
-		return nil, fmt.Errorf("creating request: %w", err)
+		return nil, nil, fmt.Errorf("creating request: %w", err)
 	}
 
 	if opts.Body != nil {
@@ -65,16 +66,32 @@ func DoAPIRequest[T any](opts model.APIRequestOptions) (*T, error) {
 		req.Header.Set(k, v)
 	}
 
+	// --- LOG REQUEST HERE ---
+	log.Printf("[API REQUEST] %s %s; Content-Type: %s; Body: %s", opts.Method, opts.URL, opts.ContentType, func() string {
+		if opts.Body == nil {
+			return "<empty>"
+		}
+		b, err := json.Marshal(opts.Body)
+		if err != nil {
+			return "<error marshaling body>"
+		}
+		return string(b)
+	}())
+
 	resp, err := opts.Client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("executing request: %w", err)
+		return nil, nil, fmt.Errorf("executing request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("reading response body: %w", err)
+		return nil, nil, fmt.Errorf("reading response body: %w", err)
 	}
+
+	// --- LOG RESPONSE HERE ---
+	log.Printf("[API RESPONSE] Status: %d; Body: %s", resp.StatusCode,
+		strings.Join(strings.Fields(strings.ReplaceAll(strings.ReplaceAll(string(raw), "\n", " "), "\t", " ")), " "))
 
 	// 1) strip UTF-8 BOM if present
 	raw = bytes.TrimPrefix(raw, []byte("\xef\xbb\xbf"))
@@ -82,17 +99,17 @@ func DoAPIRequest[T any](opts model.APIRequestOptions) (*T, error) {
 	raw = []byte(strings.ReplaceAll(string(raw), "\u00A0", " "))
 
 	if resp.StatusCode != opts.ExpectedStatus {
-		return nil, fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(raw))
+		return nil, raw, fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(raw))
 	}
 
 	if len(raw) == 0 {
 		var empty T
-		return &empty, nil
+		return &empty, raw, nil
 	}
 
 	var result T
 	if err := json.Unmarshal(raw, &result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w; cleaned body: %q", err, raw)
+		return nil, raw, fmt.Errorf("failed to decode response: %w; cleaned body: %q", err, raw)
 	}
-	return &result, nil
+	return &result, raw, nil
 }

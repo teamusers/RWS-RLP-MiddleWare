@@ -25,7 +25,7 @@ const (
 )
 
 // GetCIAMAccessToken acquires a bearer token from Azure AD using client credentials.
-func GetCIAMAccessToken(ctx context.Context, client *http.Client) (*responses.TokenResponse, error) {
+func GetCIAMAccessToken(ctx context.Context, client *http.Client) (*responses.TokenResponse, []byte, error) {
 	cfg := config.GetConfig().Api.Eeid
 
 	host := strings.TrimRight(cfg.AuthHost, "/")
@@ -54,10 +54,10 @@ func GetCIAMAccessToken(ctx context.Context, client *http.Client) (*responses.To
 }
 
 // GetCIAMUserByEmail calls Graph GET /users?$filter=mail eq '{email}'.
-func GetCIAMUserByEmail(ctx context.Context, client *http.Client, email string) (*responses.GraphUserCollection, error) {
-	tokenResp, err := GetCIAMAccessToken(ctx, client)
+func GetCIAMUserByEmail(ctx context.Context, client *http.Client, email string) (*responses.GraphUserCollection, []byte, error) {
+	tokenResp, _, err := GetCIAMAccessToken(ctx, client)
 	if err != nil {
-		return nil, fmt.Errorf("getting access token: %w", err)
+		return nil, nil, fmt.Errorf("getting access token: %w", err)
 	}
 	// extract the actual bearer token
 	bearer := tokenResp.AccessToken
@@ -80,10 +80,10 @@ func GetCIAMUserByEmail(ctx context.Context, client *http.Client, email string) 
 }
 
 // GetCIAMUserByGrId calls Graph GET /users?$filter={schemaIdKey}/grid eq '{grId}'.
-func GetCIAMUserByGrId(ctx context.Context, client *http.Client, grId string) (*responses.GraphUserCollection, error) {
-	tokenResp, err := GetCIAMAccessToken(ctx, client)
+func GetCIAMUserByGrId(ctx context.Context, client *http.Client, grId string) (*responses.GraphUserCollection, []byte, error) {
+	tokenResp, _, err := GetCIAMAccessToken(ctx, client)
 	if err != nil {
-		return nil, fmt.Errorf("getting access token: %w", err)
+		return nil, nil, fmt.Errorf("getting access token: %w", err)
 	}
 	// extract the actual bearer token
 	bearer := tokenResp.AccessToken
@@ -106,10 +106,10 @@ func GetCIAMUserByGrId(ctx context.Context, client *http.Client, grId string) (*
 }
 
 // PostCIAMRegisterUser calls Graph POST /users to create a new AD user.
-func PostCIAMRegisterUser(ctx context.Context, client *http.Client, payload requests.GraphCreateUserRequest) (*responses.GraphCreateUserResponse, error) {
-	tokenResp, err := GetCIAMAccessToken(ctx, client)
+func PostCIAMRegisterUser(ctx context.Context, client *http.Client, payload requests.GraphCreateUserRequest) (*responses.GraphCreateUserResponse, []byte, error) {
+	tokenResp, _, err := GetCIAMAccessToken(ctx, client)
 	if err != nil {
-		return nil, fmt.Errorf("getting access token: %w", err)
+		return nil, nil, fmt.Errorf("getting access token: %w", err)
 	}
 	// extract the actual bearer token
 	bearer := tokenResp.AccessToken
@@ -131,10 +131,10 @@ func PostCIAMRegisterUser(ctx context.Context, client *http.Client, payload requ
 	})
 }
 
-func PatchCIAMAddUserSchemaExtensions(ctx context.Context, client *http.Client, userId string, payload any) error {
-	tokenResp, err := GetCIAMAccessToken(ctx, client)
+func PatchCIAMAddUserSchemaExtensions(ctx context.Context, client *http.Client, userId string, payload any) ([]byte, error) {
+	tokenResp, _, err := GetCIAMAccessToken(ctx, client)
 	if err != nil {
-		return fmt.Errorf("getting access token: %w", err)
+		return nil, fmt.Errorf("getting access token: %w", err)
 	}
 	// extract the actual bearer token
 	bearer := tokenResp.AccessToken
@@ -143,7 +143,7 @@ func PatchCIAMAddUserSchemaExtensions(ctx context.Context, client *http.Client, 
 	base := strings.TrimRight(cfg.Host, "/")
 	fullURL := fmt.Sprintf("%s%s/%s", base, CiamUserURL, userId)
 
-	_, err = utils.DoAPIRequest[struct{}](model.APIRequestOptions{
+	_, raw, err := utils.DoAPIRequest[struct{}](model.APIRequestOptions{
 		Method:         http.MethodPatch,
 		URL:            fullURL,
 		Body:           payload,
@@ -153,13 +153,13 @@ func PatchCIAMAddUserSchemaExtensions(ctx context.Context, client *http.Client, 
 		Context:        ctx,
 		ContentType:    model.ContentTypeJson,
 	})
-	return err
+	return raw, err
 }
 
-func PatchCIAMUpdateUser(ctx context.Context, client *http.Client, userId string, payload any) error {
-	tokenResp, err := GetCIAMAccessToken(ctx, client)
+func PatchCIAMUpdateUser(ctx context.Context, client *http.Client, userId string, payload any) ([]byte, error) {
+	tokenResp, _, err := GetCIAMAccessToken(ctx, client)
 	if err != nil {
-		return fmt.Errorf("getting access token: %w", err)
+		return nil, fmt.Errorf("getting access token: %w", err)
 	}
 	// extract the actual bearer token
 	bearer := tokenResp.AccessToken
@@ -169,7 +169,7 @@ func PatchCIAMUpdateUser(ctx context.Context, client *http.Client, userId string
 	fullURL := fmt.Sprintf("%s%s/%s", base, CiamUserURL, userId)
 
 	log.Printf("patching CIAM user id: %v", userId)
-	_, err = utils.DoAPIRequest[struct{}](model.APIRequestOptions{
+	_, raw, err := utils.DoAPIRequest[struct{}](model.APIRequestOptions{
 		Method:         http.MethodPatch,
 		URL:            fullURL,
 		Body:           payload,
@@ -179,5 +179,5 @@ func PatchCIAMUpdateUser(ctx context.Context, client *http.Client, userId string
 		Context:        ctx,
 		ContentType:    model.ContentTypeJson,
 	})
-	return err
+	return raw, err
 }

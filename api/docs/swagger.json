@@ -865,6 +865,11 @@
                     "type": "string",
                     "example": "+65"
                 },
+                "country_name": {
+                    "description": "Country name\nexample: Singapore",
+                    "type": "string",
+                    "example": "Singapore"
+                },
                 "employee_number": {
                     "description": "Employee Number for RWS employees only, otherwise empty\nexample: 1111",
                     "type": "string",

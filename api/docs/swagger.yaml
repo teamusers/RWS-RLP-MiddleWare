@@ -175,6 +175,12 @@ definitions:
           example: +65
         example: "+65"
         type: string
+      country_name:
+        description: |-
+          Country name
+          example: Singapore
+        example: Singapore
+        type: string
       employee_number:
         description: |-
           Employee Number for RWS employees only, otherwise empty
