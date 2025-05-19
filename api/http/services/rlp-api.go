@@ -2,63 +2,63 @@
 package services
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
-	"io"
 	"strings"
 
 	"lbe/api/http/responses"
 	"lbe/config"
+	"lbe/model"
+	"lbe/utils"
 	"net/http"
 )
 
-// Endpoints
 const (
-	UpdateProfileURL = "/priv/v1/apps/:api_key/users"
-	ProfileURL       = "/priv/v1/apps/:api_key/external/users/:external_id"
+	// Endpoints
+	ProfileURL = "/priv/v1/apps/:api_key/external/users/:external_id"
+	EventUrl   = "/api/1.0/user_events/:event_name"
+
+	// Event Names
+	RlpEventNameUpdateUserTier = "update_user_tier"
 )
 
-func Profile(external_id string, payload any, operation string, endpoint string) (*responses.GetUserResponse, error) {
+func PutProfile(ctx context.Context, client *http.Client, externalId string, payload any) (*responses.GetUserResponse, error) {
+	return profile(ctx, client, externalId, payload, http.MethodPut)
+}
+
+func GetProfile(ctx context.Context, client *http.Client, externalId string) (*responses.GetUserResponse, error) {
+	return profile(ctx, client, externalId, nil, http.MethodGet)
+}
+
+func UpdateUserTier(ctx context.Context, client *http.Client, payload any) (*responses.UserTierUpdateEventResponse, error) {
 	conf := config.GetConfig()
-	endpoint = strings.ReplaceAll(endpoint, ":api_key", conf.Api.Rlp.ApiKey)
-	endpoint = strings.ReplaceAll(endpoint, ":external_id", external_id)
+	endpoint := strings.ReplaceAll(EventUrl, ":event_name", RlpEventNameUpdateUserTier)
 	urlWithParams := fmt.Sprintf("%s%s", conf.Api.Rlp.Host, endpoint)
 
-	resp, err := buildHttpClient(operation, urlWithParams, payload)
-	if err != nil {
-		return nil, err
-	}
+	return utils.DoAPIRequest[responses.UserTierUpdateEventResponse](model.APIRequestOptions{
+		Method:         http.MethodPost,
+		URL:            urlWithParams,
+		Body:           payload,
+		ExpectedStatus: http.StatusOK,
+		Client:         client,
+		Context:        ctx,
+		ContentType:    model.ContentTypeJson,
+	})
+}
 
-	if resp.StatusCode != http.StatusOK {
-		// Read the response body
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			// In case of error reading the body, just return the status code
-			return nil, fmt.Errorf("error calling RLP services: received status code %d, but failed to read response body: %v", resp.StatusCode, err)
-		}
-		defer resp.Body.Close()
+func profile(ctx context.Context, client *http.Client, externalId string, payload any, operation string) (*responses.GetUserResponse, error) {
+	conf := config.GetConfig()
+	endpoint := strings.ReplaceAll(ProfileURL, ":api_key", conf.Api.Rlp.ApiKey)
+	endpoint = strings.ReplaceAll(endpoint, ":external_id", externalId)
+	urlWithParams := fmt.Sprintf("%s%s", conf.Api.Rlp.Host, endpoint)
 
-		return nil, fmt.Errorf("error calling RLP services: received status code %d and response: %s", resp.StatusCode, string(body))
-	}
-
-	// on 200 OK, read & clean the body
-	raw, err := io.ReadAll(resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	// 1) strip UTF-8 BOM if present
-	raw = bytes.TrimPrefix(raw, []byte("\xef\xbb\xbf"))
-	// 2) replace any non-breaking space (U+00A0) with a normal space
-	raw = []byte(strings.ReplaceAll(string(raw), "\u00A0", " "))
-
-	// now unmarshal into your struct
-	var result responses.GetUserResponse
-	if err := json.Unmarshal(raw, &result); err != nil {
-		return nil, fmt.Errorf("failed to decode JSON: %w; cleaned body: %q", err, raw)
-	}
-
-	return &result, nil
+	return utils.DoAPIRequest[responses.GetUserResponse](model.APIRequestOptions{
+		Method:         operation,
+		URL:            urlWithParams,
+		Body:           payload,
+		ExpectedStatus: http.StatusOK,
+		Client:         client,
+		Context:        ctx,
+		ContentType:    model.ContentTypeJson,
+	})
 }

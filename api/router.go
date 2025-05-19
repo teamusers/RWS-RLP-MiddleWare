@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	general "lbe/api/http"
 	"lbe/api/http/middleware"
@@ -43,6 +44,9 @@ func Init() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+
+	httpClient := &http.Client{Timeout: 10 * time.Second}
+	r.Use(middleware.HttpClientMiddleware(httpClient))
 
 	r.Use(middleware.AuditLogger(db))
 

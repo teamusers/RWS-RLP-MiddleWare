@@ -52,6 +52,7 @@ api:
     host : http://localhost:18083 
     appid : app1234
     secret: mySuperSecretKey4
+    grCmsRegistrationUrlHost: https://replacethis.com
     
 allStart: 1
 proxyEnable : true

@@ -44,6 +44,7 @@ const (
 // @Security     ApiKeyAuth
 // @Router       /user/register/verify [post]
 func VerifyUserExistence(c *gin.Context) {
+	httpClient := utils.GetHttpClient(c.Request.Context())
 	var req requests.VerifyUserExistence
 
 	// Bind the incoming JSON payload.
@@ -52,7 +53,7 @@ func VerifyUserExistence(c *gin.Context) {
 		return
 	}
 
-	if respData, err := services.GetCIAMUserByEmail(c, req.Email); err != nil {
+	if respData, err := services.GetCIAMUserByEmail(c, httpClient, req.Email); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -82,7 +83,7 @@ func VerifyUserExistence(c *gin.Context) {
 		},
 	}
 
-	if err := services.PostAcsSendEmailByTemplate(services.AcsEmailTemplateRequestOtp, acsRequest); err != nil {
+	if err := services.PostAcsSendEmailByTemplate(c, httpClient, services.AcsEmailTemplateRequestOtp, acsRequest); err != nil {
 		log.Printf("failed to send email otp: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -110,6 +111,7 @@ func VerifyUserExistence(c *gin.Context) {
 // @Security     ApiKeyAuth
 // @Router       /user/register [post]
 func CreateUser(c *gin.Context) {
+	httpClient := utils.GetHttpClient(c.Request.Context())
 	var req requests.RegisterUser
 	// Bind the incoming JSON payload to the user struct.
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -175,7 +177,7 @@ func CreateUser(c *gin.Context) {
 	rlpCreateUserRequest.UserProfile.PreviousEmail = rlpCreateUserRequest.Email
 
 	//To DO - RLP : Test Actual RLP End Points
-	profileResp, err := services.Profile("", rlpCreateUserRequest, "PUT", services.ProfileURL)
+	profileResp, err := services.PutProfile(c, httpClient, "", rlpCreateUserRequest)
 	if err != nil {
 		// Log the error
 		log.Printf("RLP Register User failed: %v", err)
@@ -183,13 +185,25 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	//TO DO - RLP: Request User Tier update
+	// RLP: Request User Tier update
+	// TODO: Update to actual spec
 	if req.User.Tier != "" {
-		// call rlp
+		log.Println("RLP Trigger Update User Tier Event")
+		userTierReq := requests.UserTierUpdateEventRequest{
+			EventLookup: services.RlpEventNameUpdateUserTier,
+			UserId:      newRlpNumbering.RLP_ID,
+			UserTier:    req.User.Tier,
+		}
+
+		if _, err := services.UpdateUserTier(c, httpClient, userTierReq); err != nil {
+			log.Printf("RLP Update User Tier failed: %v", err)
+			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+			return
+		}
 	}
 
 	// Create CIAM User
-	if respData, err := services.PostCIAMRegisterUser(c, requests.GenerateInitialRegistrationRequest(&req.User)); err != nil {
+	if respData, err := services.PostCIAMRegisterUser(c, httpClient, requests.GenerateInitialRegistrationRequest(&req.User)); err != nil {
 		// Log the error
 		log.Printf("CIAM Register User failed: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
@@ -204,7 +218,7 @@ func CreateUser(c *gin.Context) {
 			},
 		}
 
-		if err := services.PatchCIAMAddUserSchemaExtensions(c, respData.Id, schemaExtensionsPayload); err != nil {
+		if err := services.PatchCIAMAddUserSchemaExtensions(c, httpClient, respData.Id, schemaExtensionsPayload); err != nil {
 			log.Printf("CIAM Patch User Schema Extensions failed: %v", err)
 			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 			return
@@ -240,6 +254,7 @@ func CreateUser(c *gin.Context) {
 // @Security     ApiKeyAuth
 // @Router       /user/gr [post]
 func VerifyGrExistence(c *gin.Context) {
+	httpClient := utils.GetHttpClient(c.Request.Context())
 	var req requests.VerifyGrUser
 
 	// Bind the incoming JSON payload.
@@ -249,7 +264,7 @@ func VerifyGrExistence(c *gin.Context) {
 	}
 
 	// verify if gr ID is unused
-	if respData, err := services.GetCIAMUserByGrId(c, req.User.GrProfile.Id); err != nil {
+	if respData, err := services.GetCIAMUserByGrId(c, httpClient, req.User.GrProfile.Id); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -286,7 +301,8 @@ func VerifyGrExistence(c *gin.Context) {
 			},
 		}
 
-		if err := services.PostAcsSendEmailByTemplate(services.AcsEmailTemplateRequestOtp, acsRequest); err != nil {
+		httpClient := utils.GetHttpClient(c.Request.Context())
+		if err := services.PostAcsSendEmailByTemplate(c, httpClient, services.AcsEmailTemplateRequestOtp, acsRequest); err != nil {
 			log.Printf("failed to send email otp: %v", err)
 			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 			return
@@ -317,6 +333,7 @@ func VerifyGrExistence(c *gin.Context) {
 // @Security     ApiKeyAuth
 // @Router       /user/gr-cms [post]
 func VerifyGrCmsExistence(c *gin.Context) {
+	httpClient := utils.GetHttpClient(c.Request.Context())
 	var req requests.VerifyGrCmsUser
 
 	// Bind the incoming JSON payload.
@@ -325,7 +342,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 		return
 	}
 
-	if respData, err := services.GetCIAMUserByEmail(c, req.User.Email); err != nil {
+	if respData, err := services.GetCIAMUserByEmail(c, httpClient, req.User.Email); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -335,7 +352,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 	}
 
 	// verify if gr ID is unused
-	if respData, err := services.GetCIAMUserByGrId(c, req.User.GrProfile.Id); err != nil {
+	if respData, err := services.GetCIAMUserByGrId(c, httpClient, req.User.GrProfile.Id); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -344,11 +361,30 @@ func VerifyGrCmsExistence(c *gin.Context) {
 		return
 	}
 
-	// TO DO - Generate reg_id and cache gr member info within expiry timestamp
+	// TODO - Generate reg_id and cache gr member info within expiry timestamp
 	regId := uuid.New()
 	system.ObjectSet(regId.String(), req.User, 30*time.Minute)
 
-	// TO DO - send registration email with url and reg_id
+	// generate url
+
+	registrationUrl := fmt.Sprintf("%s/%v/%s", config.GetConfig().Api.Acs.GrCmsRegistrationUrlHost, time.Now().Unix(), regId)
+
+	// TODO - send registration email with url and reg_id via acs
+	acsRequest := requests.AcsSendEmailByTemplateRequest{
+		Email:   req.User.Email,
+		Subject: services.AcsEmailSubjectRequestOtp, //TODO: update subject
+		Data: requests.RequestEmailOtpTemplateData{ //TODO: update template data
+			Email: req.User.Email,
+			Otp:   registrationUrl,
+		},
+	}
+
+	//TODO: update template
+	if err := services.PostAcsSendEmailByTemplate(c, httpClient, services.AcsEmailTemplateRequestOtp, acsRequest); err != nil {
+		log.Printf("failed to send registration url email: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
 
 	// return email existence status
 	c.JSON(http.StatusOK, responses.DefaultResponse(codes.SUCCESSFUL, "existing user not found"))
