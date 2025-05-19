@@ -48,6 +48,7 @@ api:
     clientid : 90b382ed-6609-417f-8213-3f06b442f83c 
     clientsecret: vtf8Q~EPh2Fq4EBh0WSQsRPfxEuVxdcUQ8IDNdgG
     userIdLinkExtensionKey: exth7tu5cmc_LBE
+    defaultIssuer: eeidtest1.onmicrosoft.com
   acs:
     host : http://localhost:18083 
     appid : app1234
