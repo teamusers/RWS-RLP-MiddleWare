@@ -14,9 +14,8 @@ func Routers(e *gin.RouterGroup) {
 	v1Group := e.Group("/v1")
 
 	v1Group.POST("/auth", v1.AuthHandler)
-	v1Group.POST("/email", v1.Email)
-	v1Group.POST("/verify", v1.VerifyUserHandler)
-	v1Group.POST("/register", v1.RegisterUserHandler)
+	// TODO: remove
+	// v1Group.POST("/email", v1.Email)
 
 	usersGroup := v1Group.Group("/user", interceptor.HttpInterceptor())
 	{
