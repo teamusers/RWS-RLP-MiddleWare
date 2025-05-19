@@ -51,6 +51,7 @@ type Config struct {
 			ClientID               string `yaml:"clientid"`
 			ClientSecret           string `yaml:"clientsecret"`
 			UserIdLinkExtensionKey string `yaml:"userIdLinkExtensionKey"`
+			DefaultIssuer          string `yaml:"defaultIssuer"`
 		} `yaml:"eeid"`
 		Cms struct {
 			Host     string `yaml:"host"`

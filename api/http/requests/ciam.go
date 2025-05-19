@@ -3,6 +3,7 @@ package requests
 
 import (
 	"fmt"
+	"lbe/config"
 	"lbe/model"
 	"strings"
 )
@@ -34,6 +35,7 @@ type GraphCreateUserRequest struct {
 	Mail             string          `json:"mail"`
 	PasswordProfile  PasswordProfile `json:"passwordProfile"`
 	PasswordPolicies string          `json:"passwordPolicies"`
+	UserType         string          `json:"userType"`
 }
 
 func GenerateInitialRegistrationRequest(user *model.User) GraphCreateUserRequest {
@@ -44,7 +46,7 @@ func GenerateInitialRegistrationRequest(user *model.User) GraphCreateUserRequest
 		Identities: []Identity{
 			{
 				SignInType:       "emailAddress",
-				Issuer:           user.Email[strings.Index(user.Email, "@")+1:],
+				Issuer:           config.GetConfig().Api.Eeid.DefaultIssuer,
 				IssuerAssignedID: user.Email,
 			},
 		},
@@ -54,6 +56,7 @@ func GenerateInitialRegistrationRequest(user *model.User) GraphCreateUserRequest
 			Password:                      "P@ssw0rd!2025",
 		},
 		PasswordPolicies: "DisablePasswordExpiration",
+		UserType:         "Guest",
 	}
 }
 

@@ -118,7 +118,7 @@ func PostCIAMRegisterUser(ctx context.Context, client *http.Client, payload requ
 	base := strings.TrimRight(cfg.Host, "/")
 	fullURL := fmt.Sprintf("%s%s", base, CiamUserURL)
 
-	log.Printf("registering user: %v", payload.DisplayName)
+	log.Printf("registering user: %v", payload.Mail)
 	return utils.DoAPIRequest[responses.GraphCreateUserResponse](model.APIRequestOptions{
 		Method:         http.MethodPost,
 		URL:            fullURL,
