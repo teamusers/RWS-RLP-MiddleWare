@@ -1,6 +1,7 @@
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -53,7 +54,7 @@ func VerifyUserExistence(c *gin.Context) {
 		return
 	}
 
-	if respData, err := services.GetCIAMUserByEmail(c, httpClient, req.Email); err != nil {
+	if respData, _, err := services.GetCIAMUserByEmail(c, httpClient, req.Email); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -178,7 +179,7 @@ func CreateUser(c *gin.Context) {
 	rlpCreateUserRequest.UserProfile.PreviousEmail = rlpCreateUserRequest.Email
 
 	//To DO - RLP : Test Actual RLP End Points
-	profileResp, err := services.PutProfile(c, httpClient, "", rlpCreateUserRequest)
+	profileResp, _, err := services.PutProfile(c, httpClient, "", rlpCreateUserRequest)
 	if err != nil {
 		// Log the error
 		log.Printf("RLP Register User failed: %v", err)
@@ -195,7 +196,7 @@ func CreateUser(c *gin.Context) {
 		UserTier:    req.User.Tier,
 	}
 
-	if _, err := services.UpdateUserTier(c, httpClient, userTierReq); err != nil {
+	if _, _, err := services.UpdateUserTier(c, httpClient, userTierReq); err != nil {
 		log.Printf("RLP Update User Tier failed: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -204,9 +205,17 @@ func CreateUser(c *gin.Context) {
 	}
 
 	// Create CIAM User
-	if respData, err := services.PostCIAMRegisterUser(c, httpClient, requests.GenerateInitialRegistrationRequest(&req.User)); err != nil {
+	if respData, raw, err := services.PostCIAMRegisterUser(c, httpClient, requests.GenerateInitialRegistrationRequest(&req.User)); err != nil {
 		// Log the error
 		log.Printf("CIAM Register User failed: %v", err)
+
+		var errResp responses.GraphApiErrorResponse
+		if err := json.Unmarshal(raw, &errResp); err == nil {
+			if errResp.Error.Message == responses.CiamUserAlreadyExists {
+				c.JSON(http.StatusConflict, responses.ExistingUserFoundErrorResponse())
+				return
+			}
+		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	} else {
@@ -224,7 +233,7 @@ func CreateUser(c *gin.Context) {
 			},
 		}
 
-		if err := services.PatchCIAMAddUserSchemaExtensions(c, httpClient, respData.Id, schemaExtensionsPayload); err != nil {
+		if _, err := services.PatchCIAMAddUserSchemaExtensions(c, httpClient, respData.Id, schemaExtensionsPayload); err != nil {
 			log.Printf("CIAM Patch User Schema Extensions failed: %v", err)
 			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 			return
@@ -270,7 +279,7 @@ func VerifyGrExistence(c *gin.Context) {
 	}
 
 	// verify if gr ID is unused
-	if respData, err := services.GetCIAMUserByGrId(c, httpClient, req.User.GrProfile.Id); err != nil {
+	if respData, _, err := services.GetCIAMUserByGrId(c, httpClient, req.User.GrProfile.Id); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -348,7 +357,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 		return
 	}
 
-	if respData, err := services.GetCIAMUserByEmail(c, httpClient, req.User.Email); err != nil {
+	if respData, _, err := services.GetCIAMUserByEmail(c, httpClient, req.User.Email); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -358,7 +367,7 @@ func VerifyGrCmsExistence(c *gin.Context) {
 	}
 
 	// verify if gr ID is unused
-	if respData, err := services.GetCIAMUserByGrId(c, httpClient, req.User.GrProfile.Id); err != nil {
+	if respData, _, err := services.GetCIAMUserByGrId(c, httpClient, req.User.GrProfile.Id); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return

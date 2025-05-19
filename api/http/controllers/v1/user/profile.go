@@ -37,7 +37,7 @@ func GetUserProfile(c *gin.Context) {
 	}
 
 	//To DO - RLP : Test Actual RLP End Points
-	profileResp, err := services.GetProfile(c, httpClient, external_id)
+	profileResp, _, err := services.GetProfile(c, httpClient, external_id)
 	if err != nil {
 		// Log the error
 		log.Printf("GET User Profile failed: %v", err)
@@ -89,7 +89,7 @@ func UpdateUserProfile(c *gin.Context) {
 	//To DO - RLP : To be change to RLP update user. RLP - API, Temporary update DB 1st
 	//memberResp, err := services.Member(external_id, nil, "PUT")
 	//To DO - RLP : Test Actual RLP End Points
-	profileResp, err := services.PutProfile(c, httpClient, external_id, req.User.MapLbeToRlpUser())
+	profileResp, _, err := services.PutProfile(c, httpClient, external_id, req.User.MapLbeToRlpUser())
 	if err != nil {
 		// Log the error
 		log.Printf("Update User Profile failed: %v", err)
@@ -164,7 +164,7 @@ func WithdrawUserProfile(c *gin.Context) {
 	}
 
 	// Retrieve user profile from RLP
-	rlpResp, err := services.GetProfile(c, httpClient, external_id)
+	rlpResp, _, err := services.GetProfile(c, httpClient, external_id)
 	if err != nil {
 		// Log the error
 		log.Printf("GET User Profile failed: %v", err)
@@ -175,7 +175,7 @@ func WithdrawUserProfile(c *gin.Context) {
 	// Retrieve CIAM id
 	ciamUserId := ""
 
-	if respData, err := services.GetCIAMUserByEmail(c, httpClient, rlpResp.User.Email); err != nil {
+	if respData, _, err := services.GetCIAMUserByEmail(c, httpClient, rlpResp.User.Email); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
@@ -198,7 +198,7 @@ func WithdrawUserProfile(c *gin.Context) {
 	rlpUserProfile.UserProfile.MarketingPreference.Email = false
 	rlpUserProfile.UserProfile.MarketingPreference.Mobile = false
 
-	profileResp, err := services.PutProfile(c, httpClient, external_id, rlpUserProfile)
+	profileResp, _, err := services.PutProfile(c, httpClient, external_id, rlpUserProfile)
 	if err != nil {
 		// Log the error
 		log.Printf("Update User Profile to withdraw failed: %v", err)
@@ -210,7 +210,7 @@ func WithdrawUserProfile(c *gin.Context) {
 	ciamPayload := requests.GraphDisableAccountRequest{
 		AccountEnabled: false,
 	}
-	if err := services.PatchCIAMUpdateUser(c, httpClient, ciamUserId, ciamPayload); err != nil {
+	if _, err := services.PatchCIAMUpdateUser(c, httpClient, ciamUserId, ciamPayload); err != nil {
 		// Log the error
 		log.Printf("Update CIAM User AccountEnabled to false failed: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())

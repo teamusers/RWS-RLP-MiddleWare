@@ -1,5 +1,10 @@
 package responses
 
+const (
+	// error messages
+	CiamUserAlreadyExists = "Another object with the same value for property userPrincipalName already exists."
+)
+
 type TokenResponse struct {
 	TokenType    string `json:"token_type"`
 	ExpiresIn    int    `json:"expires_in"`
@@ -31,4 +36,14 @@ type GraphUserExtensionCollection struct {
 		Mail              string `json:"mail"`
 		UserPrincipalName string `json:"userPrincipalName"`
 	} `json:"value"`
+}
+
+type GraphApiErrorResponse struct {
+	Error APIError `json:"error"`
+}
+
+type APIError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	// other fields ignored
 }

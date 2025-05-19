@@ -22,15 +22,15 @@ const (
 	RlpEventNameUpdateUserTier = "update_user_tier"
 )
 
-func PutProfile(ctx context.Context, client *http.Client, externalId string, payload any) (*responses.GetUserResponse, error) {
+func PutProfile(ctx context.Context, client *http.Client, externalId string, payload any) (*responses.GetUserResponse, []byte, error) {
 	return profile(ctx, client, externalId, payload, http.MethodPut)
 }
 
-func GetProfile(ctx context.Context, client *http.Client, externalId string) (*responses.GetUserResponse, error) {
+func GetProfile(ctx context.Context, client *http.Client, externalId string) (*responses.GetUserResponse, []byte, error) {
 	return profile(ctx, client, externalId, nil, http.MethodGet)
 }
 
-func UpdateUserTier(ctx context.Context, client *http.Client, payload any) (*responses.UserTierUpdateEventResponse, error) {
+func UpdateUserTier(ctx context.Context, client *http.Client, payload any) (*responses.UserTierUpdateEventResponse, []byte, error) {
 	conf := config.GetConfig()
 	endpoint := strings.ReplaceAll(EventUrl, ":event_name", RlpEventNameUpdateUserTier)
 	urlWithParams := fmt.Sprintf("%s%s", conf.Api.Rlp.Host, endpoint)
@@ -46,7 +46,7 @@ func UpdateUserTier(ctx context.Context, client *http.Client, payload any) (*res
 	})
 }
 
-func profile(ctx context.Context, client *http.Client, externalId string, payload any, operation string) (*responses.GetUserResponse, error) {
+func profile(ctx context.Context, client *http.Client, externalId string, payload any, operation string) (*responses.GetUserResponse, []byte, error) {
 	conf := config.GetConfig()
 	endpoint := strings.ReplaceAll(ProfileURL, ":api_key", conf.Api.Rlp.ApiKey)
 	if externalId != "" {
