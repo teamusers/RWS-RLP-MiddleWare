@@ -185,9 +185,21 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	//TO DO - RLP: Request User Tier update
+	// RLP: Request User Tier update
+	// TODO: Update to actual spec
 	if req.User.Tier != "" {
-		// call rlp
+		log.Println("RLP Trigger Update User Tier Event")
+		userTierReq := requests.UserTierUpdateEventRequest{
+			EventLookup: services.RlpEventNameUpdateUserTier,
+			UserId:      newRlpNumbering.RLP_ID,
+			UserTier:    req.User.Tier,
+		}
+
+		if _, err := services.UpdateUserTier(c, httpClient, userTierReq); err != nil {
+			log.Printf("RLP Update User Tier failed: %v", err)
+			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+			return
+		}
 	}
 
 	// Create CIAM User

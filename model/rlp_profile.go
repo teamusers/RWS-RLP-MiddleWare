@@ -80,7 +80,7 @@ type RlpUserResp struct {
 	ProxyIDs        []string      `json:"proxy_ids"`
 	OptedIn         bool          `json:"opted_in"`
 	Email           string        `json:"email"`
-	Identifiers     []Identifier  `json:"identifiers"` //TO DO: Standardize
+	Identifiers     []Identifier  `json:"identifiers"`
 	FirstName       string        `json:"first_name"`
 	LastName        string        `json:"last_name"`
 	Gender          string        `json:"gender"`
