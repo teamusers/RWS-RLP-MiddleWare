@@ -18,8 +18,8 @@ import (
 
 // Endpoints
 const (
-	ciamAuthURL      = "/oauth2/v2.0/token"
-	ciamUserURL      = "/v1.0/users"
+	CiamAuthURL      = "/oauth2/v2.0/token"
+	CiamUserURL      = "/v1.0/users"
 	extensionURL     = "/v1.0/users/:id/extensions"
 	extensionDataURL = "/v1.0/users/:id/extensions/:extensionsid"
 )
@@ -33,7 +33,7 @@ func GetCIAMAccessToken(ctx context.Context, client *http.Client) (*responses.To
 	clientID := cfg.ClientID
 	clientSecret := cfg.ClientSecret
 
-	tokenURL := fmt.Sprintf("%s/%s%s", host, tenantID, ciamAuthURL)
+	tokenURL := fmt.Sprintf("%s/%s%s", host, tenantID, CiamAuthURL)
 
 	form := url.Values{
 		"grant_type":    {"client_credentials"},
@@ -65,7 +65,7 @@ func GetCIAMUserByEmail(ctx context.Context, client *http.Client, email string) 
 	cfg := config.GetConfig().Api.Eeid
 	base := strings.TrimRight(cfg.Host, "/")
 	filter := url.QueryEscape(fmt.Sprintf("mail eq '%s'", email))
-	fullURL := fmt.Sprintf("%s%s?$filter=%s", base, ciamUserURL, filter)
+	fullURL := fmt.Sprintf("%s%s?$filter=%s", base, CiamUserURL, filter)
 
 	return utils.DoAPIRequest[responses.GraphUserCollection](model.APIRequestOptions{
 		Method:         http.MethodGet,
@@ -91,7 +91,7 @@ func GetCIAMUserByGrId(ctx context.Context, client *http.Client, grId string) (*
 	cfg := config.GetConfig().Api.Eeid
 	base := strings.TrimRight(cfg.Host, "/")
 	filter := url.QueryEscape(fmt.Sprintf("%s/grid eq '%s'", cfg.UserIdLinkExtensionKey, grId))
-	fullURL := fmt.Sprintf("%s%s?$filter=%s", base, ciamUserURL, filter)
+	fullURL := fmt.Sprintf("%s%s?$filter=%s", base, CiamUserURL, filter)
 
 	return utils.DoAPIRequest[responses.GraphUserCollection](model.APIRequestOptions{
 		Method:         http.MethodGet,
@@ -116,7 +116,7 @@ func PostCIAMRegisterUser(ctx context.Context, client *http.Client, payload requ
 
 	cfg := config.GetConfig().Api.Eeid
 	base := strings.TrimRight(cfg.Host, "/")
-	fullURL := fmt.Sprintf("%s%s", base, ciamUserURL)
+	fullURL := fmt.Sprintf("%s%s", base, CiamUserURL)
 
 	log.Printf("registering user: %v", payload.DisplayName)
 	return utils.DoAPIRequest[responses.GraphCreateUserResponse](model.APIRequestOptions{
@@ -141,7 +141,7 @@ func PatchCIAMAddUserSchemaExtensions(ctx context.Context, client *http.Client, 
 
 	cfg := config.GetConfig().Api.Eeid
 	base := strings.TrimRight(cfg.Host, "/")
-	fullURL := fmt.Sprintf("%s%s/%s", base, ciamUserURL, userId)
+	fullURL := fmt.Sprintf("%s%s/%s", base, CiamUserURL, userId)
 
 	_, err = utils.DoAPIRequest[struct{}](model.APIRequestOptions{
 		Method:         http.MethodPatch,
@@ -166,7 +166,7 @@ func PatchCIAMUpdateUser(ctx context.Context, client *http.Client, userId string
 
 	cfg := config.GetConfig().Api.Eeid
 	base := strings.TrimRight(cfg.Host, "/")
-	fullURL := fmt.Sprintf("%s%s/%s", base, ciamUserURL, userId)
+	fullURL := fmt.Sprintf("%s%s/%s", base, CiamUserURL, userId)
 
 	log.Printf("patching CIAM user id: %v", userId)
 	_, err = utils.DoAPIRequest[struct{}](model.APIRequestOptions{
