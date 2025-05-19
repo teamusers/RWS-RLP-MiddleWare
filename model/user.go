@@ -25,11 +25,11 @@ type User struct {
 
 	// Date of birth in YYYY-MM-DD
 	// example: 1990-05-15
-	DateOfBirth Date `json:"dob,omitempty" example:"1990-05-15"`
+	DateOfBirth *Date `json:"dob,omitempty" example:"1990-05-15"`
 
 	// Timestamp when the record was created (RFC3339)
 	// example: 2025-04-01T08:30:00Z
-	CreatedAt DateTime `json:"created_at,omitempty" example:"2006-01-02 15:04:05"`
+	CreatedAt *DateTime `json:"created_at,omitempty" example:"2006-01-02 15:04:05"`
 
 	// ISO 3166-1 alpha-2 country code
 	// example: SG
@@ -45,7 +45,7 @@ type User struct {
 
 	// Timestamp when the user registered
 	// example: 2025-04-01T08:30:00Z
-	RegisteredAt DateTime `json:"registered_at,omitempty" example:"2006-01-02 15:04:05"`
+	RegisteredAt *DateTime `json:"registered_at,omitempty" example:"2006-01-02 15:04:05"`
 
 	// Whether the account is suspended
 	// example: false
@@ -53,13 +53,13 @@ type User struct {
 
 	// Timestamp of last update
 	// example: 2025-05-05T14:00:00Z
-	UpdatedAt DateTime `json:"updated_at,omitempty" example:"2006-01-02 15:04:05"`
+	UpdatedAt *DateTime `json:"updated_at,omitempty" example:"2006-01-02 15:04:05"`
 
 	// Additional profile details
 	UserProfile UserProfile `json:"user_profile,omitempty"`
 
 	// GR Profile-unique information. Only used within LBE.
-	GrProfile GrProfile `json:"gr_profile,omitempty"`
+	GrProfile *GrProfile `json:"gr_profile,omitempty"`
 }
 
 // Identifier holds an external ID and its type.
@@ -177,7 +177,7 @@ func (u *User) PopulateIdentifiers(rlpId, rlpNo string) {
 		})
 
 	// add gr_id only if in use
-	if u.GrProfile.Id != "" {
+	if u.GrProfile != nil && u.GrProfile.Id != "" {
 		u.Identifier = append(u.Identifier, Identifier{
 			ExternalID:     u.GrProfile.Id,
 			ExternalIDType: "gr_id",

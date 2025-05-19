@@ -121,7 +121,8 @@ func CreateUser(c *gin.Context) {
 	}
 
 	switch req.SignUpType {
-	case signUpTypeNew: // No action for now
+	case signUpTypeNew:
+		req.User.Tier = "Tier A" // set to base tier
 	case signUpTypeGRCMS:
 		cachedProfile, err := system.ObjectGet(strconv.Itoa(req.RegId), &model.User{})
 		if err != nil {
@@ -187,19 +188,19 @@ func CreateUser(c *gin.Context) {
 
 	// RLP: Request User Tier update
 	// TODO: Update to actual spec
-	if req.User.Tier != "" {
-		log.Println("RLP Trigger Update User Tier Event")
-		userTierReq := requests.UserTierUpdateEventRequest{
-			EventLookup: services.RlpEventNameUpdateUserTier,
-			UserId:      newRlpNumbering.RLP_ID,
-			UserTier:    req.User.Tier,
-		}
+	log.Println("RLP Trigger Update User Tier Event")
+	userTierReq := requests.UserTierUpdateEventRequest{
+		EventLookup: services.RlpEventNameUpdateUserTier,
+		UserId:      newRlpNumbering.RLP_ID,
+		UserTier:    req.User.Tier,
+	}
 
-		if _, err := services.UpdateUserTier(c, httpClient, userTierReq); err != nil {
-			log.Printf("RLP Update User Tier failed: %v", err)
-			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
-			return
-		}
+	if _, err := services.UpdateUserTier(c, httpClient, userTierReq); err != nil {
+		log.Printf("RLP Update User Tier failed: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	} else {
+		profileResp.User.Tier = req.User.Tier // update tier for response dto
 	}
 
 	// Create CIAM User
@@ -210,11 +211,16 @@ func CreateUser(c *gin.Context) {
 		return
 	} else {
 		// add schema extensions
+		grID := ""
+		if req.User.GrProfile != nil {
+			grID = req.User.GrProfile.Id
+		}
+
 		schemaExtensionsPayload := map[string]any{
 			config.GetConfig().Api.Eeid.UserIdLinkExtensionKey: requests.UserIdLinkSchemaExtensionFields{
 				RlpId: newRlpNumbering.RLP_ID,
 				RlpNo: newRlpNumbering.RLP_NO,
-				GrId:  req.User.GrProfile.Id,
+				GrId:  grID,
 			},
 		}
 
@@ -428,7 +434,7 @@ func GetCachedGrCmsProfile(c *gin.Context) {
 		Message: "cached profile found",
 		Data: responses.VerifyGrCmsUserResponseData{
 			RegId:       regId,
-			DateOfBirth: cachedUserProfile.DateOfBirth,
+			DateOfBirth: *cachedUserProfile.DateOfBirth,
 		},
 	}
 	c.JSON(http.StatusOK, resp)

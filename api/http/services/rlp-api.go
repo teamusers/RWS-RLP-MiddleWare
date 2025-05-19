@@ -15,7 +15,7 @@ import (
 
 const (
 	// Endpoints
-	ProfileURL = "/priv/v1/apps/:api_key/external/users/:external_id"
+	ProfileURL = "/priv/v1/apps/:api_key/external/users"
 	EventUrl   = "/api/1.0/user_events/:event_name"
 
 	// Event Names
@@ -49,7 +49,9 @@ func UpdateUserTier(ctx context.Context, client *http.Client, payload any) (*res
 func profile(ctx context.Context, client *http.Client, externalId string, payload any, operation string) (*responses.GetUserResponse, error) {
 	conf := config.GetConfig()
 	endpoint := strings.ReplaceAll(ProfileURL, ":api_key", conf.Api.Rlp.ApiKey)
-	endpoint = strings.ReplaceAll(endpoint, ":external_id", externalId)
+	if externalId != "" {
+		endpoint = fmt.Sprintf("%s/%s", endpoint, externalId)
+	}
 	urlWithParams := fmt.Sprintf("%s%s", conf.Api.Rlp.Host, endpoint)
 
 	return utils.DoAPIRequest[responses.GetUserResponse](model.APIRequestOptions{

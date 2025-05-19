@@ -26,7 +26,7 @@ type RlpUserReq struct {
 	IP string `json:"ip,omitempty" example:"203.0.113.42"`
 
 	// Date of birth, YYYY-MM-DD
-	Dob Date `json:"dob,omitempty" example:"1980-01-01"`
+	Dob *Date `json:"dob,omitempty" example:"1980-01-01"`
 
 	// Address line 1
 	Address string `json:"address,omitempty" example:"7 Tremont Street"`
@@ -84,10 +84,10 @@ type RlpUserResp struct {
 	FirstName       string        `json:"first_name"`
 	LastName        string        `json:"last_name"`
 	Gender          string        `json:"gender"`
-	Dob             Date          `json:"dob"` // format: "2006-01-02"
+	Dob             *Date         `json:"dob"` // format: "2006-01-02"
 	AccountStatus   string        `json:"account_status"`
 	AuthToken       string        `json:"auth_token"`
-	CreatedAt       DateTime      `json:"created_at"` // format: "2006-01-02 15:04:05"
+	CreatedAt       *DateTime     `json:"created_at"` // format: "2006-01-02 15:04:05"
 	Address         string        `json:"address"`
 	Address2        string        `json:"address2"`
 	City            string        `json:"city"`
@@ -97,9 +97,9 @@ type RlpUserResp struct {
 	AvailablePoints int           `json:"available_points"`
 	Tier            string        `json:"tier"`
 	ReferrerCode    string        `json:"referrer_code"`
-	RegisteredAt    DateTime      `json:"registered_at"` // same format as CreatedAt
+	RegisteredAt    *DateTime     `json:"registered_at"` // same format as CreatedAt
 	Suspended       bool          `json:"suspended"`
-	UpdatedAt       DateTime      `json:"updated_at"` // same format as CreatedAt
+	UpdatedAt       *DateTime     `json:"updated_at"` // same format as CreatedAt
 	PhoneNumbers    []PhoneNumber `json:"phone_numbers"`
 	UserProfile     UserProfile   `json:"user_profile"` //TBC
 }

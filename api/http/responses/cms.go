@@ -42,14 +42,16 @@ type GRProfilePayload struct {
 }
 
 func (g *GRProfilePayload) MapCmsProfileToLbeUser() model.User {
+	dob := model.Date(g.DateOfBirth)
+
 	return model.User{
 		FirstName:   g.FirstName,
 		LastName:    g.LastName,
 		Email:       g.EmailAddress,
-		DateOfBirth: model.Date(g.DateOfBirth),
+		DateOfBirth: &dob,
 		//TODO: Add mobile code and number
 
-		GrProfile: model.GrProfile{
+		GrProfile: &model.GrProfile{
 			Id:    g.MemberNo,
 			Class: g.MemberClassCode,
 		},

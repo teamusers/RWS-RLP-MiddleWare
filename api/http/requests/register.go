@@ -10,10 +10,9 @@ type VerifyUserExistence struct {
 }
 
 type RegisterUser struct {
-	User model.User `json:"user"`
-	// GrProfile  model.GrProfile `json:"gr_profile"`
-	SignUpType string `json:"sign_up_type" example:"NEW"`
-	RegId      int    `json:"reg_id" example:"123456"`
+	User       model.User `json:"user"`
+	SignUpType string     `json:"sign_up_type" example:"NEW"`
+	RegId      int        `json:"reg_id" example:"123456"`
 }
 
 type VerifyGrUser struct {
