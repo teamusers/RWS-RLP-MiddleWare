@@ -1,11 +1,11 @@
 
 database:
   type: mssql
-  host: localhost
-  instance:   SQLEXPRESS # SQLEXPRESS
+  host: 20.212.139.155
+  instance:    # SQLEXPRESS
   port: 1433
   user: sa
-  password: 2Good2BeTrue!
+  password: Your@StrongP@ssw0rd
   dbname: lbe
   sslmode: disable
   TimeZone: Asia/Shanghai
@@ -50,7 +50,7 @@ api:
     userIdLinkExtensionKey: exth7tu5cmc_LBE
     defaultIssuer: eeidtest1.onmicrosoft.com
   acs:
-    host : http://localhost:18083 
+    host : http://172.188.195.254 
     appid : app1234
     secret: mySuperSecretKey4
     grCmsRegistrationUrlHost: https://replacethis.com

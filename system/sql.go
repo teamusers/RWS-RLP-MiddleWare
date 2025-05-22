@@ -2,6 +2,7 @@ package system
 
 import (
 	"fmt"
+	"net/url"
 	"time"
 
 	"lbe/config"
@@ -42,6 +43,9 @@ func init() {
 		return
 	}
 
+	// Log loaded DB config for debugging.
+	log.Infof("DB cfg → host=%q, port=%d, user=%q", cfg.Database.Host, cfg.Database.Port, cfg.Database.User)
+
 	// Customize GORM logger.
 	newLogger := logger.New(
 		NewWriter(),
@@ -53,54 +57,22 @@ func init() {
 		},
 	)
 
-	// Build the DSN for MSSQL.
-	//
-	// If a static port is provided (non-zero), then use it.
-	// Otherwise, if an instance name is provided, use the instance parameter.
-	// The "packet size" parameter is URL-encoded as "%20".
-	var dsn string
-	if cfg.Database.Port != 0 {
-		// Use static port mode.
-		dsn = fmt.Sprintf(
-			"sqlserver://%s:%s@%s:%d?database=%s&packet%%20size=4096",
-			cfg.Database.User,
-			cfg.Database.Password,
-			cfg.Database.Host,
-			cfg.Database.Port,
-			cfg.Database.DBName,
-		)
-	} else if cfg.Database.Instance != "" {
-		// Use named instance mode.
-		dsn = fmt.Sprintf(
-			"sqlserver://%s:%s@%s?instance=%s&database=%s&packet%%20size=4096",
-			cfg.Database.User,
-			cfg.Database.Password,
-			cfg.Database.Host,
-			cfg.Database.Instance,
-			cfg.Database.DBName,
-		)
-	} else {
-		// Fallback: use host only.
-		dsn = fmt.Sprintf(
-			"sqlserver://%s:%s@%s?database=%s&packet%%20size=4096",
-			cfg.Database.User,
-			cfg.Database.Password,
-			cfg.Database.Host,
-			cfg.Database.DBName,
-		)
+	// Build the DSN using net/url to handle special characters.
+	u := &url.URL{
+		Scheme: "sqlserver",
+		User:   url.UserPassword(cfg.Database.User, cfg.Database.Password),
+		Host:   fmt.Sprintf("%s:%d", cfg.Database.Host, cfg.Database.Port),
 	}
+	params := u.Query()
+	params.Set("database", cfg.Database.DBName)
+	params.Set("packet size", "4096")
+	u.RawQuery = params.Encode()
+	dsn := u.String()
 
-	var safeDSN string
-	if cfg.Database.Port != 0 {
-		safeDSN = fmt.Sprintf("sqlserver://%s:***@%s:%d?database=%s&packet%%20size=4096",
-			cfg.Database.User, cfg.Database.Host, cfg.Database.Port, cfg.Database.DBName)
-	} else if cfg.Database.Instance != "" {
-		safeDSN = fmt.Sprintf("sqlserver://%s:***@%s?instance=%s&database=%s&packet%%20size=4096",
-			cfg.Database.User, cfg.Database.Host, cfg.Database.Instance, cfg.Database.DBName)
-	} else {
-		safeDSN = fmt.Sprintf("sqlserver://%s:***@%s?database=%s&packet%%20size=4096",
-			cfg.Database.User, cfg.Database.Host, cfg.Database.DBName)
-	}
+	// Create a masked DSN for logs (hide password).
+	safeURL := *u
+	safeURL.User = url.UserPassword(cfg.Database.User, "***")
+	safeDSN := safeURL.String()
 	log.Info("Using DSN: " + safeDSN)
 
 	// Open a connection to MSSQL using GORM.
@@ -114,7 +86,7 @@ func init() {
 	// Assign the connection to the global variable.
 	DB = db
 
-	// Optional: Check if a specific table exists (for example, model.SysChannel).
+	// Optional: Check if a specific table exists.
 	if db.Migrator().HasTable(&model.SysChannel{}) {
 		fmt.Println("Table sys_channel exists in MSSQL.")
 	} else {
