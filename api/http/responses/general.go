@@ -1,6 +1,9 @@
 package responses
 
-import "lbe/codes"
+import (
+	"fmt"
+	"lbe/codes"
+)
 
 // APIResponse is the standard envelope for successful operations.
 // The Data field contains the payload, which varies by endpoint.
@@ -28,6 +31,10 @@ func InternalErrorResponse() ApiResponse[any] {
 
 func InvalidRequestBodyErrorResponse() ApiResponse[any] {
 	return DefaultResponse(codes.INVALID_REQUEST_BODY, "invalid json request body")
+}
+
+func InvalidRequestBodySpecificErrorResponse(errString string) ApiResponse[any] {
+	return DefaultResponse(codes.INVALID_REQUEST_BODY, fmt.Sprintf("invalid json request body:%s", errString))
 }
 
 func InvalidQueryParametersErrorResponse() ApiResponse[any] {

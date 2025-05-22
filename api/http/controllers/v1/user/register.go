@@ -278,6 +278,11 @@ func VerifyGrExistence(c *gin.Context) {
 		return
 	}
 
+	if err := req.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodySpecificErrorResponse(err.Error()))
+		return
+	}
+
 	// verify if gr ID is unused
 	if respData, _, err := services.GetCIAMUserByGrId(c, httpClient, req.User.GrProfile.Id); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
@@ -288,6 +293,7 @@ func VerifyGrExistence(c *gin.Context) {
 		return
 	}
 
+	//TODO: add conflict response if cms member not found
 	cmsMember, err := services.GRMemberProfile(req.User.GrProfile.Id, nil, "GET", services.GetMemberURL)
 	if err != nil {
 		// Log the error
@@ -357,6 +363,11 @@ func VerifyGrCmsExistence(c *gin.Context) {
 		return
 	}
 
+	if err := req.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodySpecificErrorResponse(err.Error()))
+		return
+	}
+
 	if respData, _, err := services.GetCIAMUserByEmail(c, httpClient, req.User.Email); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
@@ -421,10 +432,6 @@ func VerifyGrCmsExistence(c *gin.Context) {
 func GetCachedGrCmsProfile(c *gin.Context) {
 
 	regId := c.Param("reg_id")
-	if regId == "" {
-		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
-		return
-	}
 
 	cachedUserProfile, err := system.ObjectGet(regId, &model.User{})
 	if err != nil {

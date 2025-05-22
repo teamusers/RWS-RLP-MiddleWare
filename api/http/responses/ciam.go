@@ -14,12 +14,14 @@ type TokenResponse struct {
 
 // GraphUserCollection holds the “value” array from a Graph `/users` response.
 type GraphUserCollection struct {
-	Value []struct {
-		ID                string `json:"id"`
-		DisplayName       string `json:"displayName"`
-		Mail              string `json:"mail"`
-		UserPrincipalName string `json:"userPrincipalName"`
-	} `json:"value"`
+	Value []GraphUser `json:"value"`
+}
+
+type GraphUser struct {
+	ID                string `json:"id"`
+	DisplayName       string `json:"displayName"`
+	Mail              string `json:"mail"`
+	UserPrincipalName string `json:"userPrincipalName"`
 }
 
 // GraphCreateUserResponse extracts the CIAM EEID user id of the newly created user from the response.
