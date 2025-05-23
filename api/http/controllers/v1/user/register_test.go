@@ -144,7 +144,7 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 				// Mock CIAM user not found
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildEmailFilter(email)).
+					MatchParam("$filter", utils.BuildCiamEmailFilter(email)).
 					Reply(200).
 					JSON(map[string]any{"value": []any{}})
 
@@ -181,7 +181,7 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 				// CIAM user exists
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildEmailFilter(email)).
+					MatchParam("$filter", utils.BuildCiamEmailFilter(email)).
 					Reply(200).
 					JSON(map[string]any{
 						"value": []map[string]any{{"id": "abc123"}},
@@ -215,7 +215,7 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 				// Mock CIAM user not found
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildEmailFilter(email)).
+					MatchParam("$filter", utils.BuildCiamEmailFilter(email)).
 					Reply(200).
 					JSON(map[string]any{"value": []any{}})
 
@@ -725,7 +725,7 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 				// Mock CIAM user by GR ID returns empty
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildGrIdFilter(grId)).
+					MatchParam("$filter", utils.BuildCiamGrIdFilter(grId)).
 					Reply(200).
 					JSON(responses.GraphUserCollection{})
 
@@ -773,7 +773,7 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 				// CIAM returns existing user
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildGrIdFilter(grId)).
+					MatchParam("$filter", utils.BuildCiamGrIdFilter(grId)).
 					Reply(200).
 					JSON(responses.GraphUserCollection{
 						Value: []responses.GraphUser{{ID: "existing-user"}},
@@ -807,7 +807,7 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 				// Mock CIAM user by GR ID returns empty
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildGrIdFilter(grId)).
+					MatchParam("$filter", utils.BuildCiamGrIdFilter(grId)).
 					Reply(200).
 					JSON(responses.GraphUserCollection{})
 
@@ -834,7 +834,7 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 				// Mock CIAM user by GR ID returns empty
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildGrIdFilter(grId)).
+					MatchParam("$filter", utils.BuildCiamGrIdFilter(grId)).
 					Reply(200).
 					JSON(responses.GraphUserCollection{})
 
@@ -952,7 +952,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 				// Mock CIAM user by email returns empty
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildEmailFilter(email)).
+					MatchParam("$filter", utils.BuildCiamEmailFilter(email)).
 					Reply(200).
 					JSON(responses.GraphUserCollection{})
 
@@ -965,7 +965,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 				// Mock CIAM user by GR ID returns empty
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildGrIdFilter(grId)).
+					MatchParam("$filter", utils.BuildCiamGrIdFilter(grId)).
 					Reply(200).
 					JSON(responses.GraphUserCollection{})
 
@@ -1002,7 +1002,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 				// Mock CIAM user by email returning found user
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildEmailFilter(email)).
+					MatchParam("$filter", utils.BuildCiamEmailFilter(email)).
 					Reply(200).
 					JSON(responses.GraphUserCollection{
 						Value: []responses.GraphUser{
@@ -1027,7 +1027,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 				// Mock CIAM user by email returns empty
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildEmailFilter(email)).
+					MatchParam("$filter", utils.BuildCiamEmailFilter(email)).
 					Reply(200).
 					JSON(responses.GraphUserCollection{})
 
@@ -1039,7 +1039,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 				// Mock CIAM user by GR ID returns a found user
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildGrIdFilter(grId)).
+					MatchParam("$filter", utils.BuildCiamGrIdFilter(grId)).
 					Reply(200).
 					JSON(responses.GraphUserCollection{
 						Value: []responses.GraphUser{
@@ -1077,7 +1077,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 				// Mock CIAM user by email returns empty
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildEmailFilter(email)).
+					MatchParam("$filter", utils.BuildCiamEmailFilter(email)).
 					Reply(200).
 					JSON(responses.GraphUserCollection{})
 
@@ -1089,7 +1089,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 				// Mock CIAM user by GR ID error
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildGrIdFilter(grId)).
+					MatchParam("$filter", utils.BuildCiamGrIdFilter(grId)).
 					Reply(500)
 			},
 			expectedHTTPCode:     http.StatusInternalServerError,
@@ -1109,7 +1109,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 				// Mock CIAM user by email returns empty
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildEmailFilter(email)).
+					MatchParam("$filter", utils.BuildCiamEmailFilter(email)).
 					Reply(200).
 					JSON(responses.GraphUserCollection{})
 
@@ -1122,7 +1122,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 				// Mock CIAM user by GR ID returns empty
 				gock.New(config.GetConfig().Api.Eeid.Host).
 					Get(services.CiamUserURL).
-					MatchParam("$filter", buildGrIdFilter(grId)).
+					MatchParam("$filter", utils.BuildCiamGrIdFilter(grId)).
 					Reply(200).
 					JSON(responses.GraphUserCollection{})
 
@@ -1272,14 +1272,4 @@ func Test_LBE_8_GetCachedGrCmsProfile(t *testing.T) {
 			}
 		})
 	}
-}
-
-// test utils
-
-func buildEmailFilter(email string) string {
-	return fmt.Sprintf("mail eq '%s'", email)
-}
-
-func buildGrIdFilter(grId string) string {
-	return fmt.Sprintf("%s/grid eq '%s'", config.GetConfig().Api.Eeid.UserIdLinkExtensionKey, grId)
 }

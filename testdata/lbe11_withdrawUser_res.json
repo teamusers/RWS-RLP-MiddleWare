@@ -1,9 +1,9 @@
 {
     "code": 1000,
-    "message": "user created",
+    "message": "update successful",
     "data": {
         "user": {
-            "email": "new@example.com",
+            "email": "new@example.com.delete_060102150405",
             "identifiers": [
                 {
                     "external_id": "abc123",
@@ -18,7 +18,7 @@
             "last_name": "Data",
             "dob": "2007-08-05",
             "created_at": "2020-08-05 19:08:46",
-            "tier": "Tier M",
+            "tier": "Tier A",
             "registered_at": "2020-08-05 19:08:46",
             "updated_at": "2020-08-05 19:08:49",
             "user_profile": {
@@ -26,11 +26,10 @@
                 "country_name": "Singapore",
                 "previous_email": "new@example.com",
                 "language_preference": "EN",
-                "employee_number": "abc123",
-                "market_pref_push": true,
-                "market_pref_email": true,
-                "market_pref_mobile": true,
-                "active_status": 1
+                "market_pref_push": false,
+                "market_pref_email": false,
+                "market_pref_mobile": false,
+                "active_status": 0
             }
         }
     }

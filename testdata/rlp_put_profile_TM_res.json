@@ -185,7 +185,8 @@
             "employee_number": "abc123",
             "market_pref_push": true,
             "market_pref_email": true,
-            "market_pref_mobile": true
+            "market_pref_mobile": true,
+            "active_status": 1
         }
     }
 }

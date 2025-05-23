@@ -14,16 +14,12 @@
             {
                 "external_id": "abc123",
                 "external_id_type": "rlp_no"
-            },
-            {
-                "external_id": "abc123",
-                "external_id_type": "gr_id"
             }
         ],
         "available_points": 0,
         "test_points": 0,
         "unclaimed_achievement_count": 0,
-        "email": "new@example.com",
+        "email": "new@example.com.delete_060102150405",
         "dob": "2007-08-05",
         "created_at": "2020-08-05 19:08:46",
         "updated_at": "2020-08-05 19:08:49",
@@ -186,10 +182,10 @@
             "country_name": "Singapore",
             "language_preference": "EN",
             "previous_email":"new@example.com",
-            "market_pref_push": true,
-            "market_pref_email": true,
-            "market_pref_mobile": true,
-            "active_status": 1
+            "market_pref_push": false,
+            "market_pref_email": false,
+            "market_pref_mobile": false,
+            "active_status": 0
         }
     }
 }
