@@ -34,67 +34,67 @@ func TestGrTierMatching(t *testing.T) {
 		expectErr bool
 	}{
 		{
-			name:      "Tier A - GR class 1",
+			name:      "SUCCESS - Tier A - GR class 1",
 			input:     "Class 1",
 			expected:  "Tier A",
 			expectErr: false,
 		},
 		{
-			name:      "Tier B - GR class 2",
+			name:      "SUCCESS - Tier B - GR class 2",
 			input:     "Class 2",
 			expected:  "Tier B",
 			expectErr: false,
 		},
 		{
-			name:      "Tier C - GR class 3",
+			name:      "SUCCESS - Tier C - GR class 3",
 			input:     "Class 3",
 			expected:  "Tier C",
 			expectErr: false,
 		},
 		{
-			name:      "Tier C - GR class 4",
+			name:      "SUCCESS - Tier C - GR class 4",
 			input:     "Class 4",
 			expected:  "Tier C",
 			expectErr: false,
 		},
 		{
-			name:      "Tier C - GR class 5",
+			name:      "SUCCESS - Tier C - GR class 5",
 			input:     "Class 5",
 			expected:  "Tier C",
 			expectErr: false,
 		},
 		{
-			name:      "Tier D - GR class 6",
+			name:      "SUCCESS - Tier D - GR class 6",
 			input:     "Class 6",
 			expected:  "Tier D",
 			expectErr: false,
 		},
 		{
-			name:      "Invalid format - only one part",
+			name:      "ERROR - Invalid format - only one part",
 			input:     "Class",
 			expected:  "",
 			expectErr: true,
 		},
 		{
-			name:      "Invalid format - three parts",
+			name:      "ERROR - Invalid format - three parts",
 			input:     "Class 1 extra",
 			expected:  "",
 			expectErr: true,
 		},
 		{
-			name:      "Invalid format - non-integer level",
+			name:      "ERROR - Invalid format - non-integer level",
 			input:     "Class X",
 			expected:  "",
 			expectErr: true,
 		},
 		{
-			name:      "Invalid format - class level < 1",
+			name:      "ERROR - Invalid format - class level < 1",
 			input:     "Class 0",
 			expected:  "",
 			expectErr: true,
 		},
 		{
-			name:      "Invalid format - negative level",
+			name:      "ERROR - Invalid format - negative level",
 			input:     "Class -2",
 			expected:  "",
 			expectErr: true,
@@ -132,7 +132,7 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 		expectedResponseBody    any
 	}{
 		{
-			name:        "User not found - success",
+			name:        "SUCCESS - User not found",
 			requestBody: requests.VerifyUserExistence{Email: "newuser@example.com"},
 			setupMocks: func(email string) {
 				// Mock CIAM auth
@@ -169,7 +169,7 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 			expectedResponseMessage: "existing user not found",
 		},
 		{
-			name:        "User already exists - conflict",
+			name:        "CONFLICT - User already exists",
 			requestBody: requests.VerifyUserExistence{Email: "existing@example.com"},
 			setupMocks: func(email string) {
 				// CIAM auth
@@ -191,7 +191,7 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 			expectedResponseBody: responses.ExistingUserFoundErrorResponse(),
 		},
 		{
-			name:        "CIAM get user by email fail - error",
+			name:        "ERROR - CIAM get user by email fail",
 			requestBody: requests.VerifyUserExistence{Email: "existing@example.com"},
 			setupMocks: func(email string) {
 				// CIAM auth error
@@ -203,7 +203,7 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:        "ACS send email fail - error",
+			name:        "ERROR - ACS send email fail",
 			requestBody: requests.VerifyUserExistence{Email: "newuser@example.com"},
 			setupMocks: func(email string) {
 				// Mock CIAM auth
@@ -229,7 +229,7 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 		},
 
 		{
-			name:                 "Invalid request body - error",
+			name:                 "ERROR - Invalid request body",
 			requestBody:          nil, // raw string invalid body
 			setupMocks:           func(email string) {},
 			expectedHTTPCode:     http.StatusBadRequest,
@@ -314,7 +314,7 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 		expectedResponseBody any
 	}{
 		{
-			name:        "NEW user registration - success",
+			name:        "SUCCESS - NEW user registration",
 			requestBody: validSampleReqNew,
 			setupMocks: func(grId, email string) {
 				// Mock RLP Put Profile
@@ -356,7 +356,7 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			expectedResponseBody: expectedResNew,
 		},
 		{
-			name:        "GR CMS user registration - success",
+			name:        "SUCCESS - GR CMS user registration",
 			requestBody: validSampleReqGrCms,
 			setupMocks: func(grId, email string) {
 				// Mock RLP Put Profile
@@ -398,7 +398,7 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			expectedResponseBody: expectedResGr,
 		},
 		{
-			name:        "GR user registration - success",
+			name:        "SUCCESS - GR user registration",
 			requestBody: validSampleReqGr,
 			setupMocks: func(grId, email string) {
 				// Mock RLP Put Profile
@@ -440,7 +440,7 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			expectedResponseBody: expectedResGr,
 		},
 		{
-			name:        "TM user registration - success",
+			name:        "SUCCESS - TM user registration",
 			requestBody: validSampleReqTm,
 			setupMocks: func(grId, email string) {
 				// Mock RLP Put Profile
@@ -482,7 +482,7 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			expectedResponseBody: expectedResTm,
 		},
 		{
-			name: "GR CMS cache not found - conflict",
+			name: "CONFLICT - GR CMS cache not found",
 			requestBody: requests.RegisterUser{
 				SignUpType: codes.SignUpTypeGRCMS,
 				RegId:      00001,
@@ -492,7 +492,7 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			expectedResponseBody: responses.CachedProfileNotFoundErrorResponse(),
 		},
 		{
-			name:        "CIAM user already exists - conflict",
+			name:        "CONFLICT - CIAM user already exists",
 			requestBody: validSampleReqNew,
 			setupMocks: func(grId, email string) {
 				// Mock RLP Put Profile
@@ -523,7 +523,7 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			expectedResponseBody: responses.ExistingUserFoundErrorResponse(),
 		},
 		{
-			name:        "RLP put profile fail - error",
+			name:        "ERROR - RLP put profile fail",
 			requestBody: validSampleReqNew,
 			setupMocks: func(grId, email string) {
 				// Mock RLP Put Profile error
@@ -536,7 +536,7 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{ //TODO: add rollback check
-			name:        "RLP update user tier fail - error",
+			name:        "ERROR - RLP update user tier fail",
 			requestBody: validSampleReqNew,
 			setupMocks: func(grId, email string) {
 				// Mock RLP Put Profile
@@ -555,7 +555,7 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:        "CIAM register user fail - error",
+			name:        "ERROR - CIAM register user fail",
 			requestBody: validSampleReqNew,
 			setupMocks: func(grId, email string) {
 				// Mock RLP Put Profile
@@ -585,7 +585,7 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:        "CIAM patch user schema extensions fail - error",
+			name:        "ERROR - CIAM patch user schema extensions fail",
 			requestBody: validSampleReqNew,
 			setupMocks: func(grId, email string) {
 				// Mock RLP Put Profile
@@ -627,14 +627,14 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:                 "Invalid request body - error",
+			name:                 "ERROR - Invalid request body",
 			requestBody:          `{}`,
 			setupMocks:           func(email, grId string) {}, // No mock needed
 			expectedHTTPCode:     http.StatusBadRequest,
 			expectedResponseBody: responses.InvalidRequestBodySpecificErrorResponse("invalid sign_up_type provided"),
 		},
 		{
-			name:                 "Invalid JSON ShouldBindJSON - error",
+			name:                 "ERROR - Invalid JSON ShouldBindJSON",
 			requestBody:          `{"user": "invalid-json}`,   // malformed JSON (missing closing quote)
 			setupMocks:           func(email, grId string) {}, // No mocks needed
 			expectedHTTPCode:     http.StatusBadRequest,
@@ -713,7 +713,7 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 		expectedResponseBody    any
 	}{
 		{
-			name:        "GR ID not found - success",
+			name:        "SUCCESS - GR ID not found",
 			requestBody: validSampleReq,
 			setupMocks: func(grId, email string) {
 				// Mock CIAM auth
@@ -758,10 +758,10 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 			},
 			expectedHTTPCode:        http.StatusOK,
 			expectedResponseCode:    codes.SUCCESSFUL,
-			expectedResponseMessage: "gr profile found", //TODO: use correct response - need to fix otp
+			expectedResponseMessage: "gr profile found", //TODO: use correct response - need to fix otp impl to be mockable
 		},
 		{
-			name:        "GR ID already linked - conflict",
+			name:        "CONFLICT - GR ID already linked",
 			requestBody: validSampleReq,
 			setupMocks: func(grId, email string) {
 				// Mock CIAM auth
@@ -783,7 +783,7 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 			expectedResponseBody: responses.GrMemberIdLinkedErrorResponse(),
 		},
 		{
-			name:        "CIAM get user by grId fail - error",
+			name:        "ERROR - CIAM get user by grId fail",
 			requestBody: validSampleReq,
 			setupMocks: func(grId, email string) {
 				// Mock CIAM auth
@@ -795,7 +795,7 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:        "CMS profile fetch - error",
+			name:        "ERROR - CMS profile fetch",
 			requestBody: validSampleReq,
 			setupMocks: func(grId, email string) {
 				// Mock CIAM auth
@@ -822,7 +822,7 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:        "ACS send email fail - error",
+			name:        "ERROR - ACS send email fail",
 			requestBody: validSampleReq,
 			setupMocks: func(grId, email string) {
 				// Mock CIAM auth
@@ -858,14 +858,14 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:                 "Invalid request body - error",
+			name:                 "ERROR - Invalid request body",
 			requestBody:          `{}`,
 			setupMocks:           func(email, grId string) {}, // No mock needed
 			expectedHTTPCode:     http.StatusBadRequest,
 			expectedResponseBody: responses.InvalidRequestBodyErrorResponse(),
 		},
 		{
-			name:                 "Invalid JSON ShouldBindJSON - error",
+			name:                 "ERROR - Invalid JSON ShouldBindJSON",
 			requestBody:          `{"user": "invalid-json}`,   // malformed JSON (missing closing quote)
 			setupMocks:           func(email, grId string) {}, // No mocks needed
 			expectedHTTPCode:     http.StatusBadRequest,
@@ -939,7 +939,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 		expectedResponseBody    any
 	}{
 		{
-			name:        "User and GR ID not found - success",
+			name:        "SUCCESS - User and GR ID not found",
 			requestBody: validSampleReq,
 			setupMocks: func(email, grId string) {
 
@@ -990,7 +990,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 			expectedResponseMessage: "existing user not found",
 		},
 		{
-			name:        "Existing email found - conflict",
+			name:        "CONFLICT - Existing email found",
 			requestBody: validSampleReq,
 			setupMocks: func(email, grId string) {
 				// Mock CIAM auth
@@ -1014,7 +1014,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 			expectedResponseBody: responses.ExistingUserFoundErrorResponse(),
 		},
 		{
-			name:        "Existing GR ID found - conflict",
+			name:        "CONFLICT - Existing GR ID found",
 			requestBody: validSampleReq,
 			setupMocks: func(email, grId string) {
 
@@ -1051,7 +1051,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 			expectedResponseBody: responses.GrMemberIdLinkedErrorResponse(),
 		},
 		{
-			name:        "CIAM get user by email fail - error",
+			name:        "ERROR - CIAM get user by email fail",
 			requestBody: validSampleReq,
 			setupMocks: func(email, grId string) {
 
@@ -1064,7 +1064,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:        "CIAM get user by grId fail - error",
+			name:        "ERROR - CIAM get user by grId fail",
 			requestBody: validSampleReq,
 			setupMocks: func(email, grId string) {
 
@@ -1096,7 +1096,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:        "ACS send email fail - error",
+			name:        "ERROR - ACS send email fail",
 			requestBody: validSampleReq,
 			setupMocks: func(email, grId string) {
 
@@ -1135,14 +1135,14 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:                 "Invalid request body - error",
+			name:                 "ERROR - Invalid request body",
 			requestBody:          nil, // raw string invalid body
 			setupMocks:           func(email, grId string) {},
 			expectedHTTPCode:     http.StatusBadRequest,
 			expectedResponseBody: responses.InvalidRequestBodyErrorResponse(),
 		},
 		{
-			name:                 "Invalid JSON ShouldBindJSON - error",
+			name:                 "ERROR - Invalid JSON ShouldBindJSON",
 			requestBody:          `{"user": "invalid-json}`,   // malformed JSON (missing closing quote)
 			setupMocks:           func(email, grId string) {}, // No mocks needed
 			expectedHTTPCode:     http.StatusBadRequest,
@@ -1228,13 +1228,13 @@ func Test_LBE_8_GetCachedGrCmsProfile(t *testing.T) {
 		expectedResponseBody    any
 	}{
 		{
-			name:                 "Cache profile found - success",
+			name:                 "SUCCESS - Cache profile found",
 			regId:                cachedRegId,
 			expectedHTTPCode:     http.StatusOK,
 			expectedResponseBody: expectedRes,
 		},
 		{
-			name:                 "Cache profile not found - conflict",
+			name:                 "CONFLICT - Cache profile not found",
 			regId:                "321",
 			expectedHTTPCode:     http.StatusConflict,
 			expectedResponseBody: responses.CachedProfileNotFoundErrorResponse(),

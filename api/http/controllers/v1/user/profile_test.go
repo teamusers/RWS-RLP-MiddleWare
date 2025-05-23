@@ -40,7 +40,7 @@ func Test_LBE_9_GetUserProfile(t *testing.T) {
 		expectedResponseBody any
 	}{
 		{
-			name:       "User found - success",
+			name:       "SUCCESS - User found",
 			externalId: "abc123",
 			setupMocks: func() {
 				// Mock RLP Get Profile
@@ -53,7 +53,7 @@ func Test_LBE_9_GetUserProfile(t *testing.T) {
 			expectedResponseBody: expectedRes,
 		},
 		{
-			name:       "RLP Get user fail - error",
+			name:       "ERROR - RLP Get user fail",
 			externalId: "abc123",
 			setupMocks: func() {
 				// Mock RLP Get Profile
@@ -126,7 +126,7 @@ func Test_LBE_10_UpdateUserProfile(t *testing.T) {
 		expectedResponseBody any
 	}{
 		{
-			name:        "User updated - success",
+			name:        "SUCCESS - User updated",
 			externalId:  "abc123",
 			requestBody: validSampleReq,
 			setupMocks: func() {
@@ -140,7 +140,7 @@ func Test_LBE_10_UpdateUserProfile(t *testing.T) {
 			expectedResponseBody: expectedRes,
 		},
 		{
-			name:        "RLP put user fail - error",
+			name:        "ERROR - RLP put user fail",
 			externalId:  "abc123",
 			requestBody: validSampleReq,
 			setupMocks: func() {
@@ -153,7 +153,7 @@ func Test_LBE_10_UpdateUserProfile(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:                 "Invalid JSON ShouldBindJSON - error",
+			name:                 "ERROR - Invalid JSON ShouldBindJSON",
 			externalId:           "abc123",
 			requestBody:          `{"user": "invalid-json}`, // malformed JSON (missing closing quote)
 			setupMocks:           func() {},                 // No mocks needed
@@ -224,7 +224,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 		expectedResponseBody any
 	}{
 		{
-			name:       "User withdrawn - success",
+			name:       "SUCCESS - User withdrawn",
 			externalId: "abc123",
 			setupMocks: func() {
 				// Mock RLP Get Profile
@@ -283,7 +283,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 			expectedResponseBody: expectedRes,
 		},
 		{
-			name:       "CIAM get user by email not found - conflict",
+			name:       "CONFLICT - CIAM get user by email not found",
 			externalId: "abc123",
 			setupMocks: func() {
 				// Mock RLP Get Profile
@@ -309,7 +309,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 			expectedResponseBody: responses.ExistingUserNotFoundErrorResponse(),
 		},
 		{
-			name:       "RLP get user failed - error",
+			name:       "ERROR - RLP get user failed",
 			externalId: "abc123",
 			setupMocks: func() {
 				// Mock RLP Get Profile
@@ -321,7 +321,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:       "CIAM get user by email failed - error",
+			name:       "ERROR - CIAM get user by email failed",
 			externalId: "abc123",
 			setupMocks: func() {
 				// Mock RLP Get Profile
@@ -346,7 +346,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:       "RLP put profile withdraw failed - error",
+			name:       "ERROR - RLP put profile withdraw failed",
 			externalId: "abc123",
 			setupMocks: func() {
 				// Mock RLP Get Profile
@@ -389,7 +389,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:       "CIAM update user withdraw failed - error",
+			name:       "ERROR - CIAM update user withdraw failed",
 			externalId: "abc123",
 			setupMocks: func() {
 				// Mock RLP Get Profile
@@ -420,7 +420,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:       "ACS send email failed - error",
+			name:       "ERROR - ACS send email failed",
 			externalId: "abc123",
 			setupMocks: func() {
 				// Mock RLP Get Profile
