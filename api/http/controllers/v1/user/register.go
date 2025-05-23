@@ -22,14 +22,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	// signUpType enums
-	signUpTypeNew   = "NEW"
-	signUpTypeGR    = "GR"
-	signUpTypeGRCMS = "GR_CMS"
-	signUpTypeTM    = "TM"
-)
-
 // VerifyUserExistence godoc
 // @Summary      Verify email for registration
 // @Description  Checks if an email is already registered; if not, sends an OTP for signup.
@@ -59,7 +51,7 @@ func VerifyUserExistence(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	} else if len(respData.Value) != 0 {
-		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_FOUND, "existing user found"))
+		c.JSON(http.StatusConflict, responses.ExistingUserFoundErrorResponse())
 		return
 	}
 
@@ -121,42 +113,44 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	if err := req.Validate(); err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodySpecificErrorResponse(err.Error()))
+		return
+	}
+
 	switch req.SignUpType {
-	case signUpTypeNew:
+	case codes.SignUpTypeNew:
 		req.User.Tier = "Tier A" // set to base tier
-	case signUpTypeGRCMS:
+	case codes.SignUpTypeGRCMS:
 		cachedProfile, err := system.ObjectGet(strconv.Itoa(req.RegId), &model.User{})
 		if err != nil {
 			log.Printf("error getting cache value: %v", err)
-			c.JSON(http.StatusConflict, responses.ApiResponse[any]{
-				Code:    codes.CACHED_PROFILE_NOT_FOUND,
-				Message: "cached profile not found",
-			})
+			c.JSON(http.StatusConflict, responses.CachedProfileNotFoundErrorResponse())
 			return
 		}
 
 		req.User = *cachedProfile
 
 		// match tier (assuming "Class X" format)
-		assignTier(&req.User, c)
+		if err := assignTier(&req.User); err != nil {
+			c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
+			return
+		}
 
-	case signUpTypeGR:
+	case codes.SignUpTypeGR:
 		// match tier (assuming "Class X" format)
-		assignTier(&req.User, c)
+		if err := assignTier(&req.User); err != nil {
+			c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
+			return
+		}
 
-	case signUpTypeTM:
+	case codes.SignUpTypeTM:
 		// TODO: Request and Validate TM info
 		req.User.UserProfile.EmployeeNumber = "TBC"
 
 		// match tier
 		req.User.Tier = "Tier M"
-
-	default:
-		c.JSON(http.StatusBadRequest, responses.ApiResponse[any]{
-			Code:    codes.INVALID_REQUEST_BODY,
-			Message: "invalid sign_up_type",
-		})
-		return
 	}
 
 	newRlpNumbering, newRlpNumberingErr := utils.GenerateNextRLPUserNumberingWithRetry()
@@ -172,11 +166,7 @@ func CreateUser(c *gin.Context) {
 	req.User.PopulateIdentifiers(newRlpNumbering.RLP_ID, newRlpNumbering.RLP_NO)
 
 	rlpCreateUserRequest := req.User.MapLbeToRlpUser()
-	rlpCreateUserRequest.OptedIn = true
-	rlpCreateUserRequest.ExternalID = newRlpNumbering.RLP_ID
-	rlpCreateUserRequest.ExternalIDType = "rlp_id"
-	rlpCreateUserRequest.UserProfile.LanguagePreference = "EN"
-	rlpCreateUserRequest.UserProfile.PreviousEmail = rlpCreateUserRequest.Email
+	rlpCreateUserRequest.PopulateRegistrationDefaults(newRlpNumbering.RLP_ID)
 
 	//To DO - RLP : Test Actual RLP End Points
 	profileResp, _, err := services.PutProfile(c, httpClient, "", rlpCreateUserRequest)
@@ -204,6 +194,7 @@ func CreateUser(c *gin.Context) {
 		profileResp.User.Tier = req.User.Tier // update tier for response dto
 	}
 
+	//TODO: add rollback mechanism
 	// Create CIAM User
 	if respData, raw, err := services.PostCIAMRegisterUser(c, httpClient, requests.GenerateInitialRegistrationRequest(&req.User)); err != nil {
 		// Log the error
@@ -250,7 +241,7 @@ func CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 
 	// purge regId cache if used
-	if req.SignUpType == signUpTypeGRCMS {
+	if req.SignUpType == codes.SignUpTypeGRCMS {
 		system.ObjectDelete(strconv.Itoa(req.RegId))
 	}
 }
@@ -278,6 +269,11 @@ func VerifyGrExistence(c *gin.Context) {
 		return
 	}
 
+	if err := req.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodySpecificErrorResponse(err.Error()))
+		return
+	}
+
 	// verify if gr ID is unused
 	if respData, _, err := services.GetCIAMUserByGrId(c, httpClient, req.User.GrProfile.Id); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
@@ -288,6 +284,7 @@ func VerifyGrExistence(c *gin.Context) {
 		return
 	}
 
+	//TODO: add conflict response if cms member not found
 	cmsMember, err := services.GRMemberProfile(req.User.GrProfile.Id, nil, "GET", services.GetMemberURL)
 	if err != nil {
 		// Log the error
@@ -357,6 +354,11 @@ func VerifyGrCmsExistence(c *gin.Context) {
 		return
 	}
 
+	if err := req.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodySpecificErrorResponse(err.Error()))
+		return
+	}
+
 	if respData, _, err := services.GetCIAMUserByEmail(c, httpClient, req.User.Email); err != nil {
 		log.Printf("error encountered verifying user existence: %v", err)
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
@@ -421,10 +423,6 @@ func VerifyGrCmsExistence(c *gin.Context) {
 func GetCachedGrCmsProfile(c *gin.Context) {
 
 	regId := c.Param("reg_id")
-	if regId == "" {
-		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
-		return
-	}
 
 	cachedUserProfile, err := system.ObjectGet(regId, &model.User{})
 	if err != nil {
@@ -449,14 +447,14 @@ func GetCachedGrCmsProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func assignTier(user *model.User, c *gin.Context) {
+func assignTier(user *model.User) error {
 	tier, err := GrTierMatching(user.GrProfile.Class)
 	if err != nil {
 		log.Printf("error matching gr class to member tier: %v", err)
-		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
-		return
+		return err
 	}
 	user.Tier = tier
+	return nil
 }
 
 func GrTierMatching(grClass string) (string, error) {
@@ -472,7 +470,7 @@ func GrTierMatching(grClass string) (string, error) {
 	}
 
 	if classLevel == 1 {
-		return "", nil // if class level 1, return empty for Tier A
+		return "Tier A", nil
 	} else if classLevel == 2 {
 		return "Tier B", nil
 	} else if classLevel >= 3 && classLevel <= 5 {

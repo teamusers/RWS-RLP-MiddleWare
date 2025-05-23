@@ -1,6 +1,16 @@
 package codes
 
 const (
+	// enums
+
+	// signUpType enums
+	SignUpTypeNew   = "NEW"
+	SignUpTypeGR    = "GR"
+	SignUpTypeGRCMS = "GR_CMS"
+	SignUpTypeTM    = "TM"
+
+	// codes
+
 	CODE_SUCCESS              = 0
 	CODE_ERR_METHOD_UNSUPPORT = 1
 	CODE_ERR_REQFORMAT        = 2
@@ -27,4 +37,14 @@ const (
 	CACHED_PROFILE_NOT_FOUND int64 = 4011
 	GR_MEMBER_LINKED         int64 = 4012
 	GR_MEMBER_NOT_FOUND      int64 = 4013
+	INVALID_GR_MEMBER_CLASS  int64 = 4014
 )
+
+func IsValidSignUpType(t string) bool {
+	switch t {
+	case SignUpTypeNew, SignUpTypeGRCMS, SignUpTypeGR, SignUpTypeTM:
+		return true
+	default:
+		return false
+	}
+}

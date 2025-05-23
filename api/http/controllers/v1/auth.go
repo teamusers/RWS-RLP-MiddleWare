@@ -98,3 +98,8 @@ func AuthHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, resp)
 }
+
+func InvalidQueryParametersHandler(c *gin.Context) {
+	// used when query param is not provided
+	c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
+}

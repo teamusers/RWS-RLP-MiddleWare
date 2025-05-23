@@ -1,0 +1,24 @@
+{
+    "application/json": {
+      "user_event": {
+        "id": "",
+        "time_of_occurrence": "2025-05-13T08:27:16.6958869Z",
+        "retailer_id": "8D9FB993-40C4-4400-8572-21BC5A3530F2",
+        "event_lookup": "Custom_Event_Name",
+        "user_id": "",
+        "user_tier": "Tier A",
+  
+        "is_session_m": false
+      },
+      "culture": "en-US",
+      "event_saved_successfully": true,
+      "rules_processed_successfully": true,
+      "outcomes": [
+        {
+          "is_outcome_applied": true,
+          "outcome_message": "User tier updated!", 
+          "user_tier": "Tier A" 
+        }
+      ]
+    }
+  }

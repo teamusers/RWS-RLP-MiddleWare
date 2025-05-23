@@ -6,6 +6,7 @@ import (
 	"lbe/api/http/responses"
 	"lbe/api/http/services"
 	"lbe/codes"
+	"lbe/model"
 	"lbe/utils"
 	"log"
 	"net/http"
@@ -31,12 +32,8 @@ import (
 func GetUserProfile(c *gin.Context) {
 	httpClient := utils.GetHttpClient(c.Request.Context())
 	external_id := c.Param("external_id")
-	if external_id == "" {
-		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
-		return
-	}
 
-	//To DO - RLP : Test Actual RLP End Points
+	// TODO - RLP : Test Actual RLP End Points
 	profileResp, _, err := services.GetProfile(c, httpClient, external_id)
 	if err != nil {
 		// Log the error
@@ -81,14 +78,8 @@ func UpdateUserProfile(c *gin.Context) {
 	}
 
 	external_id := c.Param("external_id")
-	if external_id == "" {
-		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
-		return
-	}
 
-	//To DO - RLP : To be change to RLP update user. RLP - API, Temporary update DB 1st
-	//memberResp, err := services.Member(external_id, nil, "PUT")
-	//To DO - RLP : Test Actual RLP End Points
+	// TODO - RLP : Test Actual RLP End Points
 	profileResp, _, err := services.PutProfile(c, httpClient, external_id, req.User.MapLbeToRlpUser())
 	if err != nil {
 		// Log the error
@@ -121,24 +112,24 @@ func UpdateUserProfile(c *gin.Context) {
 // @Failure      500          {object}  responses.ErrorResponse             "Internal server error"
 // @Security     ApiKeyAuth
 // @Router       /user/pin [put]
-func UpdateBurnPin(c *gin.Context) {
-	var req requests.UpdateBurnPin
+// func UpdateBurnPin(c *gin.Context) {
+// 	var req requests.UpdateBurnPin
 
-	// Bind the incoming JSON payload to the req struct.
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
-		return
-	}
+// 	// Bind the incoming JSON payload to the req struct.
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodyErrorResponse())
+// 		return
+// 	}
 
-	err := services.UpdateBurnPin(req)
-	if err != nil {
-		log.Printf("error encountered updating burn pin: %v", err)
-		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
-		return
-	}
+// 	err := services.UpdateBurnPin(req)
+// 	if err != nil {
+// 		log.Printf("error encountered updating burn pin: %v", err)
+// 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, responses.DefaultResponse(codes.SUCCESSFUL, "update successful"))
-}
+// 	c.JSON(http.StatusOK, responses.DefaultResponse(codes.SUCCESSFUL, "update successful"))
+// }
 
 // WithdrawUser godoc
 // @Summary      Update user profile
@@ -156,12 +147,9 @@ func UpdateBurnPin(c *gin.Context) {
 // @Security     ApiKeyAuth
 // @Router       /user/archive/{external_id} [put]
 func WithdrawUserProfile(c *gin.Context) {
+	//TODO: add rollback
 	httpClient := utils.GetHttpClient(c.Request.Context())
 	external_id := c.Param("external_id")
-	if external_id == "" {
-		c.JSON(http.StatusBadRequest, responses.InvalidQueryParametersErrorResponse())
-		return
-	}
 
 	// Retrieve user profile from RLP
 	rlpResp, _, err := services.GetProfile(c, httpClient, external_id)
@@ -188,15 +176,14 @@ func WithdrawUserProfile(c *gin.Context) {
 
 	// Update user profile to withdraw status
 	rlpUserProfile := rlpResp.User
-
 	now := time.Now()
 	timestamp := now.Format("060102150405") // yyMMddHHmmss
 	rlpUserProfile.Email = fmt.Sprintf("%s.delete_%v", rlpUserProfile.Email, timestamp)
 
-	rlpUserProfile.UserProfile.ActiveStatus = 0
-	rlpUserProfile.UserProfile.MarketingPreference.Push = false
-	rlpUserProfile.UserProfile.MarketingPreference.Email = false
-	rlpUserProfile.UserProfile.MarketingPreference.Mobile = false
+	rlpUserProfile.UserProfile.ActiveStatus = model.IntPtr(0)
+	rlpUserProfile.UserProfile.MarketingPreference.Push = model.BoolPtr(false)
+	rlpUserProfile.UserProfile.MarketingPreference.Email = model.BoolPtr(false)
+	rlpUserProfile.UserProfile.MarketingPreference.Mobile = model.BoolPtr(false)
 
 	profileResp, _, err := services.PutProfile(c, httpClient, external_id, rlpUserProfile)
 	if err != nil {
@@ -236,7 +223,7 @@ func WithdrawUserProfile(c *gin.Context) {
 
 	resp := responses.ApiResponse[*responses.GetUserProfileResponse]{
 		Code:    codes.SUCCESSFUL,
-		Message: "withdraw successful",
+		Message: "update successful",
 		Data: &responses.GetUserProfileResponse{
 			User: profileResp.User.MapRlpToLbeUser(),
 		},

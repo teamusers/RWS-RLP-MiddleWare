@@ -18,6 +18,7 @@ const (
 	GetMemberURL = "/cms-webapi-bsp/v2/member"
 )
 
+// TODO: Fix to correct spec
 func GRMemberProfile(memberId string, payload any, operation string, endpoint string) (*responses.GRProfilePayload, error) {
 	conf := config.GetConfig()
 	urlWithParams := fmt.Sprintf("%s%s?systemId=%s&memberId=%s", conf.Api.Cms.Host, endpoint, conf.Api.Cms.SystemID, memberId)

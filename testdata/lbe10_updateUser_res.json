@@ -1,0 +1,11 @@
+{
+    "code": 1000,
+    "message": "update successful",
+    "data": {
+        "user": {
+            "user_profile": {
+                "burn_pin": "1234"
+            }
+        }
+    }
+}

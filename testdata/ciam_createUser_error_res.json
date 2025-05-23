@@ -1,0 +1,18 @@
+{
+    "error": {
+        "code": "Request_BadRequest",
+        "message": "Another object with the same value for property userPrincipalName already exists.",
+        "details": [
+            {
+                "code": "ObjectConflict",
+                "message": "Another object with the same value for property userPrincipalName already exists.",
+                "target": "userPrincipalName"
+            }
+        ],
+        "innerError": {
+            "date": "2025-05-23T02:38:26",
+            "request-id": "ef9ae7f5-6845-4cb2-9cfb-cf22b9a46e9d",
+            "client-request-id": "ef9ae7f5-6845-4cb2-9cfb-cf22b9a46e9d"
+        }
+    }
+}

@@ -100,7 +100,7 @@ type UserProfile struct {
 
 	// Active status code (e.g., 1=active, 0=inactive)
 	// example: 1
-	ActiveStatus int `json:"active_status,omitempty" example:"1"`
+	ActiveStatus *int `json:"active_status,omitempty" example:"1"`
 
 	// Preferred language (ISO 639-1)
 	// example: en
@@ -123,15 +123,15 @@ type UserProfile struct {
 type MarketingPreference struct {
 	// Whether the user opts in to push notifications
 	// example: true
-	Push bool `json:"market_pref_push,omitempty" example:"true"`
+	Push *bool `json:"market_pref_push,omitempty" example:"true"`
 
 	// Whether the user opts in to email marketing
 	// example: false
-	Email bool `json:"market_pref_email,omitempty" example:"false"`
+	Email *bool `json:"market_pref_email,omitempty" example:"false"`
 
 	// Whether the user opts in to SMS/mobile marketing
 	// example: true
-	Mobile bool `json:"market_pref_mobile,omitempty" example:"true"`
+	Mobile *bool `json:"market_pref_mobile,omitempty" example:"true"`
 }
 
 // GrProfile represents a user’s profile in the GR system.

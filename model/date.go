@@ -67,6 +67,12 @@ func (d *Date) Scan(value interface{}) error {
 	return nil
 }
 
+func GetDatePointer(layout string) *Date {
+	t, _ := time.Parse("2006-01-02", layout)
+	d := Date(t)
+	return &d
+}
+
 type DateTime time.Time
 
 func (dt *DateTime) UnmarshalJSON(b []byte) error {
