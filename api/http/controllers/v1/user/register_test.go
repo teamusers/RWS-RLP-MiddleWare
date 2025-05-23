@@ -300,6 +300,7 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 	validSampleReqNew := utils.LoadTestData[requests.RegisterUser]("lbe4_createUser_NEW_req.json")
 	validSampleReqGrCms := utils.LoadTestData[requests.RegisterUser]("lbe4_createUser_GRCMS_req.json")
 	validSampleReqGr := utils.LoadTestData[requests.RegisterUser]("lbe4_createUser_GR_req.json")
+	invalidSampleReqGr := utils.LoadTestData[requests.RegisterUser]("lbe4_createUser_invalidGrClass_req.json")
 	validSampleReqTm := utils.LoadTestData[requests.RegisterUser]("lbe4_createUser_TM_req.json")
 
 	expectedResNew := utils.LoadTestData[responses.ApiResponse[any]]("lbe4_createUser_NEW_res.json")
@@ -490,6 +491,14 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			setupMocks:           func(grId, email string) {},
 			expectedHTTPCode:     http.StatusConflict,
 			expectedResponseBody: responses.CachedProfileNotFoundErrorResponse(),
+		},
+		{
+			name:        "CONFLICT - Invalid GR Class",
+			requestBody: invalidSampleReqGr,
+			setupMocks: func(grId, email string) {
+			},
+			expectedHTTPCode:     http.StatusConflict,
+			expectedResponseBody: responses.InvalidGrMemberClassErrorResponse(),
 		},
 		{
 			name:        "CONFLICT - CIAM user already exists",

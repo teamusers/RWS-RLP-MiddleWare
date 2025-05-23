@@ -133,11 +133,17 @@ func CreateUser(c *gin.Context) {
 		req.User = *cachedProfile
 
 		// match tier (assuming "Class X" format)
-		assignTier(&req.User, c)
+		if err := assignTier(&req.User); err != nil {
+			c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
+			return
+		}
 
 	case codes.SignUpTypeGR:
 		// match tier (assuming "Class X" format)
-		assignTier(&req.User, c)
+		if err := assignTier(&req.User); err != nil {
+			c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
+			return
+		}
 
 	case codes.SignUpTypeTM:
 		// TODO: Request and Validate TM info
@@ -441,14 +447,14 @@ func GetCachedGrCmsProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func assignTier(user *model.User, c *gin.Context) {
+func assignTier(user *model.User) error {
 	tier, err := GrTierMatching(user.GrProfile.Class)
 	if err != nil {
 		log.Printf("error matching gr class to member tier: %v", err)
-		c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
-		return
+		return err
 	}
 	user.Tier = tier
+	return nil
 }
 
 func GrTierMatching(grClass string) (string, error) {
