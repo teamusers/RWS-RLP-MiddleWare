@@ -122,3 +122,23 @@ func (rlpUser *RlpUserResp) MapRlpToLbeUser() User {
 		UserProfile:     rlpUser.UserProfile,
 	}
 }
+
+func (u *RlpUserReq) PopulateRegistrationDefaults(rlpId string) {
+	u.OptedIn = true
+	u.ExternalID = rlpId
+	u.ExternalIDType = "rlp_id"
+	u.UserProfile.LanguagePreference = "EN"
+	u.UserProfile.PreviousEmail = u.Email
+	u.UserProfile.MarketingPreference.Email = BoolPtr(true)
+	u.UserProfile.MarketingPreference.Push = BoolPtr(true)
+	u.UserProfile.MarketingPreference.Mobile = BoolPtr(true)
+	u.UserProfile.ActiveStatus = IntPtr(1)
+}
+
+func IntPtr(i int) *int {
+	return &i
+}
+
+func BoolPtr(b bool) *bool {
+	return &b
+}

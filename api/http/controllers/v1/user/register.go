@@ -160,11 +160,7 @@ func CreateUser(c *gin.Context) {
 	req.User.PopulateIdentifiers(newRlpNumbering.RLP_ID, newRlpNumbering.RLP_NO)
 
 	rlpCreateUserRequest := req.User.MapLbeToRlpUser()
-	rlpCreateUserRequest.OptedIn = true
-	rlpCreateUserRequest.ExternalID = newRlpNumbering.RLP_ID
-	rlpCreateUserRequest.ExternalIDType = "rlp_id"
-	rlpCreateUserRequest.UserProfile.LanguagePreference = "EN"
-	rlpCreateUserRequest.UserProfile.PreviousEmail = rlpCreateUserRequest.Email
+	rlpCreateUserRequest.PopulateRegistrationDefaults(newRlpNumbering.RLP_ID)
 
 	//To DO - RLP : Test Actual RLP End Points
 	profileResp, _, err := services.PutProfile(c, httpClient, "", rlpCreateUserRequest)
