@@ -72,3 +72,11 @@ func ExistingUserNotFoundErrorResponse() ApiResponse[any] {
 func GrMemberIdLinkedErrorResponse() ApiResponse[any] {
 	return DefaultResponse(codes.GR_MEMBER_LINKED, "gr profile already linked to another email")
 }
+
+func InvalidGrMemberClassErrorResponse() ApiResponse[any] {
+	return DefaultResponse(codes.INVALID_GR_MEMBER_CLASS, "invalid gr member class provided")
+}
+
+func CachedProfileNotFoundErrorResponse() ApiResponse[any] {
+	return DefaultResponse(codes.CACHED_PROFILE_NOT_FOUND, "cached profile not found")
+}

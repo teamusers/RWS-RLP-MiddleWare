@@ -22,14 +22,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	// signUpType enums
-	signUpTypeNew   = "NEW"
-	signUpTypeGR    = "GR"
-	signUpTypeGRCMS = "GR_CMS"
-	signUpTypeTM    = "TM"
-)
-
 // VerifyUserExistence godoc
 // @Summary      Verify email for registration
 // @Description  Checks if an email is already registered; if not, sends an OTP for signup.
@@ -121,17 +113,20 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	if err := req.Validate(); err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusBadRequest, responses.InvalidRequestBodySpecificErrorResponse(err.Error()))
+		return
+	}
+
 	switch req.SignUpType {
-	case signUpTypeNew:
+	case codes.SignUpTypeNew:
 		req.User.Tier = "Tier A" // set to base tier
-	case signUpTypeGRCMS:
+	case codes.SignUpTypeGRCMS:
 		cachedProfile, err := system.ObjectGet(strconv.Itoa(req.RegId), &model.User{})
 		if err != nil {
 			log.Printf("error getting cache value: %v", err)
-			c.JSON(http.StatusConflict, responses.ApiResponse[any]{
-				Code:    codes.CACHED_PROFILE_NOT_FOUND,
-				Message: "cached profile not found",
-			})
+			c.JSON(http.StatusConflict, responses.CachedProfileNotFoundErrorResponse())
 			return
 		}
 
@@ -140,23 +135,16 @@ func CreateUser(c *gin.Context) {
 		// match tier (assuming "Class X" format)
 		assignTier(&req.User, c)
 
-	case signUpTypeGR:
+	case codes.SignUpTypeGR:
 		// match tier (assuming "Class X" format)
 		assignTier(&req.User, c)
 
-	case signUpTypeTM:
+	case codes.SignUpTypeTM:
 		// TODO: Request and Validate TM info
 		req.User.UserProfile.EmployeeNumber = "TBC"
 
 		// match tier
 		req.User.Tier = "Tier M"
-
-	default:
-		c.JSON(http.StatusBadRequest, responses.ApiResponse[any]{
-			Code:    codes.INVALID_REQUEST_BODY,
-			Message: "invalid sign_up_type",
-		})
-		return
 	}
 
 	newRlpNumbering, newRlpNumberingErr := utils.GenerateNextRLPUserNumberingWithRetry()
@@ -204,6 +192,7 @@ func CreateUser(c *gin.Context) {
 		profileResp.User.Tier = req.User.Tier // update tier for response dto
 	}
 
+	//TODO: add rollback mechanism
 	// Create CIAM User
 	if respData, raw, err := services.PostCIAMRegisterUser(c, httpClient, requests.GenerateInitialRegistrationRequest(&req.User)); err != nil {
 		// Log the error
@@ -250,7 +239,7 @@ func CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 
 	// purge regId cache if used
-	if req.SignUpType == signUpTypeGRCMS {
+	if req.SignUpType == codes.SignUpTypeGRCMS {
 		system.ObjectDelete(strconv.Itoa(req.RegId))
 	}
 }
@@ -460,7 +449,7 @@ func assignTier(user *model.User, c *gin.Context) {
 	tier, err := GrTierMatching(user.GrProfile.Class)
 	if err != nil {
 		log.Printf("error matching gr class to member tier: %v", err)
-		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
 		return
 	}
 	user.Tier = tier
@@ -479,7 +468,7 @@ func GrTierMatching(grClass string) (string, error) {
 	}
 
 	if classLevel == 1 {
-		return "", nil // if class level 1, return empty for Tier A
+		return "Tier A", nil
 	} else if classLevel == 2 {
 		return "Tier B", nil
 	} else if classLevel >= 3 && classLevel <= 5 {
