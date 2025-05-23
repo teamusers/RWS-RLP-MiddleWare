@@ -16,6 +16,7 @@ import (
 	"lbe/utils"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -35,7 +36,7 @@ func TestGrTierMatching(t *testing.T) {
 		{
 			name:      "Tier A - GR class 1",
 			input:     "Class 1",
-			expected:  "",
+			expected:  "Tier A",
 			expectErr: false,
 		},
 		{
@@ -113,7 +114,8 @@ func TestGrTierMatching(t *testing.T) {
 	}
 }
 
-func TestVerifyUserExistence(t *testing.T) {
+// LBE 3 Unit Test
+func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 	defer gock.Off()
 
 	gin.SetMode(gin.TestMode)
@@ -188,6 +190,7 @@ func TestVerifyUserExistence(t *testing.T) {
 			expectedResponseCode:    codes.EXISTING_USER_FOUND,
 			expectedResponseMessage: "existing user found",
 		},
+
 		{
 			name:        "CIAM get user by email fail - error",
 			requestBody: requests.VerifyUserExistence{Email: "existing@example.com"},
@@ -274,15 +277,428 @@ func TestVerifyUserExistence(t *testing.T) {
 	}
 }
 
+// LBE 4 Unit Test
+func Test_LBE_4_CreateUser(t *testing.T) {
+	defer gock.Off()
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.POST("/register", user.CreateUser)
+
+	rlpPutProfileRes := utils.LoadTestData[responses.GetUserResponse]("rlp_put_profile_res.json")
+	rlpPutProfileGrRes := utils.LoadTestData[responses.GetUserResponse]("rlp_put_profile_GR_res.json")
+	rlpPutProfileTmRes := utils.LoadTestData[responses.GetUserResponse]("rlp_put_profile_TM_res.json")
+	rlpUpdateUserTierEventRes := utils.LoadTestData[responses.UserTierUpdateEventResponse]("rlp_updateUserTier_event_res.json")
+
+	ciamGetAuth := utils.LoadTestData[responses.TokenResponse]("ciam_getAuth_res.json")
+	ciamRegisterUserRes := utils.LoadTestData[responses.GraphCreateUserResponse]("ciam_createUser_success_res.json")
+	ciamRegisterUserErrorRes := utils.LoadTestData[responses.GraphApiErrorResponse]("ciam_createUser_error_res.json")
+
+	validSampleReqNew := utils.LoadTestData[requests.RegisterUser]("lbe4_createUser_NEW_req.json")
+	validSampleReqGrCms := utils.LoadTestData[requests.RegisterUser]("lbe4_createUser_GRCMS_req.json")
+	validSampleReqGr := utils.LoadTestData[requests.RegisterUser]("lbe4_createUser_GR_req.json")
+	validSampleReqTm := utils.LoadTestData[requests.RegisterUser]("lbe4_createUser_TM_req.json")
+
+	expectedResNew := utils.LoadTestData[responses.ApiResponse[any]]("lbe4_createUser_NEW_res.json")
+	expectedResGr := utils.LoadTestData[responses.ApiResponse[any]]("lbe4_createUser_GR_res.json")
+	expectedResTm := utils.LoadTestData[responses.ApiResponse[any]]("lbe4_createUser_TM_res.json")
+
+	tests := []struct {
+		name                 string
+		requestBody          any
+		setupMocks           func(grId, email string)
+		expectedHTTPCode     int
+		expectedResponseBody any
+	}{
+		{
+			name:        "NEW user registration - success",
+			requestBody: validSampleReqNew,
+			setupMocks: func(grId, email string) {
+				// Mock RLP Put Profile
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Put(strings.ReplaceAll(services.ProfileURL, ":api_key", config.GetConfig().Api.Rlp.ApiKey)).
+					Reply(200).
+					JSON(rlpPutProfileRes)
+
+				// Mock RLP Update User Tier Event
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Post(strings.ReplaceAll(services.EventUrl, ":event_name", services.RlpEventNameUpdateUserTier)).
+					Reply(200).
+					JSON(rlpUpdateUserTierEventRes)
+
+				// Mock CIAM auth
+				gock.New(config.GetConfig().Api.Eeid.AuthHost).
+					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
+					Reply(200).
+					JSON(ciamGetAuth)
+
+				// Mock CIAM create user
+				gock.New(config.GetConfig().Api.Eeid.Host).
+					Post(services.CiamUserURL).
+					Reply(201).
+					JSON(ciamRegisterUserRes)
+
+				// Mock CIAM auth
+				gock.New(config.GetConfig().Api.Eeid.AuthHost).
+					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
+					Reply(200).
+					JSON(ciamGetAuth)
+
+				// Mock CIAM add schema extensions
+				gock.New(config.GetConfig().Api.Eeid.Host).
+					Patch(fmt.Sprintf("%s/%s", services.CiamUserURL, ciamRegisterUserRes.Id)).
+					Reply(204)
+			},
+			expectedHTTPCode:     http.StatusCreated,
+			expectedResponseBody: expectedResNew,
+		},
+		{
+			name:        "GR CMS user registration - success",
+			requestBody: validSampleReqGrCms,
+			setupMocks: func(grId, email string) {
+				// Mock RLP Put Profile
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Put(strings.ReplaceAll(services.ProfileURL, ":api_key", config.GetConfig().Api.Rlp.ApiKey)).
+					Reply(200).
+					JSON(rlpPutProfileGrRes)
+
+				// Mock RLP Update User Tier Event
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Post(strings.ReplaceAll(services.EventUrl, ":event_name", services.RlpEventNameUpdateUserTier)).
+					Reply(200).
+					JSON(rlpUpdateUserTierEventRes)
+
+				// Mock CIAM auth
+				gock.New(config.GetConfig().Api.Eeid.AuthHost).
+					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
+					Reply(200).
+					JSON(ciamGetAuth)
+
+				// Mock CIAM create user
+				gock.New(config.GetConfig().Api.Eeid.Host).
+					Post(services.CiamUserURL).
+					Reply(201).
+					JSON(ciamRegisterUserRes)
+
+				// Mock CIAM auth
+				gock.New(config.GetConfig().Api.Eeid.AuthHost).
+					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
+					Reply(200).
+					JSON(ciamGetAuth)
+
+				// Mock CIAM add schema extensions
+				gock.New(config.GetConfig().Api.Eeid.Host).
+					Patch(fmt.Sprintf("%s/%s", services.CiamUserURL, ciamRegisterUserRes.Id)).
+					Reply(204)
+			},
+			expectedHTTPCode:     http.StatusCreated,
+			expectedResponseBody: expectedResGr,
+		},
+		{
+			name:        "GR user registration - success",
+			requestBody: validSampleReqGr,
+			setupMocks: func(grId, email string) {
+				// Mock RLP Put Profile
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Put(strings.ReplaceAll(services.ProfileURL, ":api_key", config.GetConfig().Api.Rlp.ApiKey)).
+					Reply(200).
+					JSON(rlpPutProfileGrRes)
+
+				// Mock RLP Update User Tier Event
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Post(strings.ReplaceAll(services.EventUrl, ":event_name", services.RlpEventNameUpdateUserTier)).
+					Reply(200).
+					JSON(rlpUpdateUserTierEventRes)
+
+				// Mock CIAM auth
+				gock.New(config.GetConfig().Api.Eeid.AuthHost).
+					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
+					Reply(200).
+					JSON(ciamGetAuth)
+
+				// Mock CIAM create user
+				gock.New(config.GetConfig().Api.Eeid.Host).
+					Post(services.CiamUserURL).
+					Reply(201).
+					JSON(ciamRegisterUserRes)
+
+				// Mock CIAM auth
+				gock.New(config.GetConfig().Api.Eeid.AuthHost).
+					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
+					Reply(200).
+					JSON(ciamGetAuth)
+
+				// Mock CIAM add schema extensions
+				gock.New(config.GetConfig().Api.Eeid.Host).
+					Patch(fmt.Sprintf("%s/%s", services.CiamUserURL, ciamRegisterUserRes.Id)).
+					Reply(204)
+			},
+			expectedHTTPCode:     http.StatusCreated,
+			expectedResponseBody: expectedResGr,
+		},
+		{
+			name:        "TM user registration - success",
+			requestBody: validSampleReqTm,
+			setupMocks: func(grId, email string) {
+				// Mock RLP Put Profile
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Put(strings.ReplaceAll(services.ProfileURL, ":api_key", config.GetConfig().Api.Rlp.ApiKey)).
+					Reply(200).
+					JSON(rlpPutProfileTmRes)
+
+				// Mock RLP Update User Tier Event
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Post(strings.ReplaceAll(services.EventUrl, ":event_name", services.RlpEventNameUpdateUserTier)).
+					Reply(200).
+					JSON(rlpUpdateUserTierEventRes)
+
+				// Mock CIAM auth
+				gock.New(config.GetConfig().Api.Eeid.AuthHost).
+					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
+					Reply(200).
+					JSON(ciamGetAuth)
+
+				// Mock CIAM create user
+				gock.New(config.GetConfig().Api.Eeid.Host).
+					Post(services.CiamUserURL).
+					Reply(201).
+					JSON(ciamRegisterUserRes)
+
+				// Mock CIAM auth
+				gock.New(config.GetConfig().Api.Eeid.AuthHost).
+					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
+					Reply(200).
+					JSON(ciamGetAuth)
+
+				// Mock CIAM add schema extensions
+				gock.New(config.GetConfig().Api.Eeid.Host).
+					Patch(fmt.Sprintf("%s/%s", services.CiamUserURL, ciamRegisterUserRes.Id)).
+					Reply(204)
+			},
+			expectedHTTPCode:     http.StatusCreated,
+			expectedResponseBody: expectedResTm,
+		},
+		{
+			name: "GR CMS cache not found - conflict",
+			requestBody: requests.RegisterUser{
+				SignUpType: codes.SignUpTypeGRCMS,
+				RegId:      00001,
+			},
+			setupMocks:           func(grId, email string) {},
+			expectedHTTPCode:     http.StatusConflict,
+			expectedResponseBody: responses.CachedProfileNotFoundErrorResponse(),
+		},
+		{
+			name:        "CIAM user already exists - conflict",
+			requestBody: validSampleReqNew,
+			setupMocks: func(grId, email string) {
+				// Mock RLP Put Profile
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Put(strings.ReplaceAll(services.ProfileURL, ":api_key", config.GetConfig().Api.Rlp.ApiKey)).
+					Reply(200).
+					JSON(rlpPutProfileRes)
+
+				// Mock RLP Update User Tier Event
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Post(strings.ReplaceAll(services.EventUrl, ":event_name", services.RlpEventNameUpdateUserTier)).
+					Reply(200).
+					JSON(rlpUpdateUserTierEventRes)
+
+				// Mock CIAM auth
+				gock.New(config.GetConfig().Api.Eeid.AuthHost).
+					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
+					Reply(200).
+					JSON(ciamGetAuth)
+
+				// Mock CIAM create user error due to existing user
+				gock.New(config.GetConfig().Api.Eeid.Host).
+					Post(services.CiamUserURL).
+					Reply(400).
+					JSON(ciamRegisterUserErrorRes)
+			},
+			expectedHTTPCode:     http.StatusConflict,
+			expectedResponseBody: responses.ExistingUserFoundErrorResponse(),
+		},
+		{
+			name:        "RLP put profile fail - error",
+			requestBody: validSampleReqNew,
+			setupMocks: func(grId, email string) {
+				// Mock RLP Put Profile error
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Put(strings.ReplaceAll(services.ProfileURL, ":api_key", config.GetConfig().Api.Rlp.ApiKey)).
+					Reply(500).
+					JSON(rlpPutProfileRes)
+			},
+			expectedHTTPCode:     http.StatusInternalServerError,
+			expectedResponseBody: responses.InternalErrorResponse(),
+		},
+		{ //TODO: add rollback check
+			name:        "RLP update user tier fail - error",
+			requestBody: validSampleReqNew,
+			setupMocks: func(grId, email string) {
+				// Mock RLP Put Profile
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Put(strings.ReplaceAll(services.ProfileURL, ":api_key", config.GetConfig().Api.Rlp.ApiKey)).
+					Reply(200).
+					JSON(rlpPutProfileRes)
+
+				// Mock RLP Update User Tier Event error
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Post(strings.ReplaceAll(services.EventUrl, ":event_name", services.RlpEventNameUpdateUserTier)).
+					Reply(500).
+					JSON(rlpUpdateUserTierEventRes)
+			},
+			expectedHTTPCode:     http.StatusInternalServerError,
+			expectedResponseBody: responses.InternalErrorResponse(),
+		},
+		{
+			name:        "CIAM register user fail - error",
+			requestBody: validSampleReqNew,
+			setupMocks: func(grId, email string) {
+				// Mock RLP Put Profile
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Put(strings.ReplaceAll(services.ProfileURL, ":api_key", config.GetConfig().Api.Rlp.ApiKey)).
+					Reply(200).
+					JSON(rlpPutProfileRes)
+
+				// Mock RLP Update User Tier Event
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Post(strings.ReplaceAll(services.EventUrl, ":event_name", services.RlpEventNameUpdateUserTier)).
+					Reply(200).
+					JSON(rlpUpdateUserTierEventRes)
+
+				// Mock CIAM auth
+				gock.New(config.GetConfig().Api.Eeid.AuthHost).
+					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
+					Reply(200).
+					JSON(ciamGetAuth)
+
+				// Mock CIAM create user error
+				gock.New(config.GetConfig().Api.Eeid.Host).
+					Post(services.CiamUserURL).
+					Reply(500)
+			},
+			expectedHTTPCode:     http.StatusInternalServerError,
+			expectedResponseBody: responses.InternalErrorResponse(),
+		},
+		{
+			name:        "CIAM patch user schema extensions fail - error",
+			requestBody: validSampleReqNew,
+			setupMocks: func(grId, email string) {
+				// Mock RLP Put Profile
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Put(strings.ReplaceAll(services.ProfileURL, ":api_key", config.GetConfig().Api.Rlp.ApiKey)).
+					Reply(200).
+					JSON(rlpPutProfileRes)
+
+				// Mock RLP Update User Tier Event
+				gock.New(config.GetConfig().Api.Rlp.Host).
+					Post(strings.ReplaceAll(services.EventUrl, ":event_name", services.RlpEventNameUpdateUserTier)).
+					Reply(200).
+					JSON(rlpUpdateUserTierEventRes)
+
+					// Mock CIAM auth
+				gock.New(config.GetConfig().Api.Eeid.AuthHost).
+					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
+					Reply(200).
+					JSON(ciamGetAuth)
+
+				// Mock CIAM create user
+				gock.New(config.GetConfig().Api.Eeid.Host).
+					Post(services.CiamUserURL).
+					Reply(201).
+					JSON(ciamRegisterUserRes)
+
+				// Mock CIAM auth
+				gock.New(config.GetConfig().Api.Eeid.AuthHost).
+					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
+					Reply(200).
+					JSON(ciamGetAuth)
+
+				// Mock CIAM add schema extensions error
+				gock.New(config.GetConfig().Api.Eeid.Host).
+					Patch(fmt.Sprintf("%s/%s", services.CiamUserURL, ciamRegisterUserRes.Id)).
+					Reply(500)
+			},
+			expectedHTTPCode:     http.StatusInternalServerError,
+			expectedResponseBody: responses.InternalErrorResponse(),
+		},
+		{
+			name:                 "Invalid request body - error",
+			requestBody:          `{}`,
+			setupMocks:           func(email, grId string) {}, // No mock needed
+			expectedHTTPCode:     http.StatusBadRequest,
+			expectedResponseBody: responses.InvalidRequestBodySpecificErrorResponse("invalid sign_up_type provided"),
+		},
+		{
+			name:                 "Invalid JSON ShouldBindJSON - error",
+			requestBody:          `{"user": "invalid-json}`,   // malformed JSON (missing closing quote)
+			setupMocks:           func(email, grId string) {}, // No mocks needed
+			expectedHTTPCode:     http.StatusBadRequest,
+			expectedResponseBody: responses.InvalidRequestBodyErrorResponse(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer gock.Off()
+
+			//setup cache
+			system.ObjectSet(strconv.Itoa(validSampleReqGrCms.RegId), validSampleReqGr.User, 30*time.Minute)
+			defer system.ObjectDelete(strconv.Itoa(validSampleReqGrCms.RegId))
+
+			var grId, email string
+			if req, ok := tt.requestBody.(requests.RegisterUser); ok {
+				if req.SignUpType == codes.SignUpTypeGR {
+					if req.User.GrProfile != nil {
+						grId = req.User.GrProfile.Id
+					}
+				}
+				email = req.User.Email
+			}
+
+			tt.setupMocks(grId, email)
+
+			var bodyBytes []byte
+			switch b := tt.requestBody.(type) {
+			case string:
+				bodyBytes = []byte(b)
+			default:
+				bodyBytes, _ = json.Marshal(b)
+			}
+
+			req := httptest.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(bodyBytes))
+			req.Header.Set("Content-Type", "application/json")
+			rec := httptest.NewRecorder()
+
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, tt.expectedHTTPCode, rec.Code)
+
+			if rec.Code == http.StatusCreated || rec.Code == http.StatusConflict {
+				var resp responses.ApiResponse[any]
+				err := json.Unmarshal(rec.Body.Bytes(), &resp)
+				assert.NoError(t, err)
+
+				if tt.expectedResponseBody != nil {
+					expected, _ := json.Marshal(tt.expectedResponseBody)
+					actual, _ := json.Marshal(resp)
+					assert.JSONEq(t, string(expected), string(actual))
+				}
+			}
+		})
+	}
+}
+
 // LBE 6 Unit Test
-func TestVerifyGrExistence(t *testing.T) {
+func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 	defer gock.Off()
 
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.POST("/user/gr", user.VerifyGrExistence)
 
-	validSampleReq, _ := utils.LoadTestData[requests.VerifyGrUser]("lbe6_verifyGrExistence_req.json")
+	validSampleReq := utils.LoadTestData[requests.VerifyGrUser]("lbe6_verifyGrExistence_req.json")
 
 	tests := []struct {
 		name                    string
@@ -498,14 +914,15 @@ func TestVerifyGrExistence(t *testing.T) {
 	}
 }
 
-func TestVerifyGrCmsExistence(t *testing.T) {
+// LBE 7 Unit Test
+func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 	defer gock.Off()
 
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.POST("/user/gr-cms", user.VerifyGrCmsExistence)
 
-	validSampleReq, _ := utils.LoadTestData[requests.VerifyGrCmsUser]("lbe7_verifyGrCmsExistence_req.json")
+	validSampleReq := utils.LoadTestData[requests.VerifyGrCmsUser]("lbe7_verifyGrCmsExistence_req.json")
 
 	tests := []struct {
 		name                    string
@@ -775,7 +1192,7 @@ func TestVerifyGrCmsExistence(t *testing.T) {
 	}
 }
 
-func TestGetCachedGrCmsProfile(t *testing.T) {
+func Test_LBE_8_GetCachedGrCmsProfile(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	tests := []struct {

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func LoadTestData[T any](path string) (T, error) {
+func LoadTestData[T any](path string) T {
 	var data T
 
 	filePath := filepath.Join("..", "..", "..", "..", "..", "testdata", path)
@@ -15,13 +15,13 @@ func LoadTestData[T any](path string) (T, error) {
 	_, err := os.Stat(filePath)
 	if err != nil {
 		fmt.Println("FILE DOES NOT EXIST:", filePath)
-		return data, err
+		return data
 	}
 
 	fileBytes, err := os.ReadFile(filePath)
 	if err != nil {
-		return data, err
+		return data
 	}
 	err = json.Unmarshal(fileBytes, &data)
-	return data, err
+	return data
 }

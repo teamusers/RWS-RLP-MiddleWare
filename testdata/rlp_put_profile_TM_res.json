@@ -1,0 +1,191 @@
+{
+    "status": "ok",
+    "user": {
+        "id": "16565e86-d74f-11ea-8af9-8b7d3a6ff2a9",
+        "external_id": "abc123",
+        "opted_in": false,
+        "activated": false,
+        "proxy_ids": [],
+        "identifiers": [
+            {
+                "external_id": "abc123",
+                "external_id_type": "rlp_id"
+            },
+            {
+                "external_id": "abc123",
+                "external_id_type": "rlp_no"
+            }
+        ],
+        "available_points": 0,
+        "test_points": 0,
+        "unclaimed_achievement_count": 0,
+        "email": "new@example.com",
+        "dob": "2007-08-05",
+        "created_at": "2020-08-05 19:08:46",
+        "updated_at": "2020-08-05 19:08:49",
+        "suspended": false,
+        "last_name": "Data",
+        "first_name": "Sample",
+        "registered_at": "2020-08-05 19:08:46",
+        "profile_photo_url": "/images/account-neutral.png",
+        "test_account": true,
+        "account_status": "good",
+        "tier": "Tier A",
+        "tier_system": "Koalla Tier System - DO NOT PAUSE OR EDIT",
+        "tier_points": 0,
+        "next_tier_points": 1500,
+        "tier_ends_value": 1500,
+        "tier_entered_at": "2020-08-05 19:08:46",
+        "tier_resets_at": "2021-08-05 19:08:46",
+        "tier_details": {
+            "tier_levels": [
+                {
+                    "id": "3e43bf1b-c6b9-4a04-83be-f39ea2da7340",
+                    "tier_system_id": "e02dec3f-32f7-45f9-8c56-0b5ba5c03ec9",
+                    "tier_level_id": "46cf8f24-8726-4787-90b9-463a561fd056",
+                    "user_id": "16565e86-d74f-11ea-8af9-8b7d3a6ff2a9",
+                    "join_date": "2020-08-05T19:08:46.63",
+                    "tier_overview": {
+                        "id": "46cf8f24-8726-4787-90b9-463a561fd056",
+                        "tier_system_id": "e02dec3f-32f7-45f9-8c56-0b5ba5c03ec9",
+                        "retailer_id": "bee4a5bb-a65f-4245-a8ef-ae6d38157858",
+                        "name": "Bronze",
+                        "rank": 0,
+                        "status": 2
+                    },
+                    "next_tier_overview": {
+                        "id": "f0e5f293-bc3b-49d5-9e55-03e05f25724b",
+                        "tier_system_id": "e02dec3f-32f7-45f9-8c56-0b5ba5c03ec9",
+                        "retailer_id": "bee4a5bb-a65f-4245-a8ef-ae6d38157858",
+                        "name": "Silver",
+                        "rank": 1,
+                        "status": 2
+                    },
+                    "tier_progress": [
+                        {
+                            "rule_tree_id": "7aa17616-9ce4-4896-888d-f8cc39c962e3",
+                            "rules": [
+                                {
+                                    "query_result": 0,
+                                    "rule_id": "565d2010-0511-4135-bdb6-6385cb5292e1",
+                                    "parent_id": "a63037ab-38e1-4167-ba37-e54963a66092",
+                                    "tree_id": "7aa17616-9ce4-4896-888d-f8cc39c962e3",
+                                    "rule_passed": false,
+                                    "rule": {
+                                        "discriminator": 2048,
+                                        "target_balance": 1500,
+                                        "comparison": 4,
+                                        "id": "565d2010-0511-4135-bdb6-6385cb5292e1",
+                                        "retailer_id": "bee4a5bb-a65f-4245-a8ef-ae6d38157858",
+                                        "parent_id": "a63037ab-38e1-4167-ba37-e54963a66092",
+                                        "rank": 0,
+                                        "is_new": false,
+                                        "constraints": [
+                                            {
+                                                "discriminator": 8,
+                                                "point_accounts": {
+                                                    "2a5dc275-2d4f-480b-a905-3886938c0bdb": "Koalla Tier Points"
+                                                },
+                                                "id": "a0debabf-1852-4843-aa18-951aacb99a32",
+                                                "rule_id": "565d2010-0511-4135-bdb6-6385cb5292e1",
+                                                "is_new": false,
+                                                "rank": 0,
+                                                "version": 0
+                                            }
+                                        ]
+                                    },
+                                    "discriminator": 2,
+                                    "rule_tree_name": ""
+                                },
+                                {
+                                    "rule_id": "a63037ab-38e1-4167-ba37-e54963a66092",
+                                    "tree_id": "7aa17616-9ce4-4896-888d-f8cc39c962e3",
+                                    "rule_passed": false,
+                                    "rule": {
+                                        "discriminator": 2,
+                                        "id": "a63037ab-38e1-4167-ba37-e54963a66092",
+                                        "retailer_id": "bee4a5bb-a65f-4245-a8ef-ae6d38157858",
+                                        "rank": 0,
+                                        "is_new": false,
+                                        "constraints": []
+                                    },
+                                    "discriminator": 1,
+                                    "rule_tree_name": ""
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "point_account_balances": {
+                "retailer_id": "bee4a5bb-a65f-4245-a8ef-ae6d38157858",
+                "user_id": "16565e86-d74f-11ea-8af9-8b7d3a6ff2a9",
+                "summary": {
+                    "total_points": 0,
+                    "life_time_points": 0
+                },
+                "details": [
+                    {
+                        "account_name": "Base Savings account",
+                        "user_point_account_id": "",
+                        "point_account_id": "5e0e3c09-c94f-45e3-a977-88c6e50c95c3",
+                        "grouping_label": "",
+                        "available_balance": 0,
+                        "life_time_value": 0
+                    },
+                    {
+                        "account_name": "Koalla Rewards Lifetime Tier Points",
+                        "user_point_account_id": "",
+                        "point_account_id": "472ce493-f9c3-4c1a-b07b-8f0a8742493a",
+                        "grouping_label": "",
+                        "available_balance": 0,
+                        "life_time_value": 0
+                    },
+                    {
+                        "account_name": "Koalla Rewards Spendable Points",
+                        "user_point_account_id": "",
+                        "point_account_id": "aed95ba6-b225-4fae-bbf2-a9cf4f827af0",
+                        "grouping_label": "",
+                        "available_balance": 0,
+                        "life_time_value": 0
+                    },
+                    {
+                        "account_name": "Koalla Rewards Partner Earned Spendable Points",
+                        "user_point_account_id": "",
+                        "point_account_id": "35bae3c3-5e57-429e-8a20-78ea85896ee0",
+                        "grouping_label": "Partner Spendable",
+                        "available_balance": 0,
+                        "life_time_value": 0
+                    },
+                    {
+                        "account_name": "Koalla Rewards Tier Points",
+                        "user_point_account_id": "",
+                        "point_account_id": "2a5dc275-2d4f-480b-a905-3886938c0bdb",
+                        "grouping_label": "Spend",
+                        "available_balance": 0,
+                        "life_time_value": 0
+                    },
+                    {
+                        "account_name": "NB 3-Tier Spend Account",
+                        "user_point_account_id": "",
+                        "point_account_id": "7f18e217-e10a-4b32-80d5-8ebeabe0f409",
+                        "grouping_label": "Spend",
+                        "available_balance": 0,
+                        "life_time_value": 0
+                    }
+                ]
+            }
+        },
+        "referrer_code": "BRENDANT-8B3AFC",
+        "user_profile": {
+            "country_code": "+65",
+            "country_name": "Singapore",
+            "language_preference": "EN",
+            "previous_email":"new@example.com",
+            "employee_number": "abc123",
+            "market_pref_push": true,
+            "market_pref_email": true,
+            "market_pref_mobile": true
+        }
+    }
+}
