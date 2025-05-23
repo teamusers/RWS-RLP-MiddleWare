@@ -3,7 +3,6 @@ package user_test
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"lbe/api/http/controllers/v1/user"
 	"lbe/api/http/requests"
@@ -14,6 +13,7 @@ import (
 	"lbe/model"
 	"lbe/system"
 	"lbe/utils"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -129,6 +129,7 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 		expectedHTTPCode        int
 		expectedResponseCode    int64
 		expectedResponseMessage string
+		expectedResponseBody    any
 	}{
 		{
 			name:        "User not found - success",
@@ -186,11 +187,9 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 						"value": []map[string]any{{"id": "abc123"}},
 					})
 			},
-			expectedHTTPCode:        http.StatusConflict,
-			expectedResponseCode:    codes.EXISTING_USER_FOUND,
-			expectedResponseMessage: "existing user found",
+			expectedHTTPCode:     http.StatusConflict,
+			expectedResponseBody: responses.ExistingUserFoundErrorResponse(),
 		},
-
 		{
 			name:        "CIAM get user by email fail - error",
 			requestBody: requests.VerifyUserExistence{Email: "existing@example.com"},
@@ -200,9 +199,8 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
 					Reply(500)
 			},
-			expectedHTTPCode:        http.StatusInternalServerError,
-			expectedResponseCode:    codes.INTERNAL_ERROR,
-			expectedResponseMessage: "internal error",
+			expectedHTTPCode:     http.StatusInternalServerError,
+			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
 			name:        "ACS send email fail - error",
@@ -226,18 +224,16 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 					Post(services.AcsAuthURL).
 					Reply(500)
 			},
-			expectedHTTPCode:        http.StatusInternalServerError,
-			expectedResponseCode:    codes.INTERNAL_ERROR,
-			expectedResponseMessage: "internal error",
+			expectedHTTPCode:     http.StatusInternalServerError,
+			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 
 		{
-			name:                    "Invalid request body - error",
-			requestBody:             nil, // raw string invalid body
-			setupMocks:              func(email string) {},
-			expectedHTTPCode:        http.StatusBadRequest,
-			expectedResponseCode:    codes.INVALID_REQUEST_BODY,
-			expectedResponseMessage: "",
+			name:                 "Invalid request body - error",
+			requestBody:          nil, // raw string invalid body
+			setupMocks:           func(email string) {},
+			expectedHTTPCode:     http.StatusBadRequest,
+			expectedResponseBody: responses.InvalidRequestBodyErrorResponse(),
 		},
 	}
 
@@ -267,11 +263,18 @@ func Test_LBE_3_VerifyUserExistence(t *testing.T) {
 			assert.Equal(t, tt.expectedHTTPCode, rec.Code)
 
 			if rec.Code == http.StatusOK || rec.Code == http.StatusConflict {
-				var resp responses.ApiResponse[model.Otp]
+				var resp responses.ApiResponse[any]
 				err := json.Unmarshal(rec.Body.Bytes(), &resp)
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedResponseCode, resp.Code)
-				assert.Equal(t, tt.expectedResponseMessage, resp.Message)
+
+				if tt.expectedResponseBody != nil {
+					expected, _ := json.Marshal(tt.expectedResponseBody)
+					actual, _ := json.Marshal(resp)
+					assert.JSONEq(t, string(expected), string(actual))
+				} else {
+					assert.Equal(t, tt.expectedResponseCode, resp.Code)
+					assert.Equal(t, tt.expectedResponseMessage, resp.Message)
+				}
 			}
 		})
 	}
@@ -707,6 +710,7 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 		expectedHTTPCode        int
 		expectedResponseCode    int64
 		expectedResponseMessage string
+		expectedResponseBody    any
 	}{
 		{
 			name:        "GR ID not found - success",
@@ -754,7 +758,7 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 			},
 			expectedHTTPCode:        http.StatusOK,
 			expectedResponseCode:    codes.SUCCESSFUL,
-			expectedResponseMessage: "gr profile found",
+			expectedResponseMessage: "gr profile found", //TODO: use correct response - need to fix otp
 		},
 		{
 			name:        "GR ID already linked - conflict",
@@ -775,9 +779,8 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 						Value: []responses.GraphUser{{ID: "existing-user"}},
 					})
 			},
-			expectedHTTPCode:        http.StatusConflict,
-			expectedResponseCode:    codes.GR_MEMBER_LINKED,
-			expectedResponseMessage: "gr profile already linked to another email",
+			expectedHTTPCode:     http.StatusConflict,
+			expectedResponseBody: responses.GrMemberIdLinkedErrorResponse(),
 		},
 		{
 			name:        "CIAM get user by grId fail - error",
@@ -788,9 +791,8 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
 					Reply(500)
 			},
-			expectedHTTPCode:        http.StatusInternalServerError,
-			expectedResponseCode:    codes.INTERNAL_ERROR,
-			expectedResponseMessage: "internal error",
+			expectedHTTPCode:     http.StatusInternalServerError,
+			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
 			name:        "CMS profile fetch - error",
@@ -816,9 +818,8 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 					MatchParam("memberId", grId).
 					Reply(500)
 			},
-			expectedHTTPCode:        http.StatusInternalServerError,
-			expectedResponseCode:    codes.INTERNAL_ERROR,
-			expectedResponseMessage: "internal error",
+			expectedHTTPCode:     http.StatusInternalServerError,
+			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
 			name:        "ACS send email fail - error",
@@ -853,25 +854,22 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 					Post(services.AcsAuthURL).
 					Reply(500)
 			},
-			expectedHTTPCode:        http.StatusInternalServerError,
-			expectedResponseCode:    codes.INTERNAL_ERROR,
-			expectedResponseMessage: "internal error",
+			expectedHTTPCode:     http.StatusInternalServerError,
+			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:                    "Invalid request body - error",
-			requestBody:             `{}`,
-			setupMocks:              func(email, grId string) {}, // No mock needed
-			expectedHTTPCode:        http.StatusBadRequest,
-			expectedResponseCode:    codes.INVALID_REQUEST_BODY,
-			expectedResponseMessage: "",
+			name:                 "Invalid request body - error",
+			requestBody:          `{}`,
+			setupMocks:           func(email, grId string) {}, // No mock needed
+			expectedHTTPCode:     http.StatusBadRequest,
+			expectedResponseBody: responses.InvalidRequestBodyErrorResponse(),
 		},
 		{
-			name:                    "Invalid JSON ShouldBindJSON - error",
-			requestBody:             `{"user": "invalid-json}`,   // malformed JSON (missing closing quote)
-			setupMocks:              func(email, grId string) {}, // No mocks needed
-			expectedHTTPCode:        http.StatusBadRequest,
-			expectedResponseCode:    codes.INVALID_REQUEST_BODY,
-			expectedResponseMessage: "",
+			name:                 "Invalid JSON ShouldBindJSON - error",
+			requestBody:          `{"user": "invalid-json}`,   // malformed JSON (missing closing quote)
+			setupMocks:           func(email, grId string) {}, // No mocks needed
+			expectedHTTPCode:     http.StatusBadRequest,
+			expectedResponseBody: responses.InvalidRequestBodyErrorResponse(),
 		},
 	}
 
@@ -907,8 +905,15 @@ func Test_LBE_6_VerifyGrExistence(t *testing.T) {
 				var resp responses.ApiResponse[any]
 				err := json.Unmarshal(rec.Body.Bytes(), &resp)
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedResponseCode, resp.Code)
-				assert.Equal(t, tt.expectedResponseMessage, resp.Message)
+
+				if tt.expectedResponseBody != nil {
+					expected, _ := json.Marshal(tt.expectedResponseBody)
+					actual, _ := json.Marshal(resp)
+					assert.JSONEq(t, string(expected), string(actual))
+				} else {
+					assert.Equal(t, tt.expectedResponseCode, resp.Code)
+					assert.Equal(t, tt.expectedResponseMessage, resp.Message)
+				}
 			}
 		})
 	}
@@ -931,6 +936,7 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 		expectedHTTPCode        int
 		expectedResponseCode    int64
 		expectedResponseMessage string
+		expectedResponseBody    any
 	}{
 		{
 			name:        "User and GR ID not found - success",
@@ -1004,9 +1010,8 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 						},
 					})
 			},
-			expectedHTTPCode:        http.StatusConflict,
-			expectedResponseCode:    codes.EXISTING_USER_FOUND,
-			expectedResponseMessage: "existing user found",
+			expectedHTTPCode:     http.StatusConflict,
+			expectedResponseBody: responses.ExistingUserFoundErrorResponse(),
 		},
 		{
 			name:        "Existing GR ID found - conflict",
@@ -1042,9 +1047,8 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 						},
 					})
 			},
-			expectedHTTPCode:        http.StatusConflict,
-			expectedResponseCode:    codes.GR_MEMBER_LINKED,
-			expectedResponseMessage: "gr profile already linked to another email",
+			expectedHTTPCode:     http.StatusConflict,
+			expectedResponseBody: responses.GrMemberIdLinkedErrorResponse(),
 		},
 		{
 			name:        "CIAM get user by email fail - error",
@@ -1056,9 +1060,8 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 					Post(fmt.Sprintf("/%s%s", config.GetConfig().Api.Eeid.TenantID, services.CiamAuthURL)).
 					Reply(500)
 			},
-			expectedHTTPCode:        http.StatusInternalServerError,
-			expectedResponseCode:    codes.INTERNAL_ERROR,
-			expectedResponseMessage: "internal error",
+			expectedHTTPCode:     http.StatusInternalServerError,
+			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
 			name:        "CIAM get user by grId fail - error",
@@ -1089,9 +1092,8 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 					MatchParam("$filter", buildGrIdFilter(grId)).
 					Reply(500)
 			},
-			expectedHTTPCode:        http.StatusInternalServerError,
-			expectedResponseCode:    codes.INTERNAL_ERROR,
-			expectedResponseMessage: "internal error",
+			expectedHTTPCode:     http.StatusInternalServerError,
+			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
 			name:        "ACS send email fail - error",
@@ -1129,25 +1131,22 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 					Post(services.AcsAuthURL).
 					Reply(500)
 			},
-			expectedHTTPCode:        http.StatusInternalServerError,
-			expectedResponseCode:    codes.INTERNAL_ERROR,
-			expectedResponseMessage: "internal error",
+			expectedHTTPCode:     http.StatusInternalServerError,
+			expectedResponseBody: responses.InternalErrorResponse(),
 		},
 		{
-			name:                    "Invalid request body - error",
-			requestBody:             nil, // raw string invalid body
-			setupMocks:              func(email, grId string) {},
-			expectedHTTPCode:        http.StatusBadRequest,
-			expectedResponseCode:    0,
-			expectedResponseMessage: "",
+			name:                 "Invalid request body - error",
+			requestBody:          nil, // raw string invalid body
+			setupMocks:           func(email, grId string) {},
+			expectedHTTPCode:     http.StatusBadRequest,
+			expectedResponseBody: responses.InvalidRequestBodyErrorResponse(),
 		},
 		{
-			name:                    "Invalid JSON ShouldBindJSON - error",
-			requestBody:             `{"user": "invalid-json}`,   // malformed JSON (missing closing quote)
-			setupMocks:              func(email, grId string) {}, // No mocks needed
-			expectedHTTPCode:        http.StatusBadRequest,
-			expectedResponseCode:    0,
-			expectedResponseMessage: "",
+			name:                 "Invalid JSON ShouldBindJSON - error",
+			requestBody:          `{"user": "invalid-json}`,   // malformed JSON (missing closing quote)
+			setupMocks:           func(email, grId string) {}, // No mocks needed
+			expectedHTTPCode:     http.StatusBadRequest,
+			expectedResponseBody: responses.InvalidRequestBodyErrorResponse(),
 		},
 	}
 
@@ -1185,8 +1184,15 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 				var resp responses.ApiResponse[any]
 				err := json.Unmarshal(rec.Body.Bytes(), &resp)
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedResponseCode, resp.Code)
-				assert.Equal(t, tt.expectedResponseMessage, resp.Message)
+
+				if tt.expectedResponseBody != nil {
+					expected, _ := json.Marshal(tt.expectedResponseBody)
+					actual, _ := json.Marshal(resp)
+					assert.JSONEq(t, string(expected), string(actual))
+				} else {
+					assert.Equal(t, tt.expectedResponseCode, resp.Code)
+					assert.Equal(t, tt.expectedResponseMessage, resp.Message)
+				}
 			}
 		})
 	}
@@ -1195,45 +1201,51 @@ func Test_LBE_7_VerifyGrCmsExistence(t *testing.T) {
 func Test_LBE_8_GetCachedGrCmsProfile(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
+	expectedRes := utils.LoadTestData[responses.ApiResponse[any]]("lbe8_getCachedGrCmsProfile_res.json")
+	var respData responses.VerifyGrCmsUserResponseData
+
+	// Re-marshal the `Data` field to JSON
+	dataBytes, err := json.Marshal(expectedRes.Data)
+	if err != nil {
+		log.Fatalf("failed to marshal Data: %v", err)
+	}
+
+	// Unmarshal into the desired struct
+	err = json.Unmarshal(dataBytes, &respData)
+	if err != nil {
+		log.Fatalf("failed to unmarshal into VerifyGrCmsUserResponseData: %v", err)
+	}
+
+	cachedRegId := respData.RegId
+	cachedUser := &model.User{DateOfBirth: &respData.DateOfBirth}
+
 	tests := []struct {
 		name                    string
 		regId                   string
-		mockCacheHit            bool
-		mockCacheValue          *model.User
-		mockCacheErr            error
 		expectedHTTPCode        int
 		expectedResponseCode    int64
 		expectedResponseMessage string
+		expectedResponseBody    any
 	}{
 		{
-			name:                    "Cache miss returns conflict",
-			regId:                   "123",
-			mockCacheHit:            false,
-			mockCacheErr:            errors.New("not found"),
-			expectedHTTPCode:        http.StatusConflict,
-			expectedResponseCode:    codes.CACHED_PROFILE_NOT_FOUND,
-			expectedResponseMessage: "cached profile not found",
+			name:                 "Cache profile found - success",
+			regId:                cachedRegId,
+			expectedHTTPCode:     http.StatusOK,
+			expectedResponseBody: expectedRes,
 		},
 		{
-			name:                    "Cache hit returns success",
-			regId:                   "123",
-			mockCacheHit:            true,
-			mockCacheValue:          &model.User{DateOfBirth: model.GetDatePointer("2000-01-01")},
-			expectedHTTPCode:        http.StatusOK,
-			expectedResponseCode:    codes.SUCCESSFUL,
-			expectedResponseMessage: "cached profile found",
+			name:                 "Cache profile not found - conflict",
+			regId:                "321",
+			expectedHTTPCode:     http.StatusConflict,
+			expectedResponseBody: responses.CachedProfileNotFoundErrorResponse(),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			//setup cache
-			if tt.mockCacheValue != nil {
-				system.ObjectSet(tt.regId, tt.mockCacheValue, 30*time.Minute)
-				defer system.ObjectDelete(tt.regId)
-			} else {
-				system.ObjectDelete(tt.regId) // ensure clean start if no mock value
-			}
+			system.ObjectSet(cachedRegId, cachedUser, 30*time.Minute)
+			defer system.ObjectDelete(cachedRegId)
 
 			router := gin.New()
 			router.GET("/gr-cms/:reg_id", user.GetCachedGrCmsProfile)
@@ -1244,17 +1256,18 @@ func Test_LBE_8_GetCachedGrCmsProfile(t *testing.T) {
 
 			assert.Equal(t, tt.expectedHTTPCode, rec.Code)
 
-			if tt.expectedHTTPCode == http.StatusOK || tt.expectedHTTPCode == http.StatusConflict {
-				var resp responses.ApiResponse[responses.VerifyGrCmsUserResponseData]
+			if rec.Code == http.StatusOK || rec.Code == http.StatusConflict {
+				var resp responses.ApiResponse[any]
 				err := json.Unmarshal(rec.Body.Bytes(), &resp)
-				if err != nil {
-					t.Fatalf("failed to unmarshal response: %v", err)
-				}
-				assert.Equal(t, tt.expectedResponseCode, resp.Code)
-				assert.Equal(t, tt.expectedResponseMessage, resp.Message)
-				if tt.mockCacheHit {
-					assert.Equal(t, tt.regId, resp.Data.RegId)
-					assert.Equal(t, *tt.mockCacheValue.DateOfBirth, resp.Data.DateOfBirth)
+				assert.NoError(t, err)
+
+				if tt.expectedResponseBody != nil {
+					expected, _ := json.Marshal(tt.expectedResponseBody)
+					actual, _ := json.Marshal(resp)
+					assert.JSONEq(t, string(expected), string(actual))
+				} else {
+					assert.Equal(t, tt.expectedResponseCode, resp.Code)
+					assert.Equal(t, tt.expectedResponseMessage, resp.Message)
 				}
 			}
 		})

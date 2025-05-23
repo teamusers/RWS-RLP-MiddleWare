@@ -51,7 +51,7 @@ func VerifyUserExistence(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	} else if len(respData.Value) != 0 {
-		c.JSON(http.StatusConflict, responses.DefaultResponse(codes.EXISTING_USER_FOUND, "existing user found"))
+		c.JSON(http.StatusConflict, responses.ExistingUserFoundErrorResponse())
 		return
 	}
 
