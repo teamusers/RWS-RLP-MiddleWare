@@ -1,0 +1,18 @@
+{
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users",
+    "value": [
+        {
+            "businessPhones": [],
+            "displayName": "Sample Data",
+            "givenName": null,
+            "jobTitle": null,
+            "mail": "new@example.com",
+            "mobilePhone": null,
+            "officeLocation": null,
+            "preferredLanguage": null,
+            "surname": null,
+            "userPrincipalName": "03f1e0b8-df1a-4349-bbb7-2f641676f095@eeidtest1.onmicrosoft.com",
+            "id": "03f1e0b8-df1a-4349-bbb7-2f641676f095"
+        }
+    ]
+}

@@ -1,0 +1,21 @@
+{
+    "user": {
+        "first_name": "Sample",
+        "last_name": "Data",
+        "email": "new@example.com",
+        "dob": "1999-01-01",
+        "phone_numbers": [
+            {
+                "phone_number": "87654321"
+            }
+        ],
+        "gr_profile": {
+            "id": "gr123",
+            "class": "Class 2"
+        },
+        "user_profile": {
+            "country_code": "+65",
+            "country_name": "Singapore"
+        }
+    }
+}
