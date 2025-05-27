@@ -32,72 +32,27 @@ func TestGrTierMatching(t *testing.T) {
 		expected  string
 		expectErr bool
 	}{
-		{
-			name:      "SUCCESS - Tier A - GR class 1",
-			input:     "Class 1",
-			expected:  "Tier A",
-			expectErr: false,
-		},
-		{
-			name:      "SUCCESS - Tier B - GR class 2",
-			input:     "Class 2",
-			expected:  "Tier B",
-			expectErr: false,
-		},
-		{
-			name:      "SUCCESS - Tier C - GR class 3",
-			input:     "Class 3",
-			expected:  "Tier C",
-			expectErr: false,
-		},
-		{
-			name:      "SUCCESS - Tier C - GR class 4",
-			input:     "Class 4",
-			expected:  "Tier C",
-			expectErr: false,
-		},
-		{
-			name:      "SUCCESS - Tier C - GR class 5",
-			input:     "Class 5",
-			expected:  "Tier C",
-			expectErr: false,
-		},
-		{
-			name:      "SUCCESS - Tier D - GR class 6",
-			input:     "Class 6",
-			expected:  "Tier D",
-			expectErr: false,
-		},
-		{
-			name:      "ERROR - Invalid format - only one part",
-			input:     "Class",
-			expected:  "",
-			expectErr: true,
-		},
-		{
-			name:      "ERROR - Invalid format - three parts",
-			input:     "Class 1 extra",
-			expected:  "",
-			expectErr: true,
-		},
-		{
-			name:      "ERROR - Invalid format - non-integer level",
-			input:     "Class X",
-			expected:  "",
-			expectErr: true,
-		},
-		{
-			name:      "ERROR - Invalid format - class level < 1",
-			input:     "Class 0",
-			expected:  "",
-			expectErr: true,
-		},
-		{
-			name:      "ERROR - Invalid format - negative level",
-			input:     "Class -2",
-			expected:  "",
-			expectErr: true,
-		},
+		// Success cases
+		{"SUCCESS - Tier A - 1", "1", "Tier A", false},
+		{"SUCCESS - Tier B - 12", "12", "Tier B", false},
+		{"SUCCESS - Tier B - 18", "18", "Tier B", false},
+		{"SUCCESS - Tier C - 13", "13", "Tier C", false},
+		{"SUCCESS - Tier C - 14", "14", "Tier C", false},
+		{"SUCCESS - Tier C - 19", "19", "Tier C", false},
+		{"SUCCESS - Tier C - 20", "20", "Tier C", false},
+		{"SUCCESS - Tier C - 25", "25", "Tier C", false},
+		{"SUCCESS - Tier C - 26", "26", "Tier C", false},
+		{"SUCCESS - Tier D - 15", "15", "Tier D", false},
+		{"SUCCESS - Tier D - 16", "16", "Tier D", false},
+		{"SUCCESS - Tier D - 21", "21", "Tier D", false},
+		{"SUCCESS - Tier D - 27", "27", "Tier D", false},
+
+		// Error cases
+		{"ERROR - Empty input", "", "", true},
+		{"ERROR - Non-numeric", "abc", "", true},
+		{"ERROR - Negative number", "-2", "", true},
+		{"ERROR - Zero", "0", "", true},
+		{"ERROR - Unrecognized class level", "99", "", true},
 	}
 
 	for _, tt := range tests {

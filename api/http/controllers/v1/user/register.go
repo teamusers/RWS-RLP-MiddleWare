@@ -132,14 +132,14 @@ func CreateUser(c *gin.Context) {
 
 		req.User = *cachedProfile
 
-		// match tier (assuming "Class X" format)
+		// match tier (assuming "X" format)
 		if err := assignTier(&req.User); err != nil {
 			c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
 			return
 		}
 
 	case codes.SignUpTypeGR:
-		// match tier (assuming "Class X" format)
+		// match tier (assuming "X" format)
 		if err := assignTier(&req.User); err != nil {
 			c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
 			return
@@ -458,24 +458,26 @@ func assignTier(user *model.User) error {
 }
 
 func GrTierMatching(grClass string) (string, error) {
-	parts := strings.Fields(grClass) // splits by whitespace
-	if len(parts) != 2 {
+	classLevel, err := strconv.Atoi(strings.TrimSpace(grClass))
+	if err != nil || classLevel < 1 {
 		return "", fmt.Errorf("invalid gr class format")
 	}
 
-	classLevel, _ := strconv.Atoi(parts[1])
+	tierA := map[int]bool{1: true}
+	tierB := map[int]bool{12: true, 18: true}
+	tierC := map[int]bool{13: true, 14: true, 19: true, 20: true, 25: true, 26: true}
+	tierD := map[int]bool{15: true, 16: true, 21: true, 27: true}
 
-	if classLevel < 1 {
-		return "", fmt.Errorf("invalid gr class format")
-	}
-
-	if classLevel == 1 {
+	switch {
+	case tierA[classLevel]:
 		return "Tier A", nil
-	} else if classLevel == 2 {
+	case tierB[classLevel]:
 		return "Tier B", nil
-	} else if classLevel >= 3 && classLevel <= 5 {
+	case tierC[classLevel]:
 		return "Tier C", nil
-	} else {
+	case tierD[classLevel]:
 		return "Tier D", nil
+	default:
+		return "", fmt.Errorf("unrecognized class level")
 	}
 }

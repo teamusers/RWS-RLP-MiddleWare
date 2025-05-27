@@ -146,8 +146,8 @@ type GrProfile struct {
 	Pin string `json:"pin,omitempty" example:"1234"`
 
 	// User’s membership class
-	// example: premium
-	Class string `json:"class,omitempty" example:"premium"`
+	// example: 1
+	Class string `json:"class,omitempty" example:"1"`
 }
 
 // Mapper function to convert LBE User format to RLP User format
