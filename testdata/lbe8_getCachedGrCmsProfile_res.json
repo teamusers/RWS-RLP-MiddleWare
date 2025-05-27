@@ -2,7 +2,7 @@
     "code": 1000,
     "message": "cached profile found",
     "data": {
-        "reg_id": "123",
+        "reg_id": "1234",
         "dob": "2000-10-10"
     }
 }

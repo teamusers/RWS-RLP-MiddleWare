@@ -8,7 +8,7 @@ type User struct {
 	Email string `json:"email,omitempty" example:"john.doe@example.com"`
 
 	// List of external identifiers for the user
-	// example: [{"external_id":"ABC123","external_id_type":"loyalty"}]
+	// example: [{"external_id":"25052300047","external_id_type":"rlp_id"}]
 	Identifier []Identifier `json:"identifiers,omitempty"`
 
 	// Mobile phone number array
@@ -66,12 +66,12 @@ type User struct {
 // swagger:model Identifier
 type Identifier struct {
 	// The external identifier value
-	// example: ABC123
-	ExternalID string `json:"external_id" example:"ABC123"`
+	// example: 25052300047
+	ExternalID string `json:"external_id" example:"25052300047"`
 
 	// Type of the external identifier
-	// example: loyalty
-	ExternalIDType string `json:"external_id_type" example:"loyalty"`
+	// example: rlp_id
+	ExternalIDType string `json:"external_id_type" example:"rlp_id"`
 }
 
 // PhoneNumber holds a phone record

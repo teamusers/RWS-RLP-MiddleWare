@@ -41,7 +41,7 @@ func Test_LBE_9_GetUserProfile(t *testing.T) {
 	}{
 		{
 			name:       "SUCCESS - User found",
-			externalId: "abc123",
+			externalId: "25052300047",
 			setupMocks: func() {
 				// Mock RLP Get Profile
 				gock.New(config.GetConfig().Api.Rlp.Host).
@@ -54,7 +54,7 @@ func Test_LBE_9_GetUserProfile(t *testing.T) {
 		},
 		{
 			name:       "ERROR - RLP Get user fail",
-			externalId: "abc123",
+			externalId: "25052300047",
 			setupMocks: func() {
 				// Mock RLP Get Profile
 				gock.New(config.GetConfig().Api.Rlp.Host).
@@ -127,7 +127,7 @@ func Test_LBE_10_UpdateUserProfile(t *testing.T) {
 	}{
 		{
 			name:        "SUCCESS - User updated",
-			externalId:  "abc123",
+			externalId:  "25052300047",
 			requestBody: validSampleReq,
 			setupMocks: func() {
 				// Mock RLP Put Profile
@@ -141,7 +141,7 @@ func Test_LBE_10_UpdateUserProfile(t *testing.T) {
 		},
 		{
 			name:        "ERROR - RLP put user fail",
-			externalId:  "abc123",
+			externalId:  "25052300047",
 			requestBody: validSampleReq,
 			setupMocks: func() {
 				// Mock RLP Put Profile
@@ -154,7 +154,7 @@ func Test_LBE_10_UpdateUserProfile(t *testing.T) {
 		},
 		{
 			name:                 "ERROR - Invalid JSON ShouldBindJSON",
-			externalId:           "abc123",
+			externalId:           "25052300047",
 			requestBody:          `{"user": "invalid-json}`, // malformed JSON (missing closing quote)
 			setupMocks:           func() {},                 // No mocks needed
 			expectedHTTPCode:     http.StatusBadRequest,
@@ -225,7 +225,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 	}{
 		{
 			name:       "SUCCESS - User withdrawn",
-			externalId: "abc123",
+			externalId: "25052300047",
 			setupMocks: func() {
 				// Mock RLP Get Profile
 				gock.New(config.GetConfig().Api.Rlp.Host).
@@ -284,7 +284,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 		},
 		{
 			name:       "CONFLICT - CIAM get user by email not found",
-			externalId: "abc123",
+			externalId: "25052300047",
 			setupMocks: func() {
 				// Mock RLP Get Profile
 				gock.New(config.GetConfig().Api.Rlp.Host).
@@ -310,7 +310,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 		},
 		{
 			name:       "ERROR - RLP get user failed",
-			externalId: "abc123",
+			externalId: "25052300047",
 			setupMocks: func() {
 				// Mock RLP Get Profile
 				gock.New(config.GetConfig().Api.Rlp.Host).
@@ -322,7 +322,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 		},
 		{
 			name:       "ERROR - CIAM get user by email failed",
-			externalId: "abc123",
+			externalId: "25052300047",
 			setupMocks: func() {
 				// Mock RLP Get Profile
 				gock.New(config.GetConfig().Api.Rlp.Host).
@@ -347,7 +347,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 		},
 		{
 			name:       "ERROR - RLP put profile withdraw failed",
-			externalId: "abc123",
+			externalId: "25052300047",
 			setupMocks: func() {
 				// Mock RLP Get Profile
 				gock.New(config.GetConfig().Api.Rlp.Host).
@@ -390,7 +390,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 		},
 		{
 			name:       "ERROR - CIAM update user withdraw failed",
-			externalId: "abc123",
+			externalId: "25052300047",
 			setupMocks: func() {
 				// Mock RLP Get Profile
 				gock.New(config.GetConfig().Api.Rlp.Host).
@@ -421,7 +421,7 @@ func Test_LBE_11_WithdrawUserProfile(t *testing.T) {
 		},
 		{
 			name:       "ERROR - ACS send email failed",
-			externalId: "abc123",
+			externalId: "25052300047",
 			setupMocks: func() {
 				// Mock RLP Get Profile
 				gock.New(config.GetConfig().Api.Rlp.Host).
