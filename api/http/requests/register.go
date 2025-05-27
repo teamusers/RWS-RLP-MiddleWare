@@ -16,7 +16,7 @@ type VerifyUserExistence struct {
 type RegisterUser struct {
 	User       model.User `json:"user"`
 	SignUpType string     `json:"sign_up_type" example:"NEW"`
-	RegId      int        `json:"reg_id" example:"123456"`
+	RegId      string     `json:"reg_id" example:"123456"`
 }
 
 func (r *RegisterUser) Validate() error {
@@ -31,7 +31,7 @@ func (r *RegisterUser) Validate() error {
 			return errors.New("user.user_profile.employee_number is required")
 		}
 	} else if signUpType == codes.SignUpTypeGRCMS {
-		if r.RegId == 0 {
+		if r.RegId == "" {
 			return errors.New("reg_id is required")
 		}
 	} else {

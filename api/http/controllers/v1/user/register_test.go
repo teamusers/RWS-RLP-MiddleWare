@@ -16,7 +16,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -486,7 +485,7 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			name: "CONFLICT - GR CMS cache not found",
 			requestBody: requests.RegisterUser{
 				SignUpType: codes.SignUpTypeGRCMS,
-				RegId:      00001,
+				RegId:      "0000",
 			},
 			setupMocks:           func(grId, email string) {},
 			expectedHTTPCode:     http.StatusConflict,
@@ -656,8 +655,8 @@ func Test_LBE_4_CreateUser(t *testing.T) {
 			defer gock.Off()
 
 			//setup cache
-			system.ObjectSet(strconv.Itoa(validSampleReqGrCms.RegId), validSampleReqGr.User, 30*time.Minute)
-			defer system.ObjectDelete(strconv.Itoa(validSampleReqGrCms.RegId))
+			system.ObjectSet(validSampleReqGrCms.RegId, validSampleReqGr.User, 30*time.Minute)
+			defer system.ObjectDelete(validSampleReqGrCms.RegId)
 
 			var grId, email string
 			if req, ok := tt.requestBody.(requests.RegisterUser); ok {

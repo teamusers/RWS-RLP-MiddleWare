@@ -123,7 +123,7 @@ func CreateUser(c *gin.Context) {
 	case codes.SignUpTypeNew:
 		req.User.Tier = "Tier A" // set to base tier
 	case codes.SignUpTypeGRCMS:
-		cachedProfile, err := system.ObjectGet(strconv.Itoa(req.RegId), &model.User{})
+		cachedProfile, err := system.ObjectGet(req.RegId, &model.User{})
 		if err != nil {
 			log.Printf("error getting cache value: %v", err)
 			c.JSON(http.StatusConflict, responses.CachedProfileNotFoundErrorResponse())
@@ -242,7 +242,7 @@ func CreateUser(c *gin.Context) {
 
 	// purge regId cache if used
 	if req.SignUpType == codes.SignUpTypeGRCMS {
-		system.ObjectDelete(strconv.Itoa(req.RegId))
+		system.ObjectDelete(req.RegId)
 	}
 }
 
