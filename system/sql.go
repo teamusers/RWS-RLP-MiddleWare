@@ -3,6 +3,7 @@ package system
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"time"
 
 	"lbe/config"
@@ -35,6 +36,12 @@ func NewWriter() *Ewriter {
 var DB *gorm.DB
 
 func init() {
+
+	if os.Getenv("RUN_UNIT_TESTS") == "true" {
+		log.Info("⚠️  Skipping DB initialization (RUN_UNIT_TESTS=true)")
+		return
+	}
+
 	// Fetch configuration from YAML.
 	cfg := config.GetConfig()
 

@@ -215,6 +215,11 @@ func findProjectRoot(currentDir, rootIndicator string) (string, error) {
 }
 
 func init() {
+	if os.Getenv("RUN_UNIT_TESTS") == "true" {
+		log.Println("⚠️  Skipping initialization (RUN_UNIT_TESTS=true)")
+		return
+	}
+
 	var confFilePath string
 
 	if configFilePathFromEnv := os.Getenv("DALINK_GO_CONFIG_PATH"); configFilePathFromEnv != "" {

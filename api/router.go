@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	general "lbe/api/http"
@@ -13,6 +14,7 @@ import (
 	"lbe/system"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 
 	// <-- this import makes sure your docs/swagger.json is registered
 	_ "lbe/api/docs"
@@ -31,16 +33,19 @@ func Include(opts ...Option) {
 }
 func Init() *gin.Engine {
 	Include(general.Routers)
-
-	// 0) run audit-table migration
-	db := system.GetDb()
-	if err := model.MigrateAuditLog(db); err != nil {
-		log.Fatalf("audit log migration: %v", err)
+	var db *gorm.DB
+	if os.Getenv("RUN_UNIT_TESTS") == "true" {
+		log.Println("🧪  Test mode: skipping migrations")
+	} else {
+		// 0) run audit‐table migration
+		db = system.GetDb()
+		if err := model.MigrateAuditLog(db); err != nil {
+			log.Fatalf("audit log migration: %v", err)
+		}
+		if err := model.MigrateRLPUserNumbering(db); err != nil {
+			log.Fatalf("rlp user numbering migration: %v", err)
+		}
 	}
-	if err := model.MigrateRLPUserNumbering(db); err != nil {
-		log.Fatalf("rlp user numbering migration : %v", err)
-	}
-
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
@@ -48,7 +53,10 @@ func Init() *gin.Engine {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 	r.Use(middleware.HttpClientMiddleware(httpClient))
 
-	r.Use(middleware.AuditLogger(db))
+	// only wire AuditLogger if we have a real DB
+	if db != nil {
+		r.Use(middleware.AuditLogger(db))
+	}
 
 	// mount your API routes
 	apiGroup := r.Group("/api")
@@ -89,7 +97,6 @@ func Init() *gin.Engine {
 		c.Redirect(http.StatusTemporaryRedirect, "/swagger/index.html")
 	})
 
-	// start server
 	r.Run(fmt.Sprintf(":%d", config.GetConfig().Http.Port))
 	return r
 }
