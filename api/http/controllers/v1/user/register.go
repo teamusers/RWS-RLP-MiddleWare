@@ -224,10 +224,18 @@ func CreateUser(c *gin.Context) {
 	rlpUserUpdateReq := requests.UserProfileRequest{
 		User: rlpUserModel,
 	}
-	profileResp, _, err := services.UpdateProfile(c, httpClient, newRlpNumbering.RLP_ID, rlpUserUpdateReq)
+	profileResp, raw, err := services.UpdateProfile(c, httpClient, newRlpNumbering.RLP_ID, rlpUserUpdateReq)
 	if err != nil {
 		// Log the error
 		log.Printf("RLP Update Register User failed: %v", err)
+
+		var errResp responses.UserProfileErrorResponse
+		if err := json.Unmarshal(raw, &errResp); err == nil {
+			if errResp.Errors.Code == responses.RlpErrorCodeUserNotFound {
+				c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
+				return
+			}
+		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}

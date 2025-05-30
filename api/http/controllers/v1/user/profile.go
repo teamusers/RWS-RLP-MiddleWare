@@ -1,6 +1,7 @@
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 	"lbe/api/http/requests"
 	"lbe/api/http/responses"
@@ -34,10 +35,18 @@ func GetUserProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 
 	// TODO - RLP : Test Actual RLP End Points
-	profileResp, _, err := services.GetProfile(c, httpClient, external_id)
+	profileResp, raw, err := services.GetProfile(c, httpClient, external_id)
 	if err != nil {
 		// Log the error
 		log.Printf("GET User Profile failed: %v", err)
+
+		var errResp responses.UserProfileErrorResponse
+		if err := json.Unmarshal(raw, &errResp); err == nil {
+			if errResp.Errors.Code == responses.RlpErrorCodeUserNotFound {
+				c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
+				return
+			}
+		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
@@ -83,10 +92,18 @@ func UpdateUserProfile(c *gin.Context) {
 	rlpUpdateUserReq := requests.UserProfileRequest{
 		User: req.User.MapLbeToRlpUser(),
 	}
-	profileResp, _, err := services.UpdateProfile(c, httpClient, external_id, rlpUpdateUserReq)
+	profileResp, raw, err := services.UpdateProfile(c, httpClient, external_id, rlpUpdateUserReq)
 	if err != nil {
 		// Log the error
 		log.Printf("Update User Profile failed: %v", err)
+
+		var errResp responses.UserProfileErrorResponse
+		if err := json.Unmarshal(raw, &errResp); err == nil {
+			if errResp.Errors.Code == responses.RlpErrorCodeUserNotFound {
+				c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
+				return
+			}
+		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
@@ -155,10 +172,18 @@ func WithdrawUserProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 
 	// Retrieve user profile from RLP
-	rlpResp, _, err := services.GetProfile(c, httpClient, external_id)
+	rlpResp, raw, err := services.GetProfile(c, httpClient, external_id)
 	if err != nil {
 		// Log the error
 		log.Printf("GET User Profile failed: %v", err)
+
+		var errResp responses.UserProfileErrorResponse
+		if err := json.Unmarshal(raw, &errResp); err == nil {
+			if errResp.Errors.Code == responses.RlpErrorCodeUserNotFound {
+				c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
+				return
+			}
+		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
@@ -196,10 +221,18 @@ func WithdrawUserProfile(c *gin.Context) {
 		},
 	}
 
-	profileResp, _, err := services.UpdateProfile(c, httpClient, external_id, rlpUpdateUserReq)
+	profileResp, raw, err := services.UpdateProfile(c, httpClient, external_id, rlpUpdateUserReq)
 	if err != nil {
 		// Log the error
 		log.Printf("Update User Profile to withdraw failed: %v", err)
+
+		var errResp responses.UserProfileErrorResponse
+		if err := json.Unmarshal(raw, &errResp); err == nil {
+			if errResp.Errors.Code == responses.RlpErrorCodeUserNotFound {
+				c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
+				return
+			}
+		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
