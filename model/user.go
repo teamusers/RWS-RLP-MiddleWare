@@ -37,7 +37,7 @@ type User struct {
 
 	// Loyalty points available
 	// example: 1200
-	AvailablePoints int `json:"available_points,omitempty" example:"1200"`
+	AvailablePoints float64 `json:"available_points,omitempty" example:"1200"`
 
 	// Loyalty tier name
 	// example: gold
@@ -78,8 +78,8 @@ type Identifier struct {
 // swagger:model PhoneNumber
 type PhoneNumber struct {
 	PhoneNumber       string   `json:"phone_number"`
-	PhoneType         string   `json:"phone_type"`
-	PreferenceFlags   []string `json:"preference_flags"`
+	PhoneType         string   `json:"phone_type,omitempty"`
+	PreferenceFlags   []string `json:"preference_flags,omitempty"`
 	VerifiedOwnership bool     `json:"verified_ownership,omitempty"`
 }
 
@@ -100,7 +100,7 @@ type UserProfile struct {
 
 	// Active status code (e.g., 1=active, 0=inactive)
 	// example: 1
-	ActiveStatus *int `json:"active_status,omitempty" example:"1"`
+	ActiveStatus string `json:"active_status,omitempty" example:"1"`
 
 	// Preferred language (ISO 639-1)
 	// example: en
@@ -131,7 +131,7 @@ type MarketingPreference struct {
 
 	// Whether the user opts in to SMS/mobile marketing
 	// example: true
-	Mobile *bool `json:"market_pref_mobile,omitempty" example:"true"`
+	Mobile *bool `json:"market_pref_sms,omitempty" example:"true"`
 }
 
 // GrProfile represents a user’s profile in the GR system.

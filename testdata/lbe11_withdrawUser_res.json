@@ -28,8 +28,8 @@
                 "language_preference": "EN",
                 "market_pref_push": false,
                 "market_pref_email": false,
-                "market_pref_mobile": false,
-                "active_status": 0
+                "market_pref_sms": false,
+                "active_status": "0"
             }
         }
     }

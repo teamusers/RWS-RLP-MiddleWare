@@ -15,7 +15,7 @@
             "country_name": "Singapore",
             "market_pref_push": true,
             "market_pref_email": true,
-            "market_pref_mobile": true
+            "market_pref_sms": true
         },
         "gr_profile": {
             "id": "abc123",

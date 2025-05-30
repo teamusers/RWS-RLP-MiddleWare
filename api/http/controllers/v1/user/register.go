@@ -165,34 +165,8 @@ func CreateUser(c *gin.Context) {
 	// populate registrations defaults
 	req.User.PopulateIdentifiers(newRlpNumbering.RLP_ID, newRlpNumbering.RLP_NO)
 
-	rlpCreateUserRequest := req.User.MapLbeToRlpUser()
-	rlpCreateUserRequest.PopulateRegistrationDefaults(newRlpNumbering.RLP_ID)
-
-	//To DO - RLP : Test Actual RLP End Points
-	profileResp, _, err := services.PutProfile(c, httpClient, "", rlpCreateUserRequest)
-	if err != nil {
-		// Log the error
-		log.Printf("RLP Register User failed: %v", err)
-		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
-		return
-	}
-
-	// RLP: Request User Tier update
-	// TODO: Update to actual spec
-	log.Println("RLP Trigger Update User Tier Event")
-	userTierReq := requests.UserTierUpdateEventRequest{
-		EventLookup: services.RlpEventNameUpdateUserTier,
-		UserId:      newRlpNumbering.RLP_ID,
-		UserTier:    req.User.Tier,
-	}
-
-	if _, _, err := services.UpdateUserTier(c, httpClient, userTierReq); err != nil {
-		log.Printf("RLP Update User Tier failed: %v", err)
-		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
-		return
-	} else {
-		profileResp.User.Tier = req.User.Tier // update tier for response dto
-	}
+	rlpUserModel := req.User.MapLbeToRlpUser()
+	rlpUserModel.PopulateRegistrationDefaults(newRlpNumbering.RLP_ID)
 
 	//TODO: add rollback mechanism
 	// Create CIAM User
@@ -229,6 +203,50 @@ func CreateUser(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 			return
 		}
+	}
+
+	// Initial User Creation in RLP
+	rlpIntialUserCreationReq := requests.UserProfileRequest{
+		User: model.RlpUserReq{
+			ExternalID:     newRlpNumbering.RLP_ID,
+			ExternalIDType: "RLP_ID",
+		},
+	}
+	_, _, err := services.CreateProfile(c, httpClient, rlpIntialUserCreationReq)
+	if err != nil {
+		// Log the error
+		log.Printf("RLP Intitial Register User failed: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
+
+	// Update User Details in RLP
+	rlpUserUpdateReq := requests.UserProfileRequest{
+		User: rlpUserModel,
+	}
+	profileResp, _, err := services.UpdateProfile(c, httpClient, newRlpNumbering.RLP_ID, rlpUserUpdateReq)
+	if err != nil {
+		// Log the error
+		log.Printf("RLP Update Register User failed: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
+
+	// RLP: Request User Tier update
+	// TODO: Update to actual spec
+	log.Println("RLP Trigger Update User Tier Event")
+	userTierReq := requests.UserTierUpdateEventRequest{
+		EventLookup: services.RlpEventNameUpdateUserTier,
+		UserId:      newRlpNumbering.RLP_ID,
+		UserTier:    req.User.Tier,
+	}
+
+	if _, _, err := services.UpdateUserTier(c, httpClient, userTierReq); err != nil {
+		log.Printf("RLP Update User Tier failed: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	} else {
+		profileResp.User.Tier = req.User.Tier // update tier for response dto
 	}
 
 	resp := responses.ApiResponse[responses.CreateUserResponseData]{

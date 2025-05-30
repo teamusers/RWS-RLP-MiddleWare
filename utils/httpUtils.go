@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"lbe/model"
@@ -57,8 +58,17 @@ func DoAPIRequest[T any](opts model.APIRequestOptions) (*T, []byte, error) {
 		req.Header.Set("Content-Type", opts.ContentType)
 	}
 
+	// add only one type of auth
+	if opts.BearerToken != "" && opts.BasicAuth != nil {
+		return nil, nil, errors.New("cannot use both Bearer token and Basic Auth")
+	}
+
 	if opts.BearerToken != "" {
 		req.Header.Set("Authorization", "Bearer "+opts.BearerToken)
+	}
+
+	if opts.BasicAuth != nil {
+		req.SetBasicAuth(opts.BasicAuth.Username, opts.BasicAuth.Password)
 	}
 
 	// Add any other headers

@@ -43,6 +43,11 @@ type Config struct {
 		Rlp struct {
 			Host   string `yaml:"host"`
 			ApiKey string `yaml:"apikey"`
+			Core   struct {
+				Host      string `yaml:"host"`
+				ApiKey    string `yaml:"apikey"`
+				ApiSecret string `yaml:"apisecret"`
+			} `yaml:"core"`
 		} `yaml:"rlp"`
 		Eeid struct {
 			Host                   string `yaml:"host"`

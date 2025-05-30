@@ -21,9 +21,15 @@ type APIRequestOptions struct {
 	URL            string
 	Body           any
 	BearerToken    string
+	BasicAuth      *BasicAuthCredentials
 	ExpectedStatus int
 	Headers        map[string]string
 	Client         *http.Client
 	Context        context.Context
 	ContentType    string
+}
+
+type BasicAuthCredentials struct {
+	Username string
+	Password string
 }
