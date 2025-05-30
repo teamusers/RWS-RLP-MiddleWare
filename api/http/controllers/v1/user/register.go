@@ -120,10 +120,10 @@ func CreateUser(c *gin.Context) {
 	}
 
 	switch req.SignUpType {
-	case codes.SignUpTypeNew:
-		req.User.Tier = "Tier A" // set to base tier
+	case codes.SignUpTypeNew: // only need to match tier
+
 	case codes.SignUpTypeGRCMS:
-		cachedProfile, err := system.ObjectGet(strconv.Itoa(req.RegId), &model.User{})
+		cachedProfile, err := system.ObjectGet(req.RegId, &model.User{})
 		if err != nil {
 			log.Printf("error getting cache value: %v", err)
 			c.JSON(http.StatusConflict, responses.CachedProfileNotFoundErrorResponse())
@@ -132,25 +132,18 @@ func CreateUser(c *gin.Context) {
 
 		req.User = *cachedProfile
 
-		// match tier (assuming "Class X" format)
-		if err := assignTier(&req.User); err != nil {
-			c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
-			return
-		}
-
-	case codes.SignUpTypeGR:
-		// match tier (assuming "Class X" format)
-		if err := assignTier(&req.User); err != nil {
-			c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
-			return
-		}
+	case codes.SignUpTypeGR: // only need to match tier
 
 	case codes.SignUpTypeTM:
 		// TODO: Request and Validate TM info
 		req.User.UserProfile.EmployeeNumber = "TBC"
+	}
 
-		// match tier
-		req.User.Tier = "Tier M"
+	// match tier (assuming "X" format for class)
+	if err := assignTier(&req.User, req.SignUpType); err != nil {
+		// only gr member will throw error during assign
+		c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
+		return
 	}
 
 	newRlpNumbering, newRlpNumberingErr := utils.GenerateNextRLPUserNumberingWithRetry()
@@ -165,34 +158,8 @@ func CreateUser(c *gin.Context) {
 	// populate registrations defaults
 	req.User.PopulateIdentifiers(newRlpNumbering.RLP_ID, newRlpNumbering.RLP_NO)
 
-	rlpCreateUserRequest := req.User.MapLbeToRlpUser()
-	rlpCreateUserRequest.PopulateRegistrationDefaults(newRlpNumbering.RLP_ID)
-
-	//To DO - RLP : Test Actual RLP End Points
-	profileResp, _, err := services.PutProfile(c, httpClient, "", rlpCreateUserRequest)
-	if err != nil {
-		// Log the error
-		log.Printf("RLP Register User failed: %v", err)
-		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
-		return
-	}
-
-	// RLP: Request User Tier update
-	// TODO: Update to actual spec
-	log.Println("RLP Trigger Update User Tier Event")
-	userTierReq := requests.UserTierUpdateEventRequest{
-		EventLookup: services.RlpEventNameUpdateUserTier,
-		UserId:      newRlpNumbering.RLP_ID,
-		UserTier:    req.User.Tier,
-	}
-
-	if _, _, err := services.UpdateUserTier(c, httpClient, userTierReq); err != nil {
-		log.Printf("RLP Update User Tier failed: %v", err)
-		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
-		return
-	} else {
-		profileResp.User.Tier = req.User.Tier // update tier for response dto
-	}
+	rlpUserModel := req.User.MapLbeToRlpUser()
+	rlpUserModel.PopulateRegistrationDefaults(newRlpNumbering.RLP_ID)
 
 	//TODO: add rollback mechanism
 	// Create CIAM User
@@ -231,6 +198,56 @@ func CreateUser(c *gin.Context) {
 		}
 	}
 
+	// Initial User Creation in RLP
+	rlpIntialUserCreationReq := requests.UserProfileRequest{
+		User: model.RlpUserReq{
+			ExternalID:     newRlpNumbering.RLP_ID,
+			ExternalIDType: "RLP_ID",
+		},
+	}
+	_, _, err := services.CreateProfile(c, httpClient, rlpIntialUserCreationReq)
+	if err != nil {
+		// Log the error
+		log.Printf("RLP Intitial Register User failed: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
+
+	// Update User Details in RLP
+	rlpUserUpdateReq := requests.UserProfileRequest{
+		User: rlpUserModel,
+	}
+	profileResp, raw, err := services.UpdateProfile(c, httpClient, newRlpNumbering.RLP_ID, rlpUserUpdateReq)
+	if err != nil {
+		// Log the error
+		log.Printf("RLP Update Register User failed: %v", err)
+
+		var errResp responses.UserProfileErrorResponse
+		if err := json.Unmarshal(raw, &errResp); err == nil {
+			if errResp.Errors.Code == responses.RlpErrorCodeUserNotFound {
+				c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
+				return
+			}
+		}
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	}
+
+	// RLP: Request User Tier update
+	userTierReq := requests.UserTierUpdateEventRequest{
+		EventLookup: services.GetUserTierEventName(req.User.Tier),
+		UserId:      newRlpNumbering.RLP_ID,
+		RetailerID:  config.GetConfig().Api.Rlp.RetailerID,
+	}
+
+	if _, _, err := services.UpdateUserTier(c, httpClient, userTierReq); err != nil {
+		log.Printf("RLP Update User Tier failed: %v", err)
+		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
+		return
+	} else {
+		profileResp.User.Tier = req.User.Tier // update tier for response dto
+	}
+
 	resp := responses.ApiResponse[responses.CreateUserResponseData]{
 		Code:    codes.SUCCESSFUL,
 		Message: "user created",
@@ -242,7 +259,7 @@ func CreateUser(c *gin.Context) {
 
 	// purge regId cache if used
 	if req.SignUpType == codes.SignUpTypeGRCMS {
-		system.ObjectDelete(strconv.Itoa(req.RegId))
+		system.ObjectDelete(req.RegId)
 	}
 }
 
@@ -447,35 +464,42 @@ func GetCachedGrCmsProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func assignTier(user *model.User) error {
-	tier, err := GrTierMatching(user.GrProfile.Class)
-	if err != nil {
-		log.Printf("error matching gr class to member tier: %v", err)
-		return err
+func assignTier(user *model.User, signUpType string) error {
+	user.Tier = "Tier A"
+	if signUpType == codes.SignUpTypeGRCMS || signUpType == codes.SignUpTypeGR {
+		tier, err := GrTierMatching(user.GrProfile.Class)
+		if err != nil {
+			log.Printf("error matching gr class to member tier: %v", err)
+			return err
+		}
+		user.Tier = tier
+	} else if signUpType == codes.SignUpTypeTM {
+		user.Tier = "Tier M"
 	}
-	user.Tier = tier
 	return nil
 }
 
 func GrTierMatching(grClass string) (string, error) {
-	parts := strings.Fields(grClass) // splits by whitespace
-	if len(parts) != 2 {
+	classLevel, err := strconv.Atoi(strings.TrimSpace(grClass))
+	if err != nil || classLevel < 1 {
 		return "", fmt.Errorf("invalid gr class format")
 	}
 
-	classLevel, _ := strconv.Atoi(parts[1])
+	tierA := map[int]bool{1: true}
+	tierB := map[int]bool{12: true, 18: true}
+	tierC := map[int]bool{13: true, 14: true, 19: true, 20: true, 25: true, 26: true}
+	tierD := map[int]bool{15: true, 16: true, 21: true, 27: true}
 
-	if classLevel < 1 {
-		return "", fmt.Errorf("invalid gr class format")
-	}
-
-	if classLevel == 1 {
+	switch {
+	case tierA[classLevel]:
 		return "Tier A", nil
-	} else if classLevel == 2 {
+	case tierB[classLevel]:
 		return "Tier B", nil
-	} else if classLevel >= 3 && classLevel <= 5 {
+	case tierC[classLevel]:
 		return "Tier C", nil
-	} else {
+	case tierD[classLevel]:
 		return "Tier D", nil
+	default:
+		return "", fmt.Errorf("unrecognized class level")
 	}
 }

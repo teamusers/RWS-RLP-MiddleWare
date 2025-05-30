@@ -8,7 +8,7 @@ type User struct {
 	Email string `json:"email,omitempty" example:"john.doe@example.com"`
 
 	// List of external identifiers for the user
-	// example: [{"external_id":"ABC123","external_id_type":"loyalty"}]
+	// example: [{"external_id":"25052300047","external_id_type":"rlp_id"}]
 	Identifier []Identifier `json:"identifiers,omitempty"`
 
 	// Mobile phone number array
@@ -37,7 +37,7 @@ type User struct {
 
 	// Loyalty points available
 	// example: 1200
-	AvailablePoints int `json:"available_points,omitempty" example:"1200"`
+	AvailablePoints float64 `json:"available_points,omitempty" example:"1200"`
 
 	// Loyalty tier name
 	// example: gold
@@ -66,20 +66,20 @@ type User struct {
 // swagger:model Identifier
 type Identifier struct {
 	// The external identifier value
-	// example: ABC123
-	ExternalID string `json:"external_id" example:"ABC123"`
+	// example: 25052300047
+	ExternalID string `json:"external_id" example:"25052300047"`
 
 	// Type of the external identifier
-	// example: loyalty
-	ExternalIDType string `json:"external_id_type" example:"loyalty"`
+	// example: RLP_ID
+	ExternalIDType string `json:"external_id_type" example:"RLP_ID"`
 }
 
 // PhoneNumber holds a phone record
 // swagger:model PhoneNumber
 type PhoneNumber struct {
 	PhoneNumber       string   `json:"phone_number"`
-	PhoneType         string   `json:"phone_type"`
-	PreferenceFlags   []string `json:"preference_flags"`
+	PhoneType         string   `json:"phone_type,omitempty"`
+	PreferenceFlags   []string `json:"preference_flags,omitempty"`
 	VerifiedOwnership bool     `json:"verified_ownership,omitempty"`
 }
 
@@ -100,7 +100,7 @@ type UserProfile struct {
 
 	// Active status code (e.g., 1=active, 0=inactive)
 	// example: 1
-	ActiveStatus *int `json:"active_status,omitempty" example:"1"`
+	ActiveStatus string `json:"active_status,omitempty" example:"1"`
 
 	// Preferred language (ISO 639-1)
 	// example: en
@@ -131,7 +131,7 @@ type MarketingPreference struct {
 
 	// Whether the user opts in to SMS/mobile marketing
 	// example: true
-	Mobile *bool `json:"market_pref_mobile,omitempty" example:"true"`
+	Mobile *bool `json:"market_pref_sms,omitempty" example:"true"`
 }
 
 // GrProfile represents a user’s profile in the GR system.
@@ -146,8 +146,8 @@ type GrProfile struct {
 	Pin string `json:"pin,omitempty" example:"1234"`
 
 	// User’s membership class
-	// example: premium
-	Class string `json:"class,omitempty" example:"premium"`
+	// example: 1
+	Class string `json:"class,omitempty" example:"1"`
 }
 
 // Mapper function to convert LBE User format to RLP User format
@@ -169,7 +169,7 @@ func (u *User) PopulateIdentifiers(rlpId, rlpNo string) {
 	u.Identifier = append(u.Identifier,
 		Identifier{
 			ExternalID:     rlpId,
-			ExternalIDType: "rlp_id",
+			ExternalIDType: "RLP_ID",
 		},
 		Identifier{
 			ExternalID:     rlpNo,

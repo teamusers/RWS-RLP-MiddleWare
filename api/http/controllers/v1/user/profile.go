@@ -1,6 +1,7 @@
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 	"lbe/api/http/requests"
 	"lbe/api/http/responses"
@@ -34,10 +35,18 @@ func GetUserProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 
 	// TODO - RLP : Test Actual RLP End Points
-	profileResp, _, err := services.GetProfile(c, httpClient, external_id)
+	profileResp, raw, err := services.GetProfile(c, httpClient, external_id)
 	if err != nil {
 		// Log the error
 		log.Printf("GET User Profile failed: %v", err)
+
+		var errResp responses.UserProfileErrorResponse
+		if err := json.Unmarshal(raw, &errResp); err == nil {
+			if errResp.Errors.Code == responses.RlpErrorCodeUserNotFound {
+				c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
+				return
+			}
+		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
@@ -80,10 +89,21 @@ func UpdateUserProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 
 	// TODO - RLP : Test Actual RLP End Points
-	profileResp, _, err := services.PutProfile(c, httpClient, external_id, req.User.MapLbeToRlpUser())
+	rlpUpdateUserReq := requests.UserProfileRequest{
+		User: req.User.MapLbeToRlpUser(),
+	}
+	profileResp, raw, err := services.UpdateProfile(c, httpClient, external_id, rlpUpdateUserReq)
 	if err != nil {
 		// Log the error
 		log.Printf("Update User Profile failed: %v", err)
+
+		var errResp responses.UserProfileErrorResponse
+		if err := json.Unmarshal(raw, &errResp); err == nil {
+			if errResp.Errors.Code == responses.RlpErrorCodeUserNotFound {
+				c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
+				return
+			}
+		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
@@ -152,10 +172,18 @@ func WithdrawUserProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 
 	// Retrieve user profile from RLP
-	rlpResp, _, err := services.GetProfile(c, httpClient, external_id)
+	rlpResp, raw, err := services.GetProfile(c, httpClient, external_id)
 	if err != nil {
 		// Log the error
 		log.Printf("GET User Profile failed: %v", err)
+
+		var errResp responses.UserProfileErrorResponse
+		if err := json.Unmarshal(raw, &errResp); err == nil {
+			if errResp.Errors.Code == responses.RlpErrorCodeUserNotFound {
+				c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
+				return
+			}
+		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}
@@ -178,17 +206,33 @@ func WithdrawUserProfile(c *gin.Context) {
 	rlpUserProfile := rlpResp.User
 	now := time.Now()
 	timestamp := now.Format("060102150405") // yyMMddHHmmss
-	rlpUserProfile.Email = fmt.Sprintf("%s.delete_%v", rlpUserProfile.Email, timestamp)
 
-	rlpUserProfile.UserProfile.ActiveStatus = model.IntPtr(0)
-	rlpUserProfile.UserProfile.MarketingPreference.Push = model.BoolPtr(false)
-	rlpUserProfile.UserProfile.MarketingPreference.Email = model.BoolPtr(false)
-	rlpUserProfile.UserProfile.MarketingPreference.Mobile = model.BoolPtr(false)
+	rlpUpdateUserReq := requests.UserProfileRequest{
+		User: model.RlpUserReq{
+			Email: fmt.Sprintf("%s.delete_%v", rlpUserProfile.Email, timestamp),
+			UserProfile: model.UserProfile{
+				ActiveStatus: "0",
+				MarketingPreference: model.MarketingPreference{
+					Push:   model.BoolPtr(false),
+					Email:  model.BoolPtr(false),
+					Mobile: model.BoolPtr(false),
+				},
+			},
+		},
+	}
 
-	profileResp, _, err := services.PutProfile(c, httpClient, external_id, rlpUserProfile)
+	profileResp, raw, err := services.UpdateProfile(c, httpClient, external_id, rlpUpdateUserReq)
 	if err != nil {
 		// Log the error
 		log.Printf("Update User Profile to withdraw failed: %v", err)
+
+		var errResp responses.UserProfileErrorResponse
+		if err := json.Unmarshal(raw, &errResp); err == nil {
+			if errResp.Errors.Code == responses.RlpErrorCodeUserNotFound {
+				c.JSON(http.StatusConflict, responses.ExistingUserNotFoundErrorResponse())
+				return
+			}
+		}
 		c.JSON(http.StatusInternalServerError, responses.InternalErrorResponse())
 		return
 	}

@@ -2,17 +2,17 @@
     "status": "ok",
     "user": {
         "id": "16565e86-d74f-11ea-8af9-8b7d3a6ff2a9",
-        "external_id": "abc123",
+        "external_id": "25052300047",
         "opted_in": false,
         "activated": false,
         "proxy_ids": [],
         "identifiers": [
             {
-                "external_id": "abc123",
-                "external_id_type": "rlp_id"
+                "external_id": "25052300047",
+                "external_id_type": "RLP_ID"
             },
             {
-                "external_id": "abc123",
+                "external_id": "70000000001",
                 "external_id_type": "rlp_no"
             }
         ],
@@ -182,11 +182,10 @@
             "country_name": "Singapore",
             "language_preference": "EN",
             "previous_email":"new@example.com",
-            "employee_number": "abc123",
             "market_pref_push": true,
             "market_pref_email": true,
-            "market_pref_mobile": true,
-            "active_status": 1
+            "market_pref_sms": true,
+            "active_status": "1"
         }
     }
 }

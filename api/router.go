@@ -50,7 +50,7 @@ func Init() *gin.Engine {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	httpClient := &http.Client{Timeout: 10 * time.Second}
+	httpClient := &http.Client{Timeout: 30 * time.Second}
 	r.Use(middleware.HttpClientMiddleware(httpClient))
 
 	// only wire AuditLogger if we have a real DB
