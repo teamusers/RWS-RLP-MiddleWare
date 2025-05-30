@@ -241,12 +241,11 @@ func CreateUser(c *gin.Context) {
 	}
 
 	// RLP: Request User Tier update
-	// TODO: Update to actual spec
 	log.Println("RLP Trigger Update User Tier Event")
 	userTierReq := requests.UserTierUpdateEventRequest{
-		EventLookup: services.RlpEventNameUpdateUserTier,
+		EventLookup: services.GetUserTierEventName(req.User.Tier),
 		UserId:      newRlpNumbering.RLP_ID,
-		UserTier:    req.User.Tier,
+		RetailerID:  config.GetConfig().Api.Rlp.RetailerID,
 	}
 
 	if _, _, err := services.UpdateUserTier(c, httpClient, userTierReq); err != nil {

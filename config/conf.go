@@ -41,13 +41,19 @@ type Config struct {
 			Secret string `yaml:"secret"`
 		} `yaml:"memberservice"`
 		Rlp struct {
-			Host   string `yaml:"host"`
-			ApiKey string `yaml:"apikey"`
-			Core   struct {
+			Host       string `yaml:"host"`
+			ApiKey     string `yaml:"apikey"`
+			RetailerID string `yaml:"retailerId"`
+			Core       struct {
 				Host      string `yaml:"host"`
 				ApiKey    string `yaml:"apikey"`
 				ApiSecret string `yaml:"apisecret"`
 			} `yaml:"core"`
+			Offers struct {
+				Host      string `yaml:"host"`
+				ApiKey    string `yaml:"apikey"`
+				ApiSecret string `yaml:"apisecret"`
+			} `yaml:"offers"`
 		} `yaml:"rlp"`
 		Eeid struct {
 			Host                   string `yaml:"host"`

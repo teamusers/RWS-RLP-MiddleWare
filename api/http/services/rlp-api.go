@@ -17,10 +17,13 @@ const (
 	// Endpoints
 	CreateProfileURL = "/priv/v1/apps/:api_key/users"
 	ProfileURL       = "/priv/v1/apps/:api_key/external/users"
-	EventUrl         = "/api/1.0/user_events/:event_name"
+	EventUrl         = "/incentives/api/1.0/user_events/trigger_user_event"
 
 	// Event Names
-	RlpEventNameUpdateUserTier = "update_user_tier"
+	RlpEventNamePublicTier = "PUBLIC_TIER"
+	RlpEventNameMoveTierB  = "MOVE_TIER_B"
+	RlpEventNameMoveTierC  = "MOVE_TIER_C"
+	RlpEventNameMoveTierD  = "MOVE_TIER_D"
 )
 
 func CreateProfile(ctx context.Context, client *http.Client, payload any) (*responses.GetUserResponse, []byte, error) {
@@ -36,16 +39,18 @@ func GetProfile(ctx context.Context, client *http.Client, externalId string) (*r
 	return profile(ctx, client, http.MethodGet, buildRlpProfileURL(ProfileURL, externalId, query), nil)
 }
 
-// TODO: update logic
-func UpdateUserTier(ctx context.Context, client *http.Client, payload any) (*responses.UserTierUpdateEventResponse, []byte, error) {
+func UpdateUserTier(ctx context.Context, client *http.Client, payload any) (*struct{}, []byte, error) {
 	conf := config.GetConfig()
-	endpoint := strings.ReplaceAll(EventUrl, ":event_name", RlpEventNameUpdateUserTier)
-	urlWithParams := fmt.Sprintf("%s%s", conf.Api.Rlp.Host, endpoint)
+	urlWithParams := fmt.Sprintf("%s%s", conf.Api.Rlp.Offers.Host, EventUrl)
 
-	return utils.DoAPIRequest[responses.UserTierUpdateEventResponse](model.APIRequestOptions{
-		Method:         http.MethodPost,
-		URL:            urlWithParams,
-		Body:           payload,
+	return utils.DoAPIRequest[struct{}](model.APIRequestOptions{
+		Method: http.MethodPost,
+		URL:    urlWithParams,
+		Body:   payload,
+		BasicAuth: &model.BasicAuthCredentials{
+			Username: conf.Api.Rlp.Offers.ApiKey,
+			Password: conf.Api.Rlp.Offers.ApiSecret,
+		},
 		ExpectedStatus: http.StatusOK,
 		Client:         client,
 		Context:        ctx,
@@ -84,4 +89,19 @@ func buildRlpProfileURL(basePath, externalId, queryParams string) string {
 	}
 
 	return fmt.Sprintf("%s%s", conf.Api.Rlp.Core.Host, endpoint)
+}
+
+func GetUserTierEventName(userTier string) string {
+	switch userTier {
+	case "Tier A":
+		return RlpEventNamePublicTier
+	case "Tier B":
+		return RlpEventNameMoveTierB
+	case "Tier C":
+		return RlpEventNameMoveTierC
+	case "Tier D":
+		return RlpEventNameMoveTierD
+	default:
+		return RlpEventNamePublicTier
+	}
 }
