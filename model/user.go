@@ -70,8 +70,8 @@ type Identifier struct {
 	ExternalID string `json:"external_id" example:"25052300047"`
 
 	// Type of the external identifier
-	// example: rlp_id
-	ExternalIDType string `json:"external_id_type" example:"rlp_id"`
+	// example: RLP_ID
+	ExternalIDType string `json:"external_id_type" example:"RLP_ID"`
 }
 
 // PhoneNumber holds a phone record
@@ -169,7 +169,7 @@ func (u *User) PopulateIdentifiers(rlpId, rlpNo string) {
 	u.Identifier = append(u.Identifier,
 		Identifier{
 			ExternalID:     rlpId,
-			ExternalIDType: "rlp_id",
+			ExternalIDType: "RLP_ID",
 		},
 		Identifier{
 			ExternalID:     rlpNo,

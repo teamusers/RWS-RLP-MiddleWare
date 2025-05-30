@@ -41,8 +41,6 @@ type Config struct {
 			Secret string `yaml:"secret"`
 		} `yaml:"memberservice"`
 		Rlp struct {
-			Host       string `yaml:"host"`
-			ApiKey     string `yaml:"apikey"`
 			RetailerID string `yaml:"retailerId"`
 			Core       struct {
 				Host      string `yaml:"host"`

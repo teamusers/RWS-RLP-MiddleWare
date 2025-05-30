@@ -19,7 +19,7 @@
         },
         "gr_profile": {
             "id": "abc123",
-            "class": "2"
+            "class": "wrong class"
         }
     }
 }

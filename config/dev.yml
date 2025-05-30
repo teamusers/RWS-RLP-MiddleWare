@@ -35,8 +35,6 @@ api:
     appid : App123
     secret: mySuperSecretKey
   rlp:
-    host : https://b4eb309d-db93-4378-a3ac-fee2470deb4a.mock.pstmn.io
-    apikey : App123 
     retailerId: 5EF0D41F-38F2-4FAF-B4C8-37DCEB2A4E74
     core:
       host: https://api-rwsstg.stg-sessionm.com

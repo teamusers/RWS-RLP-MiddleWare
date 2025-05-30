@@ -1,24 +1,25 @@
 {
-    "application/json": {
-      "user_event": {
-        "id": "",
-        "time_of_occurrence": "2025-05-13T08:27:16.6958869Z",
-        "retailer_id": "8D9FB993-40C4-4400-8572-21BC5A3530F2",
-        "event_lookup": "Custom_Event_Name",
-        "user_id": "",
-        "user_tier": "Tier A",
-  
-        "is_session_m": false
+  "status": "ok",
+  "payload": {
+    "user_event": {
+      "id": "97c919cd-4682-46ed-b9af-e82e4c4ab7ab",
+      "time_of_occurrence": "2025-05-30T06:08:11.6829853Z",
+      "retailer_id": "5EF0D41F-38F2-4FAF-B4C8-37DCEB2A4E74",
+      "event_lookup": "PUBLIC_TIER",
+      "user_id": "25052300047",
+      "is_session_m": false
+    },
+    "event_saved_successfully": true,
+    "rules_processed_successfully": true,
+    "outcomes": [
+      {
+        "is_outcome_applied": true,
+        "discriminator": 16
       },
-      "culture": "en-US",
-      "event_saved_successfully": true,
-      "rules_processed_successfully": true,
-      "outcomes": [
-        {
-          "is_outcome_applied": true,
-          "outcome_message": "User tier updated!", 
-          "user_tier": "Tier A" 
-        }
-      ]
-    }
+      {
+        "is_outcome_applied": true,
+        "discriminator": 16
+      }
+    ]
   }
+}

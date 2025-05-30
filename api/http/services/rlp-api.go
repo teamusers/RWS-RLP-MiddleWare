@@ -27,16 +27,16 @@ const (
 )
 
 func CreateProfile(ctx context.Context, client *http.Client, payload any) (*responses.GetUserResponse, []byte, error) {
-	return profile(ctx, client, http.MethodPost, buildRlpProfileURL(CreateProfileURL, "", ""), payload)
+	return profile(ctx, client, http.MethodPost, BuildRlpProfileURL(CreateProfileURL, "", ""), payload)
 }
 
 func UpdateProfile(ctx context.Context, client *http.Client, externalId string, payload any) (*responses.GetUserResponse, []byte, error) {
-	return profile(ctx, client, http.MethodPut, buildRlpProfileURL(ProfileURL, externalId, ""), payload)
+	return profile(ctx, client, http.MethodPut, BuildRlpProfileURL(ProfileURL, externalId, ""), payload)
 }
 
 func GetProfile(ctx context.Context, client *http.Client, externalId string) (*responses.GetUserResponse, []byte, error) {
 	query := "user[user_profile]=true&expand_incentives=true&show_identifiers=true"
-	return profile(ctx, client, http.MethodGet, buildRlpProfileURL(ProfileURL, externalId, query), nil)
+	return profile(ctx, client, http.MethodGet, BuildRlpProfileURL(ProfileURL, externalId, query), nil)
 }
 
 func UpdateUserTier(ctx context.Context, client *http.Client, payload any) (*struct{}, []byte, error) {
@@ -76,7 +76,7 @@ func profile(ctx context.Context, client *http.Client, operation, url string, pa
 	})
 }
 
-func buildRlpProfileURL(basePath, externalId, queryParams string) string {
+func BuildRlpProfileURL(basePath, externalId, queryParams string) string {
 	conf := config.GetConfig()
 	endpoint := strings.ReplaceAll(basePath, ":api_key", conf.Api.Rlp.Core.ApiKey)
 

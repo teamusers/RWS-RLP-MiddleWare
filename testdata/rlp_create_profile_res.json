@@ -1,0 +1,31 @@
+{
+    "status": "ok",
+    "user": {
+        "id": "7558b086-3d1c-11f0-8084-1aceac110004",
+        "external_id": "25052300047",
+        "opted_in": true,
+        "activated": false,
+        "proxy_ids": [],
+        "identifiers": [
+            {
+                "external_id": "25052300047",
+                "external_id_type": "RLP_ID"
+            }
+        ],
+        "available_points": 0,
+        "test_points": 0,
+        "unclaimed_achievement_count": 0,
+        "created_at": "2025-05-30 06:08:08",
+        "updated_at": "2025-05-30 06:08:08",
+        "suspended": false,
+        "registered_at": "2025-05-30 06:08:08",
+        "profile_photo_url": "/images/account-neutral.png",
+        "test_account": false,
+        "account_status": "good",
+        "referrer_code": "21FAB2-3F636C-9DF80C",
+        "user_profile": {
+            "_version": 1,
+            "car_detail": []
+        }
+    }
+}

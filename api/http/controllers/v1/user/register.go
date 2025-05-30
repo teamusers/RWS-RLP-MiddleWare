@@ -120,8 +120,8 @@ func CreateUser(c *gin.Context) {
 	}
 
 	switch req.SignUpType {
-	case codes.SignUpTypeNew:
-		req.User.Tier = "Tier A" // set to base tier
+	case codes.SignUpTypeNew: // only need to match tier
+
 	case codes.SignUpTypeGRCMS:
 		cachedProfile, err := system.ObjectGet(req.RegId, &model.User{})
 		if err != nil {
@@ -132,25 +132,18 @@ func CreateUser(c *gin.Context) {
 
 		req.User = *cachedProfile
 
-		// match tier (assuming "X" format)
-		if err := assignTier(&req.User); err != nil {
-			c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
-			return
-		}
-
-	case codes.SignUpTypeGR:
-		// match tier (assuming "X" format)
-		if err := assignTier(&req.User); err != nil {
-			c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
-			return
-		}
+	case codes.SignUpTypeGR: // only need to match tier
 
 	case codes.SignUpTypeTM:
 		// TODO: Request and Validate TM info
 		req.User.UserProfile.EmployeeNumber = "TBC"
+	}
 
-		// match tier
-		req.User.Tier = "Tier M"
+	// match tier (assuming "X" format for class)
+	if err := assignTier(&req.User, req.SignUpType); err != nil {
+		// only gr member will throw error during assign
+		c.JSON(http.StatusConflict, responses.InvalidGrMemberClassErrorResponse())
+		return
 	}
 
 	newRlpNumbering, newRlpNumberingErr := utils.GenerateNextRLPUserNumberingWithRetry()
@@ -241,7 +234,6 @@ func CreateUser(c *gin.Context) {
 	}
 
 	// RLP: Request User Tier update
-	log.Println("RLP Trigger Update User Tier Event")
 	userTierReq := requests.UserTierUpdateEventRequest{
 		EventLookup: services.GetUserTierEventName(req.User.Tier),
 		UserId:      newRlpNumbering.RLP_ID,
@@ -472,13 +464,18 @@ func GetCachedGrCmsProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func assignTier(user *model.User) error {
-	tier, err := GrTierMatching(user.GrProfile.Class)
-	if err != nil {
-		log.Printf("error matching gr class to member tier: %v", err)
-		return err
+func assignTier(user *model.User, signUpType string) error {
+	user.Tier = "Tier A"
+	if signUpType == codes.SignUpTypeGRCMS || signUpType == codes.SignUpTypeGR {
+		tier, err := GrTierMatching(user.GrProfile.Class)
+		if err != nil {
+			log.Printf("error matching gr class to member tier: %v", err)
+			return err
+		}
+		user.Tier = tier
+	} else if signUpType == codes.SignUpTypeTM {
+		user.Tier = "Tier M"
 	}
-	user.Tier = tier
 	return nil
 }
 
