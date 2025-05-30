@@ -80,7 +80,10 @@ func UpdateUserProfile(c *gin.Context) {
 	external_id := c.Param("external_id")
 
 	// TODO - RLP : Test Actual RLP End Points
-	profileResp, _, err := services.UpdateProfile(c, httpClient, external_id, req.User.MapLbeToRlpUser())
+	rlpUpdateUserReq := requests.UserProfileRequest{
+		User: req.User.MapLbeToRlpUser(),
+	}
+	profileResp, _, err := services.UpdateProfile(c, httpClient, external_id, rlpUpdateUserReq)
 	if err != nil {
 		// Log the error
 		log.Printf("Update User Profile failed: %v", err)
@@ -178,14 +181,22 @@ func WithdrawUserProfile(c *gin.Context) {
 	rlpUserProfile := rlpResp.User
 	now := time.Now()
 	timestamp := now.Format("060102150405") // yyMMddHHmmss
-	rlpUserProfile.Email = fmt.Sprintf("%s.delete_%v", rlpUserProfile.Email, timestamp)
 
-	rlpUserProfile.UserProfile.ActiveStatus = "0"
-	rlpUserProfile.UserProfile.MarketingPreference.Push = model.BoolPtr(false)
-	rlpUserProfile.UserProfile.MarketingPreference.Email = model.BoolPtr(false)
-	rlpUserProfile.UserProfile.MarketingPreference.Mobile = model.BoolPtr(false)
+	rlpUpdateUserReq := requests.UserProfileRequest{
+		User: model.RlpUserReq{
+			Email: fmt.Sprintf("%s.delete_%v", rlpUserProfile.Email, timestamp),
+			UserProfile: model.UserProfile{
+				ActiveStatus: "0",
+				MarketingPreference: model.MarketingPreference{
+					Push:   model.BoolPtr(false),
+					Email:  model.BoolPtr(false),
+					Mobile: model.BoolPtr(false),
+				},
+			},
+		},
+	}
 
-	profileResp, _, err := services.UpdateProfile(c, httpClient, external_id, rlpUserProfile)
+	profileResp, _, err := services.UpdateProfile(c, httpClient, external_id, rlpUpdateUserReq)
 	if err != nil {
 		// Log the error
 		log.Printf("Update User Profile to withdraw failed: %v", err)
